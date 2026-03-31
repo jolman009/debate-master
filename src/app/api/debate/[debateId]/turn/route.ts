@@ -1,0 +1,219 @@
+import { createServerClient } from "@/lib/supabase/server";
+import { getAnthropicClient } from "@/lib/anthropic";
+import { getPersona } from "@/lib/debate/personas";
+import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
+import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
+import { Debate, DebateConfig, DebateStage, DebateTurn, PersonaId } from "@/lib/debate/types";
+
+export async function POST(
+  request: Request,
+  { params }: { params: { debateId: string } }
+) {
+  const supabase = createServerClient();
+
+  // 1. Load debate
+  const { data: dbDebate, error: debateError } = await supabase
+    .from("debates")
+    .select("*")
+    .eq("id", params.debateId)
+    .single();
+
+  if (debateError || !dbDebate) {
+    return new Response(JSON.stringify({ error: "Debate not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const config = dbDebate.config as DebateConfig;
+  const currentStage = dbDebate.current_stage as DebateStage;
+
+  // 2. Load existing turns
+  const { data: existingTurns } = await supabase
+    .from("debate_turns")
+    .select("*")
+    .eq("debate_id", params.debateId)
+    .order("created_at", { ascending: true });
+
+  const turns = (existingTurns || []) as DebateTurn[];
+
+  // 3. Handle user content if this is a user stage
+  let body: { content?: string } = {};
+  try {
+    body = await request.json();
+  } catch {
+    // Empty body is ok for AI-only stages
+  }
+
+  let stageForAi: DebateStage;
+
+  if (isUserStage(currentStage)) {
+    if (!body.content) {
+      return new Response(JSON.stringify({ error: "Content required for user turn" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Save user turn
+    await supabase.from("debate_turns").insert({
+      debate_id: params.debateId,
+      stage: currentStage,
+      role: "user",
+      content: body.content,
+    });
+
+    turns.push({
+      id: "pending",
+      debate_id: params.debateId,
+      stage: currentStage,
+      role: "user",
+      content: body.content,
+      created_at: new Date().toISOString(),
+    });
+
+    // Advance to AI stage
+    const nextStage = getNextStage(currentStage, config);
+    if (!nextStage || !isAiStage(nextStage)) {
+      // No AI response needed, just advance
+      await supabase
+        .from("debates")
+        .update({ current_stage: nextStage || "complete", updated_at: new Date().toISOString() })
+        .eq("id", params.debateId);
+
+      return new Response(
+        JSON.stringify({ done: true, nextStage: nextStage || "complete" }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    stageForAi = nextStage;
+
+    // Update stage to AI stage
+    await supabase
+      .from("debates")
+      .update({ current_stage: stageForAi, updated_at: new Date().toISOString() })
+      .eq("id", params.debateId);
+  } else if (isAiStage(currentStage)) {
+    stageForAi = currentStage;
+  } else {
+    return new Response(JSON.stringify({ error: "Invalid stage for turn submission" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // 4. Build prompt and stream AI response
+  const persona = getPersona(config.personaId as PersonaId);
+  const debate: Debate = {
+    id: params.debateId,
+    config,
+    current_stage: stageForAi,
+    turns,
+    feedback: null,
+    created_at: dbDebate.created_at,
+    updated_at: dbDebate.updated_at,
+  };
+
+  const systemPrompt = buildSystemPrompt(persona, debate);
+  const messages = buildMessages(turns, stageForAi, body.content ? undefined : undefined);
+
+  // Add stage instruction for AI
+  const stageInstructions: Partial<Record<DebateStage, string>> = {
+    opening_ai: "Deliver your opening statement with 2-4 clear arguments.",
+    rebuttal_ai_1: "Provide your rebuttal. Address specific points from the opponent.",
+    rebuttal_ai_2: "Provide your second rebuttal. Press harder on weaknesses.",
+    cross_exam_ai: "Ask 3-5 pointed cross-examination questions.",
+    cross_exam_ai_response: "Comment on the opponent's cross-examination answers.",
+    closing_ai: "Deliver your closing statement.",
+  };
+
+  const instruction = stageInstructions[stageForAi];
+  if (instruction && messages.length > 0) {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role === "user") {
+      lastMsg.content += `\n\n[Stage direction: ${instruction}]`;
+    }
+  }
+
+  // Ensure valid message structure
+  if (messages.length === 0 || messages[0].role !== "user") {
+    messages.unshift({
+      role: "user",
+      content: `[The debate begins. ${instruction || "Proceed with your turn."}]`,
+    });
+  }
+
+  const anthropic = getAnthropicClient();
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        let fullText = "";
+
+        const stream = anthropic.messages.stream({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1500,
+          system: systemPrompt,
+          messages,
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            fullText += event.delta.text;
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
+              )
+            );
+          }
+        }
+
+        // Save AI turn
+        await supabase.from("debate_turns").insert({
+          debate_id: params.debateId,
+          stage: stageForAi,
+          role: "ai",
+          content: fullText,
+        });
+
+        // Advance to next stage
+        const nextStage = getNextStage(stageForAi, config);
+        await supabase
+          .from("debates")
+          .update({
+            current_stage: nextStage || "complete",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", params.debateId);
+
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ done: true, nextStage: nextStage || "complete" })}\n\n`
+          )
+        );
+        controller.close();
+      } catch (err) {
+        console.error("Streaming error:", err);
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ error: "AI response failed" })}\n\n`
+          )
+        );
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}

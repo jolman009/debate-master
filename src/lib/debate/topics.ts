@@ -1,0 +1,88 @@
+import { Topic } from "./types";
+
+export const CURATED_TOPICS: Topic[] = [
+  {
+    id: "ubi",
+    title: "Universal Basic Income",
+    motion: "This house believes that governments should provide a universal basic income to all citizens.",
+    category: "economics",
+    difficulty: "intermediate",
+  },
+  {
+    id: "free-speech",
+    title: "Free Speech Absolutism",
+    motion: "This house believes that free speech protections should extend to all forms of expression without exception.",
+    category: "politics",
+    difficulty: "advanced",
+  },
+  {
+    id: "ai-regulation",
+    title: "AI Regulation",
+    motion: "This house believes that artificial intelligence development should be heavily regulated by governments.",
+    category: "technology",
+    difficulty: "intermediate",
+  },
+  {
+    id: "gun-control",
+    title: "Gun Control",
+    motion: "This house believes that the United States should implement significantly stricter gun control legislation.",
+    category: "politics",
+    difficulty: "intermediate",
+  },
+  {
+    id: "drug-legalization",
+    title: "Drug Legalization",
+    motion: "This house believes that all recreational drugs should be decriminalized.",
+    category: "social",
+    difficulty: "intermediate",
+  },
+  {
+    id: "capital-punishment",
+    title: "Capital Punishment",
+    motion: "This house believes that the death penalty is never morally justified.",
+    category: "philosophy",
+    difficulty: "beginner",
+  },
+  {
+    id: "wealth-tax",
+    title: "Wealth Taxation",
+    motion: "This house believes that billionaires should be taxed at significantly higher rates.",
+    category: "economics",
+    difficulty: "beginner",
+  },
+  {
+    id: "social-media",
+    title: "Social Media Censorship",
+    motion: "This house believes that social media companies should actively moderate political content.",
+    category: "technology",
+    difficulty: "beginner",
+  },
+  {
+    id: "climate-policy",
+    title: "Climate Change Policy",
+    motion: "This house believes that governments should mandate aggressive carbon reduction even at significant economic cost.",
+    category: "politics",
+    difficulty: "advanced",
+  },
+  {
+    id: "immigration",
+    title: "Immigration Policy",
+    motion: "This house believes that nations should adopt more open immigration policies.",
+    category: "politics",
+    difficulty: "intermediate",
+  },
+  {
+    id: "crypto",
+    title: "Cryptocurrency",
+    motion: "This house believes that cryptocurrency should replace traditional banking systems.",
+    category: "economics",
+    difficulty: "intermediate",
+  },
+  {
+    id: "college-worth",
+    title: "College Education",
+    motion: "This house believes that a traditional four-year college degree is no longer worth the cost for most people.",
+    category: "social",
+    difficulty: "beginner",
+  },
+];

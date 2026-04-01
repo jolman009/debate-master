@@ -3,14 +3,16 @@
 import { useEffect, useRef } from "react";
 import { useDebate } from "@/hooks/use-debate";
 import { getPersona } from "@/lib/debate/personas";
-import { DebateConfig, DebateStage as DebateStageType, PersonaId } from "@/lib/debate/types";
+import { DebateConfig, DebateStage as DebateStageType, PersonaId, VoiceConfig } from "@/lib/debate/types";
 import { StageIndicator } from "./stage-indicator";
 import { PersonaAvatar } from "./persona-avatar";
 import { TurnDisplay } from "./turn-display";
 import { AiStreamingTurn } from "./ai-streaming-turn";
 import { UserInput } from "./user-input";
 import { FeedbackPanel } from "./feedback-panel";
+import { SpeechToggle } from "./speech-toggle";
 import { Button } from "@/components/ui/button";
+import { useSpeech } from "@/hooks/use-speech";
 
 interface DebateStageProps {
   debateId: string;
@@ -35,6 +37,16 @@ export function DebateStage({ debateId }: DebateStageProps) {
   } = useDebate(debateId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const config = debate ? (debate.config as DebateConfig) : null;
+  const persona = config ? getPersona(config.personaId as PersonaId) : null;
+  const defaultVoice: VoiceConfig = { pitch: 1, rate: 1, voicePrefs: [] };
+
+  const { isMuted, toggleMute, isSupported } = useSpeech(
+    streamedText,
+    isStreaming,
+    persona?.voiceConfig ?? defaultVoice
+  );
 
   // Auto-scroll to bottom when new content arrives
   useEffect(() => {
@@ -68,8 +80,6 @@ export function DebateStage({ debateId }: DebateStageProps) {
     );
   }
 
-  const config = debate.config as DebateConfig;
-  const persona = getPersona(config.personaId as PersonaId);
   const currentStage = debate.current_stage as DebateStageType;
   const isFeedbackStage = currentStage === "feedback";
   const isComplete = currentStage === "complete";
@@ -79,14 +89,17 @@ export function DebateStage({ debateId }: DebateStageProps) {
       {/* Header */}
       <div className="space-y-4 shrink-0">
         <div className="flex items-center justify-between">
-          <PersonaAvatar persona={persona} speaking={isStreaming} size="sm" />
+          <div className="flex items-center gap-2">
+            <PersonaAvatar persona={persona!} speaking={isStreaming} size="sm" />
+            <SpeechToggle isMuted={isMuted} onToggle={toggleMute} isSupported={isSupported} />
+          </div>
           <div className="text-right">
             <p className="text-xs text-stage-muted">Topic</p>
-            <p className="text-sm font-medium">{config.topic}</p>
+            <p className="text-sm font-medium">{config!.topic}</p>
           </div>
         </div>
 
-        <StageIndicator config={config} currentStage={currentStage} />
+        <StageIndicator config={config!} currentStage={currentStage} />
 
         {/* Stage banner */}
         {!isComplete && (
@@ -112,14 +125,14 @@ export function DebateStage({ debateId }: DebateStageProps) {
           <TurnDisplay
             key={turn.id}
             turn={turn}
-            personaName={persona.displayName}
+            personaName={persona!.displayName}
           />
         ))}
 
-        {isStreaming && streamedText && (
+        {streamedText && !(debate.turns.some(t => t.role === "ai" && t.content === streamedText)) && (
           <AiStreamingTurn
             text={streamedText}
-            personaName={persona.displayName}
+            personaName={persona!.displayName}
             stageLabel={stageLabel}
           />
         )}
@@ -127,7 +140,7 @@ export function DebateStage({ debateId }: DebateStageProps) {
         {isAiTurn && !isStreaming && !streamedText && (
           <div className="flex items-center gap-2 text-sm text-stage-muted">
             <span className="inline-block w-2 h-2 rounded-full bg-stage-accent animate-pulse" />
-            {persona.displayName} is thinking...
+            {persona!.displayName} is thinking...
           </div>
         )}
       </div>
@@ -164,7 +177,7 @@ export function DebateStage({ debateId }: DebateStageProps) {
         {isAiTurn && (
           <div className="text-center py-2">
             <p className="text-xs text-stage-muted">
-              Waiting for {persona.displayName} to respond...
+              Waiting for {persona!.displayName} to respond...
             </p>
           </div>
         )}

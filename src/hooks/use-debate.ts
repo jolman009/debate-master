@@ -57,12 +57,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     async (content: string) => {
       if (!debate) return;
 
-      const result = await startStream(debateId, content);
-
-      if (result) {
-        // Refresh debate state after turn completes
-        await fetchDebate();
-      }
+      await startStream(debateId, content);
+      await fetchDebate();
     },
     [debate, debateId, startStream, fetchDebate]
   );
@@ -70,11 +66,8 @@ export function useDebate(debateId: string): UseDebateReturn {
   const triggerAiTurn = useCallback(async () => {
     if (!debate) return;
 
-    const result = await startStream(debateId);
-
-    if (result) {
-      await fetchDebate();
-    }
+    await startStream(debateId);
+    await fetchDebate();
   }, [debate, debateId, startStream, fetchDebate]);
 
   const requestFeedback = useCallback(async () => {

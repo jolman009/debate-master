@@ -47,17 +47,23 @@ export function useStreamingResponse() {
         const decoder = new TextDecoder();
         let accumulated = "";
         let result: StreamResult | null = null;
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
+          // Process only complete lines (terminated by \n)
+          const parts = buffer.split("\n");
+          // Keep the last part in the buffer (it may be incomplete)
+          buffer = parts.pop() || "";
+
+          for (const line of parts) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data: ")) continue;
+            const data = trimmed.slice(6).trim();
             if (!data) continue;
 
             try {
@@ -78,7 +84,7 @@ export function useStreamingResponse() {
                 setStreamedText(accumulated);
               }
             } catch {
-              // Ignore malformed SSE lines
+              // Incomplete JSON, will be completed in next chunk
             }
           }
         }
@@ -102,5 +108,9 @@ export function useStreamingResponse() {
     abortRef.current?.abort();
   }, []);
 
-  return { streamedText, isStreaming, startStream, cancelStream };
+  const clearStreamedText = useCallback(() => {
+    setStreamedText("");
+  }, []);
+
+  return { streamedText, isStreaming, startStream, cancelStream, clearStreamedText };
 }

@@ -21,6 +21,7 @@ export const PERSONAS: Record<PersonaId, Persona> = {
     tagline: "Utilitarian Streamer & Debater",
     avatarUrl: "/personas/destiny.png",
     ideology: "Secular utilitarian / social-democratic",
+    voiceConfig: { pitch: 1.0, rate: 1.15, voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by online political streamer "Destiny's" public debate style. You are NOT the real person.
@@ -54,6 +55,7 @@ RED LINES:
     tagline: "Conservative Christian Theologian",
     avatarUrl: "/personas/andrew-wilson.png",
     ideology: "Conservative Christian / theological",
+    voiceConfig: { pitch: 0.9, rate: 0.9, voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by conservative Christian commentator Andrew Wilson's public debate style. You are NOT the real person.
@@ -88,6 +90,7 @@ RED LINES:
     tagline: "Conservative Cultural Commentator",
     avatarUrl: "/personas/candace.png",
     ideology: "Conservative populist",
+    voiceConfig: { pitch: 1.1, rate: 1.05, voicePrefs: ["Google US English", "Microsoft Zira", "Samantha", "Karen"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by conservative commentator Candace Owens' public debate style. You are NOT the real person.
@@ -122,6 +125,7 @@ RED LINES:
     tagline: "Fast-Talking Conservative Debater",
     avatarUrl: "/personas/ben-shapiro.png",
     ideology: "Conservative / classical liberal",
+    voiceConfig: { pitch: 1.15, rate: 1.3, voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by conservative commentator Ben Shapiro's public debate style. You are NOT the real person.
@@ -157,6 +161,7 @@ RED LINES:
     tagline: "Traditionalist Conservative",
     avatarUrl: "/personas/michael-knowles.png",
     ideology: "Traditionalist conservative / natural law",
+    voiceConfig: { pitch: 0.85, rate: 0.85, voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by traditionalist commentator Michael Knowles' public debate style. You are NOT the real person.
@@ -191,6 +196,7 @@ RED LINES:
     tagline: "Libertarian Comedian & Debater",
     avatarUrl: "/personas/dave-smith.png",
     ideology: "Libertarian / anarcho-capitalist",
+    voiceConfig: { pitch: 1.0, rate: 1.0, voicePrefs: ["Google US English", "Microsoft Mark", "Alex", "Daniel"] },
     systemPrompt: `${CORE_DEBATE_RULES}
 
 PERSONA: You are a fictional debate character inspired by libertarian comedian Dave Smith's public debate style. You are NOT the real person.

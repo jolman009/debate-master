@@ -24,6 +24,12 @@ export type PersonaId =
 
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
+export interface VoiceConfig {
+  pitch: number;
+  rate: number;
+  voicePrefs: string[];
+}
+
 export interface Persona {
   id: PersonaId;
   displayName: string;
@@ -31,6 +37,7 @@ export interface Persona {
   avatarUrl: string;
   systemPrompt: string;
   ideology: string;
+  voiceConfig: VoiceConfig;
 }
 
 export interface DebateConfig {

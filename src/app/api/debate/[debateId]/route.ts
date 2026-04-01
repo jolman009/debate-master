@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: Request,
   { params }: { params: { debateId: string } }
@@ -33,8 +35,8 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({
-    ...debate,
-    turns: turns || [],
-  });
+  return NextResponse.json(
+    { ...debate, turns: turns || [] },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+  );
 }

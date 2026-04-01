@@ -33,7 +33,7 @@ export function useDebate(debateId: string): UseDebateReturn {
 
   const fetchDebate = useCallback(async () => {
     try {
-      const res = await fetch(`/api/debate/${debateId}`);
+      const res = await fetch(`/api/debate/${debateId}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch debate");
       const data = await res.json();
       setDebate(data);

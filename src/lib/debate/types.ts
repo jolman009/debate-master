@@ -30,14 +30,23 @@ export interface VoiceConfig {
   voicePrefs: string[];
 }
 
+export interface ThemeColor {
+  from: string;
+  to: string;
+  glow: string;
+}
+
 export interface Persona {
   id: PersonaId;
   displayName: string;
   tagline: string;
   avatarUrl: string;
+  avatarUrlSpeaking?: string;
+  avatarUrlThinking?: string;
   systemPrompt: string;
   ideology: string;
   voiceConfig: VoiceConfig;
+  theme: ThemeColor;
 }
 
 export interface DebateConfig {

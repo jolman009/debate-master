@@ -89,8 +89,13 @@ export function DebateStage({ debateId }: DebateStageProps) {
       {/* Header */}
       <div className="space-y-4 shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PersonaAvatar persona={persona!} speaking={isStreaming} size="sm" />
+          <div className="flex items-center gap-3">
+            <PersonaAvatar
+              persona={persona!}
+              speaking={isStreaming}
+              thinking={isAiTurn && !isStreaming}
+              size="lg"
+            />
             <SpeechToggle isMuted={isMuted} onToggle={toggleMute} isSupported={isSupported} />
           </div>
           <div className="text-right">

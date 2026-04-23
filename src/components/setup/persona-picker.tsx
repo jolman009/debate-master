@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PersonaId } from "@/lib/debate/types";
 import { getAllPersonas } from "@/lib/debate/personas";
+import { PersonaAvatar } from "@/components/debate/persona-avatar";
 
 interface PersonaPickerProps {
   selectedPersona: PersonaId | null;
@@ -27,16 +28,8 @@ export function PersonaPicker({
             className="cursor-pointer p-4"
             onClick={() => onSelectPersona(persona.id)}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-stage-accent/20 flex items-center justify-center text-stage-accent font-bold text-lg">
-                {persona.displayName[0]}
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">
-                  {persona.displayName}
-                </h3>
-                <p className="text-xs text-stage-muted">{persona.tagline}</p>
-              </div>
+            <div className="mb-2">
+              <PersonaAvatar persona={persona} size="sm" />
             </div>
             <Badge variant="accent" className="text-xs">
               {persona.ideology}

@@ -28,6 +28,7 @@ export interface VoiceConfig {
   pitch: number;
   rate: number;
   voicePrefs: string[];
+  elevenLabsVoiceId?: string;
 }
 
 export interface ThemeColor {

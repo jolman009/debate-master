@@ -21,7 +21,12 @@ export const PERSONAS: Record<PersonaId, Persona> = {
     tagline: "Utilitarian Streamer & Debater",
     avatarUrl: "/personas/destiny.png",
     ideology: "Secular utilitarian / social-democratic",
-    voiceConfig: { pitch: 1.0, rate: 1.15, voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"] },
+    voiceConfig: {
+      pitch: 1.0,
+      rate: 1.15,
+      voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"],
+      elevenLabsVoiceId: "pNInz6obpgDQGcFmaJgB", // Adam — clear young male
+    },
     theme: { from: "#3b82f6", to: "#06b6d4", glow: "rgba(59, 130, 246, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 
@@ -56,7 +61,12 @@ RED LINES:
     tagline: "Conservative Christian Theologian",
     avatarUrl: "/personas/andrew-wilson.png",
     ideology: "Conservative Christian / theological",
-    voiceConfig: { pitch: 0.9, rate: 0.9, voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"] },
+    voiceConfig: {
+      pitch: 0.9,
+      rate: 0.9,
+      voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"],
+      elevenLabsVoiceId: "JBFqnCBsd6RMkjVDRZzb", // George — warm British narrator
+    },
     theme: { from: "#d4a147", to: "#78350f", glow: "rgba(212, 161, 71, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 
@@ -92,7 +102,12 @@ RED LINES:
     tagline: "Conservative Cultural Commentator",
     avatarUrl: "/personas/candace.png",
     ideology: "Conservative populist",
-    voiceConfig: { pitch: 1.1, rate: 1.05, voicePrefs: ["Google US English", "Microsoft Zira", "Samantha", "Karen"] },
+    voiceConfig: {
+      pitch: 1.1,
+      rate: 1.05,
+      voicePrefs: ["Google US English", "Microsoft Zira", "Samantha", "Karen"],
+      elevenLabsVoiceId: "EXAVITQu4vr4xnSDxMaL", // Bella — soft confident female
+    },
     theme: { from: "#ef4444", to: "#be185d", glow: "rgba(239, 68, 68, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 
@@ -128,7 +143,12 @@ RED LINES:
     tagline: "Fast-Talking Conservative Debater",
     avatarUrl: "/personas/ben-shapiro.png",
     ideology: "Conservative / classical liberal",
-    voiceConfig: { pitch: 1.15, rate: 1.3, voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"] },
+    voiceConfig: {
+      pitch: 1.15,
+      rate: 1.3,
+      voicePrefs: ["Google US English", "Microsoft David", "Alex", "Daniel"],
+      elevenLabsVoiceId: "TxGEqnHWrfWFTfGW9XjX", // Josh — sharp young male
+    },
     theme: { from: "#8b5cf6", to: "#4338ca", glow: "rgba(139, 92, 246, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 
@@ -165,7 +185,12 @@ RED LINES:
     tagline: "Traditionalist Conservative",
     avatarUrl: "/personas/michael-knowles.png",
     ideology: "Traditionalist conservative / natural law",
-    voiceConfig: { pitch: 0.85, rate: 0.85, voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"] },
+    voiceConfig: {
+      pitch: 0.85,
+      rate: 0.85,
+      voicePrefs: ["Google UK English Male", "Microsoft George", "Daniel", "Alex"],
+      elevenLabsVoiceId: "onwK4e9ZLuTAKqWW03F9", // Daniel — deep British narrator
+    },
     theme: { from: "#14b8a6", to: "#0f766e", glow: "rgba(20, 184, 166, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 
@@ -201,7 +226,12 @@ RED LINES:
     tagline: "Libertarian Comedian & Debater",
     avatarUrl: "/personas/dave-smith.png",
     ideology: "Libertarian / anarcho-capitalist",
-    voiceConfig: { pitch: 1.0, rate: 1.0, voicePrefs: ["Google US English", "Microsoft Mark", "Alex", "Daniel"] },
+    voiceConfig: {
+      pitch: 1.0,
+      rate: 1.0,
+      voicePrefs: ["Google US English", "Microsoft Mark", "Alex", "Daniel"],
+      elevenLabsVoiceId: "yoZ06aMxZJJ28mfd3POQ", // Sam — casual American male
+    },
     theme: { from: "#f59e0b", to: "#ea580c", glow: "rgba(245, 158, 11, 0.55)" },
     systemPrompt: `${CORE_DEBATE_RULES}
 

@@ -77,7 +77,7 @@ export function TopicPicker({
                   "text-sm px-3 py-1 rounded-full transition-colors",
                   activeCategory === cat.id
                     ? "bg-stage-accent text-white"
-                    : "bg-stage-surface text-stage-muted hover:text-white"
+                    : "bg-stage-surface text-stage-muted hover:text-stage-text"
                 )}
               >
                 {cat.label}

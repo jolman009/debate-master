@@ -5,7 +5,7 @@ import { useDebate } from "@/hooks/use-debate";
 import { getPersona } from "@/lib/debate/personas";
 import { DebateConfig, DebateStage as DebateStageType, PersonaId, VoiceConfig } from "@/lib/debate/types";
 import { StageIndicator } from "./stage-indicator";
-import { PersonaAvatar } from "./persona-avatar";
+import { LiveStage } from "./live-stage";
 import { TurnDisplay } from "./turn-display";
 import { AiStreamingTurn } from "./ai-streaming-turn";
 import { UserInput } from "./user-input";
@@ -42,7 +42,7 @@ export function DebateStage({ debateId }: DebateStageProps) {
   const persona = config ? getPersona(config.personaId as PersonaId) : null;
   const defaultVoice: VoiceConfig = { pitch: 1, rate: 1, voicePrefs: [] };
 
-  const { isMuted, toggleMute, isSupported } = useSpeech(
+  const { isMuted, toggleMute, isSupported, isSpeaking, amplitude } = useSpeech(
     streamedText,
     isStreaming,
     persona?.voiceConfig ?? defaultVoice
@@ -88,21 +88,27 @@ export function DebateStage({ debateId }: DebateStageProps) {
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-73px)]">
       {/* Header */}
       <div className="space-y-4 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <PersonaAvatar
-              persona={persona!}
-              speaking={isStreaming}
-              thinking={isAiTurn && !isStreaming}
-              size="lg"
-            />
-            <SpeechToggle isMuted={isMuted} onToggle={toggleMute} isSupported={isSupported} />
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-xs text-stage-muted">
+            <p className="uppercase tracking-wider mb-0.5">Topic</p>
+            <p className="text-sm font-medium text-stage-text">{config!.topic}</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-stage-muted">Topic</p>
-            <p className="text-sm font-medium">{config!.topic}</p>
-          </div>
+          <SpeechToggle
+            isMuted={isMuted}
+            onToggle={toggleMute}
+            isSupported={isSupported}
+          />
         </div>
+
+        <LiveStage
+          persona={persona!}
+          userSide={config!.userSide}
+          isStreaming={isStreaming}
+          isSpeaking={isSpeaking}
+          isAiTurn={isAiTurn}
+          isMyTurn={isMyTurn}
+          amplitude={amplitude}
+        />
 
         <StageIndicator config={config!} currentStage={currentStage} />
 

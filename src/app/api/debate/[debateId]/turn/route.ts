@@ -56,12 +56,21 @@ export async function POST(
     }
 
     // Save user turn
-    await supabase.from("debate_turns").insert({
-      debate_id: params.debateId,
-      stage: currentStage,
-      role: "user",
-      content: body.content,
-    });
+    const { error: userTurnError } = await supabase
+      .from("debate_turns")
+      .insert({
+        debate_id: params.debateId,
+        stage: currentStage,
+        role: "user",
+        content: body.content,
+      });
+
+    if (userTurnError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to save your turn" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     turns.push({
       id: "pending",
@@ -76,10 +85,17 @@ export async function POST(
     const nextStage = getNextStage(currentStage, config);
     if (!nextStage || !isAiStage(nextStage)) {
       // No AI response needed, just advance
-      await supabase
+      const { error: advanceError } = await supabase
         .from("debates")
         .update({ current_stage: nextStage || "complete", updated_at: new Date().toISOString() })
         .eq("id", params.debateId);
+
+      if (advanceError) {
+        return new Response(
+          JSON.stringify({ error: "Failed to advance debate stage" }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
 
       return new Response(
         JSON.stringify({ done: true, nextStage: nextStage || "complete" }),
@@ -90,10 +106,17 @@ export async function POST(
     stageForAi = nextStage;
 
     // Update stage to AI stage
-    await supabase
+    const { error: stageError } = await supabase
       .from("debates")
       .update({ current_stage: stageForAi, updated_at: new Date().toISOString() })
       .eq("id", params.debateId);
+
+    if (stageError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to advance debate stage" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
   } else if (isAiStage(currentStage)) {
     stageForAi = currentStage;
   } else {
@@ -174,22 +197,32 @@ export async function POST(
         }
 
         // Save AI turn
-        await supabase.from("debate_turns").insert({
-          debate_id: params.debateId,
-          stage: stageForAi,
-          role: "ai",
-          content: fullText,
-        });
+        const { error: aiTurnError } = await supabase
+          .from("debate_turns")
+          .insert({
+            debate_id: params.debateId,
+            stage: stageForAi,
+            role: "ai",
+            content: fullText,
+          });
+
+        if (aiTurnError) {
+          throw new Error("Failed to save AI turn");
+        }
 
         // Advance to next stage
         const nextStage = getNextStage(stageForAi, config);
-        await supabase
+        const { error: advanceError } = await supabase
           .from("debates")
           .update({
             current_stage: nextStage || "complete",
             updated_at: new Date().toISOString(),
           })
           .eq("id", params.debateId);
+
+        if (advanceError) {
+          throw new Error("Failed to advance debate stage");
+        }
 
         controller.enqueue(
           encoder.encode(
@@ -199,10 +232,10 @@ export async function POST(
         controller.close();
       } catch (err) {
         console.error("Streaming error:", err);
+        const message =
+          err instanceof Error ? err.message : "AI response failed";
         controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ error: "AI response failed" })}\n\n`
-          )
+          encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
         );
         controller.close();
       }

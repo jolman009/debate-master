@@ -27,37 +27,42 @@ security, rate limiting, input caps, error monitoring, tests/CI.
 
 ## Phase 1 — Production Hardening 🔒 *(launch blockers)*
 
-The app is currently fully open: any visitor can read or inject turns into
-any debate by ID, and every AI/TTS endpoint is callable without limits.
+The app was fully open: any visitor could read or inject turns into any
+debate by ID, and every AI/TTS endpoint was callable without limits.
 None of Phase 2–4 should ship publicly until this is done.
 
-- [ ] **Authentication** — add Supabase Auth (email/OAuth). Migrate
-  `src/lib/supabase/*` to `@supabase/ssr` for cookie-based sessions in
-  route handlers. **M**
-- [ ] **Ownership in the schema** — add `user_id uuid references
-  auth.users` to `debates`; backfill/migrate. **S**
-- [ ] **Row Level Security** — `ENABLE ROW LEVEL SECURITY` on `debates`
-  and `debate_turns`; policies so a user only sees/writes their own
-  debates (`auth.uid() = user_id`). **M**
-- [ ] **Server key correctness** — server routes use the service-role key
-  (or the user's JWT) instead of the anon key, so writes still work once
-  RLS is on. **S**
+- [x] **Authentication** — Supabase Auth (email + password) via
+  `@supabase/ssr` cookie-based sessions; `/login` page, `/auth/confirm`
+  route, header auth menu. **M**
+- [x] **Ownership in the schema** — `debates.user_id` added in migration
+  `002_auth_and_rls.sql`. **S**
+- [x] **Row Level Security** — RLS enabled on `debates` and
+  `debate_turns` with owner-only policies (`auth.uid() = user_id`). **M**
+- [x] **Server key correctness** — server routes use the cookie-based
+  user client, so they run as the signed-in user and RLS applies (no
+  service-role key, no RLS bypass). **S**
 - [ ] **Rate limiting** — wrap `/api/debate/[id]/turn`, `/feedback`, and
   `/api/tts` with per-user/IP limits (`@upstash/ratelimit` + Upstash
-  Redis works on Vercel). **M**
-- [ ] **Input validation** — cap `content` length on turn submission
-  (e.g. 8–10k chars) and topic length on create; reject oversized
-  payloads before they reach Claude. **S**
-- [ ] **Error monitoring** — add Sentry (client + server), a React error
-  boundary, and stop leaking raw error messages to the SSE client. **M**
+  Redis), gated behind env vars. **M**
+- [x] **Input validation** — turn content capped at 10k chars; topic and
+  motion length capped on create. **S**
+- [ ] **Error monitoring** — add Sentry (activates when `SENTRY_DSN` is
+  set), a React error boundary, and stop leaking raw error messages to
+  the SSE client. **M**
 - [ ] **Surface stream/turn errors in the UI** — `useStreamingResponse`
   currently swallows `parsed.error`; show a retry affordance when a turn
   or feedback request fails. **S**
-- [ ] **Streaming route limits** — set an explicit serverless function
-  timeout/`maxDuration` for the turn route so hung streams fail cleanly. **S**
-- [ ] **Update the Claude model** — `turn` and `feedback` routes hardcode
-  `claude-sonnet-4-20250514`; move the model ID to one constant and
-  bump to the current Sonnet (`claude-sonnet-4-6`). **S**
+- [x] **Streaming route limits** — `maxDuration = 60` set on the turn
+  and feedback routes. **S**
+- [x] **Update the Claude model** — centralized in `CLAUDE_MODEL` and
+  bumped to `claude-sonnet-4-6`. **S**
+
+**Manual setup required** (Supabase dashboard):
+1. Run `supabase/migrations/002_auth_and_rls.sql` in the SQL Editor.
+2. Auth → Providers → Email: optionally turn **off** "Confirm email" for
+   a frictionless pre-launch signup (the `/auth/confirm` route supports
+   it being on).
+3. Delete pre-auth test debates: `DELETE FROM debates WHERE user_id IS NULL;`
 
 ## Phase 2 — User Accounts & Debate History 📚 *(core product)*
 

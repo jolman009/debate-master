@@ -17,12 +17,20 @@ export async function Header() {
         </Link>
         <div className="flex items-center gap-6">
           {user && (
-            <Link
-              href="/debate/new"
-              className="text-sm text-stage-muted hover:text-stage-text transition-colors"
-            >
-              New Debate
-            </Link>
+            <>
+              <Link
+                href="/debate"
+                className="text-sm text-stage-muted hover:text-stage-text transition-colors"
+              >
+                My Debates
+              </Link>
+              <Link
+                href="/debate/new"
+                className="text-sm text-stage-muted hover:text-stage-text transition-colors"
+              >
+                New Debate
+              </Link>
+            </>
           )}
           <ThemeToggle />
           <AuthMenu email={user?.email ?? null} />

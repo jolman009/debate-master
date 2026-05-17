@@ -64,7 +64,7 @@ None of Phase 2–4 should ship publicly until this is done.
    it being on).
 3. Delete pre-auth test debates: `DELETE FROM debates WHERE user_id IS NULL;`
 
-## Phase 2 — User Accounts & Debate History 📚 *(core product)*
+## Phase 2 — User Accounts & Debate History 📚 ✅ *(complete)*
 
 Once users exist, give them a reason to come back.
 
@@ -74,8 +74,9 @@ Once users exist, give them a reason to come back.
   completion count, average/best score, per-dimension averages. **M**
 - [x] **Feedback persistence & comparison** — progress summary shows the
   score trend vs the user's first debate. **S**
-- [ ] **Shareable read-only debate links** — a public, view-only URL for
-  a finished debate (good for organic growth). **M**
+- [x] **Shareable read-only debate links** — opt-in opaque share token +
+  `SECURITY DEFINER` functions (migration 004); public `/share/[token]`
+  page shows the transcript + feedback scores read-only. **M**
 - [x] **Data hygiene** — soft-delete via `archived_at` (migration 003);
   archived debates leave the dashboard but are recoverable. **S**
 

@@ -75,6 +75,7 @@ export interface Debate {
   current_stage: DebateStage;
   turns: DebateTurn[];
   feedback: DebateFeedback | null;
+  share_token?: string | null;
   created_at: string;
   updated_at: string;
 }

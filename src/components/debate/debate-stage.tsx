@@ -12,6 +12,7 @@ import { UserInput } from "./user-input";
 import { FeedbackPanel } from "./feedback-panel";
 import { SpeechToggle } from "./speech-toggle";
 import { TranscriptOverlay } from "./transcript-overlay";
+import { ShareDebate } from "./share-debate";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
 
@@ -227,6 +228,15 @@ export function DebateStage({ debateId }: DebateStageProps) {
         )}
 
         {feedback && <FeedbackPanel feedback={feedback} />}
+
+        {(isComplete || isFeedbackStage) && (
+          <div className="mt-3 flex justify-center">
+            <ShareDebate
+              debateId={debate.id}
+              initialShareToken={debate.share_token ?? null}
+            />
+          </div>
+        )}
 
         {isComplete && !feedback && (
           <div className="text-center py-4">

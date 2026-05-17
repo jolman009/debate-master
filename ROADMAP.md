@@ -25,7 +25,7 @@ security, rate limiting, input caps, error monitoring, tests/CI.
 
 ---
 
-## Phase 1 — Production Hardening 🔒 *(launch blockers)*
+## Phase 1 — Production Hardening 🔒 ✅ *(complete)*
 
 The app was fully open: any visitor could read or inject turns into any
 debate by ID, and every AI/TTS endpoint was callable without limits.
@@ -41,17 +41,17 @@ None of Phase 2–4 should ship publicly until this is done.
 - [x] **Server key correctness** — server routes use the cookie-based
   user client, so they run as the signed-in user and RLS applies (no
   service-role key, no RLS bypass). **S**
-- [ ] **Rate limiting** — wrap `/api/debate/[id]/turn`, `/feedback`, and
-  `/api/tts` with per-user/IP limits (`@upstash/ratelimit` + Upstash
-  Redis), gated behind env vars. **M**
+- [x] **Rate limiting** — per-user/IP sliding-window limits on the AI
+  turn, feedback, and TTS routes via `@upstash/ratelimit`; gated behind
+  env vars (no-op until Upstash keys are set). **M**
 - [x] **Input validation** — turn content capped at 10k chars; topic and
   motion length capped on create. **S**
-- [ ] **Error monitoring** — add Sentry (activates when `SENTRY_DSN` is
-  set), a React error boundary, and stop leaking raw error messages to
-  the SSE client. **M**
-- [ ] **Surface stream/turn errors in the UI** — `useStreamingResponse`
-  currently swallows `parsed.error`; show a retry affordance when a turn
-  or feedback request fails. **S**
+- [x] **Error monitoring** — `reportError` seam + Sentry (activates when
+  `SENTRY_DSN` is set), `global-error.tsx` boundary, and the turn route
+  no longer leaks raw error detail to the SSE client. **M**
+- [x] **Surface stream/turn errors in the UI** — `useStreamingResponse`
+  exposes `streamError`; debate stage shows a dismissible banner with a
+  Retry action, and the AI auto-trigger is guarded against retry loops. **S**
 - [x] **Streaming route limits** — `maxDuration = 60` set on the turn
   and feedback routes. **S**
 - [x] **Update the Claude model** — centralized in `CLAUDE_MODEL` and

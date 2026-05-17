@@ -68,17 +68,16 @@ None of Phase 2–4 should ship publicly until this is done.
 
 Once users exist, give them a reason to come back.
 
-- [ ] **"My Debates" dashboard** — list past debates with topic, persona,
-  outcome/score, date; resume in-progress ones. **M**
-- [ ] **Profile & progress** — aggregate stats: debates completed,
-  average scores per dimension, score trend over time. **M**
-- [ ] **Feedback persistence & comparison** — keep feedback history so a
-  user can see improvement across debates (the score is already stored
-  per debate; surface it). **S**
-- [ ] **Shareable read-only debate links** — a public, signed,
-  view-only URL for a finished debate (good for organic growth). **M**
-- [ ] **Data hygiene** — soft-delete (`archived_at`), and a retention
-  decision for abandoned debates. **S**
+- [x] **"My Debates" dashboard** — `/debate` lists past debates with
+  topic, persona, score, and date; cards link through to resume/review. **M**
+- [x] **Profile & progress** — `ProgressSummary` atop the dashboard:
+  completion count, average/best score, per-dimension averages. **M**
+- [x] **Feedback persistence & comparison** — progress summary shows the
+  score trend vs the user's first debate. **S**
+- [ ] **Shareable read-only debate links** — a public, view-only URL for
+  a finished debate (good for organic growth). **M**
+- [x] **Data hygiene** — soft-delete via `archived_at` (migration 003);
+  archived debates leave the dashboard but are recoverable. **S**
 
 ## Phase 3 — Immersive Stage Experience 🎭 *(the differentiator)*
 

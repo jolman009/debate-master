@@ -10,6 +10,7 @@ interface StreamResult {
 export function useStreamingResponse() {
   const [streamedText, setStreamedText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const startStream = useCallback(
@@ -19,6 +20,7 @@ export function useStreamingResponse() {
     ): Promise<StreamResult | null> => {
       setIsStreaming(true);
       setStreamedText("");
+      setStreamError(null);
 
       abortRef.current = new AbortController();
 
@@ -31,7 +33,14 @@ export function useStreamingResponse() {
         });
 
         if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+          let message = `Request failed (${res.status})`;
+          try {
+            const errBody = await res.json();
+            if (errBody?.error) message = errBody.error;
+          } catch {
+            // Non-JSON error body — keep the generic message.
+          }
+          throw new Error(message);
         }
 
         // Check if this is a JSON response (no AI turn needed)
@@ -70,7 +79,7 @@ export function useStreamingResponse() {
               const parsed = JSON.parse(data);
 
               if (parsed.error) {
-                console.error("Stream error:", parsed.error);
+                setStreamError(parsed.error);
                 continue;
               }
 
@@ -93,9 +102,11 @@ export function useStreamingResponse() {
         return result;
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          // Cancelled
+          // Cancelled — not an error.
         } else {
-          console.error("Stream failed:", err);
+          setStreamError(
+            (err as Error).message || "Something went wrong. Please try again."
+          );
         }
         setIsStreaming(false);
         return null;
@@ -112,5 +123,17 @@ export function useStreamingResponse() {
     setStreamedText("");
   }, []);
 
-  return { streamedText, isStreaming, startStream, cancelStream, clearStreamedText };
+  const clearStreamError = useCallback(() => {
+    setStreamError(null);
+  }, []);
+
+  return {
+    streamedText,
+    isStreaming,
+    streamError,
+    startStream,
+    cancelStream,
+    clearStreamedText,
+    clearStreamError,
+  };
 }

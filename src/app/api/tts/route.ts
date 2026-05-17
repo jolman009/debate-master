@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "ELEVENLABS_API_KEY not configured" },
       { status: 503 }
+    );
+  }
+
+  const rl = await checkRateLimit("tts", clientIp(request));
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
     );
   }
 

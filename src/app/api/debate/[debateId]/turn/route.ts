@@ -1,5 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { reportError } from "@/lib/observability";
 import { getPersona } from "@/lib/debate/personas";
 import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
 import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
@@ -17,6 +19,24 @@ export async function POST(
   { params }: { params: { debateId: string } }
 ) {
   const supabase = createServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const rl = await checkRateLimit("ai", user?.id ?? clientIp(request));
+  if (!rl.success) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please slow down." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(rl.retryAfter),
+        },
+      }
+    );
+  }
 
   // 1. Load debate
   const { data: dbDebate, error: debateError } = await supabase
@@ -247,11 +267,18 @@ export async function POST(
         );
         controller.close();
       } catch (err) {
-        console.error("Streaming error:", err);
-        const message =
-          err instanceof Error ? err.message : "AI response failed";
+        reportError(err, {
+          route: "debate/turn",
+          debateId: params.debateId,
+          stage: stageForAi,
+        });
+        // Send a generic message — never leak internal error detail.
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
+          encoder.encode(
+            `data: ${JSON.stringify({
+              error: "The AI response failed. Please try again.",
+            })}\n\n`
+          )
         );
         controller.close();
       }

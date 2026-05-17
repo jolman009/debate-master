@@ -28,6 +28,8 @@ export function DebateStage({ debateId }: DebateStageProps) {
     isAiTurn,
     streamedText,
     isStreaming,
+    streamError,
+    clearStreamError,
     stageLabel,
     stageInstruction,
     submitTurn,
@@ -57,12 +59,13 @@ export function DebateStage({ debateId }: DebateStageProps) {
     }
   }, [debate?.turns, streamedText]);
 
-  // Auto-trigger AI turns
+  // Auto-trigger AI turns. The `!streamError` guard stops a failed AI turn
+  // from re-firing in a loop — recovery is via the manual Retry button.
   useEffect(() => {
-    if (isAiTurn && !isStreaming && debate) {
+    if (isAiTurn && !isStreaming && debate && !streamError) {
       triggerAiTurn();
     }
-  }, [isAiTurn, isStreaming, debate?.current_stage]);
+  }, [isAiTurn, isStreaming, debate?.current_stage, streamError]);
 
   if (loading) {
     return (
@@ -189,6 +192,29 @@ export function DebateStage({ debateId }: DebateStageProps) {
 
       {/* Input / Feedback */}
       <div className="shrink-0 pt-4 border-t border-stage-border">
+        {streamError && (
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-stage-con/40 bg-stage-con/10 px-3 py-2">
+            <p className="text-sm text-stage-con">{streamError}</p>
+            <div className="flex shrink-0 items-center gap-3">
+              {isAiTurn && (
+                <button
+                  type="button"
+                  onClick={() => triggerAiTurn()}
+                  className="text-sm font-medium text-stage-accent hover:underline"
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={clearStreamError}
+                className="text-sm text-stage-muted hover:text-stage-text"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
         {isFeedbackStage && !feedback && (
           <div className="text-center py-4">
             <p className="text-stage-muted text-sm mb-3">

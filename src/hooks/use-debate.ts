@@ -13,6 +13,8 @@ interface UseDebateReturn {
   isAiTurn: boolean;
   streamedText: string;
   isStreaming: boolean;
+  streamError: string | null;
+  clearStreamError: () => void;
   stageLabel: string;
   stageInstruction: string;
   submitTurn: (content: string) => Promise<void>;
@@ -29,7 +31,8 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [feedback, setFeedback] = useState<DebateFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
-  const { streamedText, isStreaming, startStream } = useStreamingResponse();
+  const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
+    useStreamingResponse();
 
   const fetchDebate = useCallback(async () => {
     try {
@@ -110,6 +113,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     isAiTurn,
     streamedText,
     isStreaming,
+    streamError,
+    clearStreamError,
     stageLabel: getStageLabel(currentStage),
     stageInstruction: getStageInstruction(currentStage),
     submitTurn,

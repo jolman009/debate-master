@@ -22,11 +22,23 @@ export async function POST(request: Request) {
 
     const supabase = createServerClient();
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "You must be signed in to start a debate" },
+        { status: 401 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("debates")
       .insert({
         config,
         current_stage: "opening_user",
+        user_id: user.id,
       })
       .select("id")
       .single();

@@ -1,9 +1,16 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient } from "@/lib/anthropic";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
 import { getPersona } from "@/lib/debate/personas";
 import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
 import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
 import { Debate, DebateConfig, DebateStage, DebateTurn, PersonaId } from "@/lib/debate/types";
+
+// Cap user-submitted turn length before it ever reaches Claude — guards
+// against runaway token cost from oversized payloads.
+const MAX_TURN_LENGTH = 10_000;
+
+// Allow time for the streamed Claude response.
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
@@ -53,6 +60,15 @@ export async function POST(
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    if (body.content.length > MAX_TURN_LENGTH) {
+      return new Response(
+        JSON.stringify({
+          error: `Turn is too long (max ${MAX_TURN_LENGTH.toLocaleString()} characters)`,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // Save user turn
@@ -176,7 +192,7 @@ export async function POST(
         let fullText = "";
 
         const stream = anthropic.messages.stream({
-          model: "claude-sonnet-4-20250514",
+          model: CLAUDE_MODEL,
           max_tokens: 1500,
           system: systemPrompt,
           messages,

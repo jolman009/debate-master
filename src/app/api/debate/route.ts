@@ -13,6 +13,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (config.topic.length > 300 || (config.motion ?? "").length > 600) {
+      return NextResponse.json(
+        { error: "Topic or motion exceeds the maximum length" },
+        { status: 400 }
+      );
+    }
+
     const supabase = createServerClient();
 
     const { data, error } = await supabase

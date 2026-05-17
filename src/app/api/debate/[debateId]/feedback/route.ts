@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient } from "@/lib/anthropic";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
 import {
   buildFeedbackPrompt,
   FEEDBACK_SYSTEM_PROMPT,
 } from "@/lib/debate/prompt-builder";
 import { DebateTurn } from "@/lib/debate/types";
+
+// Allow time for the (non-streamed) feedback generation call.
+export const maxDuration = 60;
 
 export async function POST(
   _request: Request,
@@ -40,7 +43,7 @@ export async function POST(
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 1000,
       system: FEEDBACK_SYSTEM_PROMPT,
       messages: [{ role: "user", content: transcript }],

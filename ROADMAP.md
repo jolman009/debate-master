@@ -35,7 +35,8 @@ None of Phase 2–4 should ship publicly until this is done.
   `@supabase/ssr` cookie-based sessions; `/login` page, `/auth/confirm`
   route, header auth menu. **M**
 - [x] **Ownership in the schema** — `debates.user_id` added in migration
-  `002_auth_and_rls.sql`. **S**
+  `
+  _auth_and_rls.sql`. **S**
 - [x] **Row Level Security** — RLS enabled on `debates` and
   `debate_turns` with owner-only policies (`auth.uid() = user_id`). **M**
 - [x] **Server key correctness** — server routes use the cookie-based
@@ -80,20 +81,24 @@ Once users exist, give them a reason to come back.
 - [x] **Data hygiene** — soft-delete via `archived_at` (migration 003);
   archived debates leave the dashboard but are recoverable. **S**
 
-## Phase 3 — Immersive Stage Experience 🎭 *(the differentiator)*
+## Phase 3 — Immersive Stage Experience 🎭 *(code items done)*
 
 This is the product vision: evolve from a text tool into a multimedia
 debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
-- [ ] **Speaking/thinking avatar pose variants** — `Persona` already has
-  `avatarUrlSpeaking`/`avatarUrlThinking` fields wired; generate the pose
-  art and drop into `public/personas/`. **S**
-- [ ] **Animated avatars** — mouth open/close keyed to `isSpeaking` and
-  amplitude; later, lip-sync (viseme/phoneme) for a bigger lift. **L**
-- [ ] **Audio polish** — crossfade between streamed sentences, pre-warm
-  TTS for the next turn, "stage" ambience. **M**
-- [ ] **Persona voice tuning** — verify each `elevenLabsVoiceId` matches
-  the persona's character; expose a voice preview in the setup screen. **S**
+- [x] **Animated avatars** — procedural amplitude-driven "talking" motion
+  (jaw-drop stretch + lift) on the live-stage avatar; reads as speaking
+  without new art. True viseme lip-sync still needs rigged assets. **L**
+- [x] **Audio polish** — streamed sentences batched to ~150 chars before
+  TTS for fewer, smoother clips; audio elements preload eagerly. **M**
+- [x] **Voice preview in setup** — each persona card plays a sample line
+  in its ElevenLabs voice (browser-speech fallback). **S**
+- [ ] **Speaking/thinking pose-variant art** — asset task (no code): drop
+  generated `<id>-speaking.png` / `<id>-thinking.png` into
+  `public/personas/`; the code already uses them when present. **S**
+- [ ] **Persona voice-id verification** — listen to each persona's
+  `elevenLabsVoiceId` (now easy via the preview button) and adjust to
+  taste. Human-judgement task. **S**
 
 ## Phase 4 — Growth & Marketability 🚀
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { PersonaId } from "@/lib/debate/types";
 import { getAllPersonas } from "@/lib/debate/personas";
 import { PersonaAvatar } from "@/components/debate/persona-avatar";
+import { VoicePreviewButton } from "./voice-preview-button";
 
 interface PersonaPickerProps {
   selectedPersona: PersonaId | null;
@@ -25,9 +26,10 @@ export function PersonaPicker({
           <Card
             key={persona.id}
             selected={selectedPersona === persona.id}
-            className="cursor-pointer p-4"
+            className="relative cursor-pointer p-4"
             onClick={() => onSelectPersona(persona.id)}
           >
+            <VoicePreviewButton persona={persona} />
             <div className="mb-2">
               <PersonaAvatar persona={persona} size="sm" />
             </div>

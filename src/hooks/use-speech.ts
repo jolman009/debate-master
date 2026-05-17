@@ -14,6 +14,9 @@ interface UseSpeechReturn {
 const MUTE_KEY = "debate-tts-muted";
 const BROWSER_PULSE_DECAY_MS = 220;
 const BROWSER_PULSE_PEAK = 0.75;
+// Buffer streamed sentences up to this length before sending to TTS — fewer,
+// longer clips mean fewer audible seams and fewer API calls.
+const MIN_CHUNK_CHARS = 150;
 
 function getInitialMuted(): boolean {
   if (typeof window === "undefined") return false;
@@ -34,6 +37,7 @@ export function useSpeech(
 
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const spokenIndexRef = useRef(0);
+  const chunkBufferRef = useRef("");
   const wasStreamingRef = useRef(false);
 
   const useElevenLabsRef = useRef<boolean>(!!voiceConfig.elevenLabsVoiceId);
@@ -243,6 +247,7 @@ export function useSpeech(
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        audio.preload = "auto";
         audio.crossOrigin = "anonymous";
         audio.addEventListener("ended", () => URL.revokeObjectURL(url));
         return audio;
@@ -340,6 +345,7 @@ export function useSpeech(
 
     if (streamedText.length < spokenIndexRef.current) {
       spokenIndexRef.current = 0;
+      chunkBufferRef.current = "";
       stopAll();
       return;
     }
@@ -352,8 +358,14 @@ export function useSpeech(
     let consumed = 0;
 
     while ((match = sentenceRegex.exec(newText)) !== null) {
-      enqueue(match[0]);
+      // Accumulate whole sentences, speaking only once the buffer is long
+      // enough so playback is fewer, longer, smoother clips.
+      chunkBufferRef.current += match[0];
       consumed = match.index + match[0].length;
+      if (chunkBufferRef.current.length >= MIN_CHUNK_CHARS) {
+        enqueue(chunkBufferRef.current);
+        chunkBufferRef.current = "";
+      }
     }
 
     if (consumed > 0) {
@@ -363,10 +375,14 @@ export function useSpeech(
 
   useEffect(() => {
     if (wasStreamingRef.current && !isStreaming) {
+      // Stream ended — flush the buffered sentences plus any trailing
+      // partial sentence as one final clip.
       const remaining = streamedText.slice(spokenIndexRef.current);
-      if (remaining.trim()) {
-        enqueue(remaining);
+      const flush = (chunkBufferRef.current + remaining).trim();
+      if (flush) {
+        enqueue(flush);
       }
+      chunkBufferRef.current = "";
       spokenIndexRef.current = 0;
     }
     wasStreamingRef.current = isStreaming;

@@ -269,7 +269,13 @@ function PersonaAvatarLarge({
   const [failedUrls, setFailedUrls] = useState<Set<string>>(new Set());
   const showImage = !!activeUrl && !failedUrls.has(activeUrl);
 
-  const scale = speaking ? 1.05 + amplitude * 0.05 : active ? 1.02 : 1;
+  const baseScale = speaking ? 1.05 : active ? 1.02 : 1;
+  // Procedural "talking" motion: on loud syllables the head stretches
+  // taller and narrows slightly (a jaw-drop illusion) with a small lift,
+  // so a flat portrait reads as actively speaking.
+  const scaleX = baseScale - (speaking ? amplitude * 0.03 : 0);
+  const scaleY = baseScale + (speaking ? amplitude * 0.07 : 0);
+  const bobY = speaking ? -amplitude * 3.5 : 0;
   const glowAlpha = speaking ? 0.55 + amplitude * 0.45 : active ? 0.35 : 0;
   const ringPx = speaking ? 18 + amplitude * 18 : active ? 10 : 0;
   const glowRgb = hexToRgb(theme.from);
@@ -290,7 +296,7 @@ function PersonaAvatarLarge({
         )}
         style={{
           background: gradient,
-          transform: `scale(${scale})`,
+          transform: `translateY(${bobY}px) scale(${scaleX}, ${scaleY})`,
           opacity: active ? 1 : 0.55,
           boxShadow: `0 0 ${ringPx}px ${
             ringPx / 3

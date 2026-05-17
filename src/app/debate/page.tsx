@@ -14,6 +14,7 @@ export default async function DebatesDashboard() {
   const { data } = await supabase
     .from("debates")
     .select("id, config, current_stage, feedback, updated_at")
+    .is("archived_at", null)
     .order("updated_at", { ascending: false });
 
   const debates = (data ?? []) as DebateSummary[];

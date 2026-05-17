@@ -8,6 +8,7 @@ import {
   DebateStage,
   PersonaId,
 } from "@/lib/debate/types";
+import { DeleteDebateButton } from "./delete-debate-button";
 
 export interface DebateSummary {
   id: string;
@@ -31,49 +32,53 @@ export function DebateCard({ debate }: { debate: DebateSummary }) {
   const awaitingFeedback = current_stage === "feedback" && !feedback;
 
   return (
-    <Link
-      href={`/debate/${debate.id}`}
-      className="debate-card flex items-center gap-4 p-4 transition-colors hover:border-stage-accent"
-    >
-      <div
-        className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full"
-        style={{
-          background: `linear-gradient(135deg, ${persona.theme.from}, ${persona.theme.to})`,
-        }}
+    <div className="debate-card flex items-center gap-3 p-4 transition-colors hover:border-stage-accent">
+      <Link
+        href={`/debate/${debate.id}`}
+        className="flex min-w-0 flex-1 items-center gap-4 transition-opacity hover:opacity-80"
       >
-        <Image
-          src={persona.avatarUrl}
-          alt={persona.displayName}
-          fill
-          sizes="48px"
-          className="object-cover"
-        />
-      </div>
+        <div
+          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full"
+          style={{
+            background: `linear-gradient(135deg, ${persona.theme.from}, ${persona.theme.to})`,
+          }}
+        >
+          <Image
+            src={persona.avatarUrl}
+            alt={persona.displayName}
+            fill
+            sizes="48px"
+            className="object-cover"
+          />
+        </div>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-stage-text">
-          {config.topic}
-        </p>
-        <p className="mt-0.5 truncate text-xs text-stage-muted">
-          vs {persona.displayName} · {config.userSide.toUpperCase()} ·{" "}
-          {dateFmt.format(new Date(updated_at))}
-        </p>
-      </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-stage-text">
+            {config.topic}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-stage-muted">
+            vs {persona.displayName} · {config.userSide.toUpperCase()} ·{" "}
+            {dateFmt.format(new Date(updated_at))}
+          </p>
+        </div>
 
-      <div className="shrink-0 text-right">
-        {feedback ? (
-          <span className="text-sm font-bold text-stage-accent">
-            {feedback.overallScore}/10
-          </span>
-        ) : (
-          <span className="text-xs font-medium text-stage-muted">
-            {awaitingFeedback ? "Awaiting feedback" : "In progress"}
-          </span>
-        )}
-        <p className="mt-0.5 text-[11px] text-stage-muted">
-          {isComplete ? "Complete" : getStageLabel(current_stage)}
-        </p>
-      </div>
-    </Link>
+        <div className="shrink-0 text-right">
+          {feedback ? (
+            <span className="text-sm font-bold text-stage-accent">
+              {feedback.overallScore}/10
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-stage-muted">
+              {awaitingFeedback ? "Awaiting feedback" : "In progress"}
+            </span>
+          )}
+          <p className="mt-0.5 text-[11px] text-stage-muted">
+            {isComplete ? "Complete" : getStageLabel(current_stage)}
+          </p>
+        </div>
+      </Link>
+
+      <DeleteDebateButton debateId={debate.id} />
+    </div>
   );
 }

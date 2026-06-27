@@ -20,6 +20,8 @@ export const PERSONAS: Record<PersonaId, Persona> = {
     displayName: "Destiny",
     tagline: "Utilitarian Streamer & Debater",
     avatarUrl: "/personas/destiny.png",
+    avatarUrlSpeaking: "/personas/destiny-speaking.png",
+    avatarUrlThinking: "/personas/destiny-thinking.png",
     ideology: "Secular utilitarian / social-democratic",
     voiceConfig: {
       pitch: 1.0,
@@ -60,6 +62,8 @@ RED LINES:
     displayName: "Andrew Wilson",
     tagline: "Conservative Christian Theologian",
     avatarUrl: "/personas/andrew-wilson.png",
+    avatarUrlSpeaking: "/personas/andrew-wilson-speaking.png",
+    avatarUrlThinking: "/personas/andrew-wilson-thinking.png",
     ideology: "Conservative Christian / theological",
     voiceConfig: {
       pitch: 0.9,
@@ -101,6 +105,8 @@ RED LINES:
     displayName: "Candace Owens",
     tagline: "Conservative Cultural Commentator",
     avatarUrl: "/personas/candace.png",
+    avatarUrlSpeaking: "/personas/candace-speaking.png",
+    avatarUrlThinking: "/personas/candace-thinking.png",
     ideology: "Conservative populist",
     voiceConfig: {
       pitch: 1.1,
@@ -142,6 +148,8 @@ RED LINES:
     displayName: "Ben Shapiro",
     tagline: "Fast-Talking Conservative Debater",
     avatarUrl: "/personas/ben-shapiro.png",
+    avatarUrlSpeaking: "/personas/ben-shapiro-speaking.png",
+    avatarUrlThinking: "/personas/ben-shapiro-thinking.png",
     ideology: "Conservative / classical liberal",
     voiceConfig: {
       pitch: 1.15,
@@ -184,6 +192,8 @@ RED LINES:
     displayName: "Michael Knowles",
     tagline: "Traditionalist Conservative",
     avatarUrl: "/personas/michael-knowles.png",
+    avatarUrlSpeaking: "/personas/michael-knowles-speaking.png",
+    avatarUrlThinking: "/personas/michael-knowles-thinking.png",
     ideology: "Traditionalist conservative / natural law",
     voiceConfig: {
       pitch: 0.85,
@@ -225,6 +235,8 @@ RED LINES:
     displayName: "Dave Smith",
     tagline: "Libertarian Comedian & Debater",
     avatarUrl: "/personas/dave-smith.png",
+    avatarUrlSpeaking: "/personas/dave-smith-speaking.png",
+    avatarUrlThinking: "/personas/dave-smith-thinking.png",
     ideology: "Libertarian / anarcho-capitalist",
     voiceConfig: {
       pitch: 1.0,

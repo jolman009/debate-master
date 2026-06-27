@@ -104,8 +104,10 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
 ## Phase 4 — Growth & Marketability 🚀
 
-- [ ] **Leaderboards & ELO** — rate users (and personas) by debate
-  performance; weekly boards. **M**
+- [x] **Leaderboards** — opt-in public profiles + a `/leaderboard` ranked by
+  a weighted performance rating (overallScore × difficulty weight) via a
+  SECURITY DEFINER function (migration 007); no emails/debate content
+  exposed. Persona leaderboards and weekly/windowed boards are follow-ups. **M**
 - [x] **Custom personas** — guided form (`/personas/new`) to define a
   persona (name, style/worldview, ideology, voice, theme); owner-scoped
   via RLS, with locked fictional-framing + safety rules in the assembled

@@ -20,6 +20,7 @@ interface TopicRow {
   motion: string;
   category: string;
   difficulty: string;
+  pack_id: string | null;
 }
 
 interface TopicPackRow {
@@ -48,6 +49,7 @@ function rowToTopic(r: TopicRow): Topic {
     motion: r.motion,
     category: r.category,
     difficulty: r.difficulty as Difficulty,
+    packId: r.pack_id ?? undefined,
   };
 }
 
@@ -72,7 +74,7 @@ export async function getTopics(): Promise<Topic[]> {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("topics")
-      .select("slug, title, motion, category, difficulty")
+      .select("slug, title, motion, category, difficulty, pack_id")
       .order("sort_order", { ascending: true });
     if (error || !data || data.length === 0) return CURATED_TOPICS;
     return (data as TopicRow[]).map(rowToTopic);

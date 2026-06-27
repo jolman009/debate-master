@@ -97,6 +97,7 @@ export interface Topic {
   motion: string;
   category: string;
   difficulty: Difficulty;
+  packId?: string;
 }
 
 export interface TopicPack {

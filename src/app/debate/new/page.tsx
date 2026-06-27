@@ -1,7 +1,11 @@
 import { SetupWizard } from "@/components/setup/setup-wizard";
-import { getPersonas, getTopics } from "@/lib/debate/content";
+import { getPersonas, getTopics, getTopicPacks } from "@/lib/debate/content";
 
 export default async function NewDebatePage() {
-  const [personas, topics] = await Promise.all([getPersonas(), getTopics()]);
-  return <SetupWizard personas={personas} topics={topics} />;
+  const [personas, topics, packs] = await Promise.all([
+    getPersonas(),
+    getTopics(),
+    getTopicPacks(),
+  ]);
+  return <SetupWizard personas={personas} topics={topics} packs={packs} />;
 }

@@ -26,7 +26,7 @@ beforeEach(() => {
 });
 
 describe("getTopics", () => {
-  it("maps DB rows to Topic objects (slug -> id)", async () => {
+  it("maps DB rows to Topic objects (slug -> id, pack_id -> packId)", async () => {
     fromMock.mockReturnValue(
       chainResolving({
         data: [
@@ -36,13 +36,21 @@ describe("getTopics", () => {
             motion: "m",
             category: "economics",
             difficulty: "beginner",
+            pack_id: "pack-1",
           },
         ],
         error: null,
       })
     );
     expect(await getTopics()).toEqual([
-      { id: "x", title: "X", motion: "m", category: "economics", difficulty: "beginner" },
+      {
+        id: "x",
+        title: "X",
+        motion: "m",
+        category: "economics",
+        difficulty: "beginner",
+        packId: "pack-1",
+      },
     ]);
   });
 

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Topic,
+  TopicPack,
   Persona,
   PersonaId,
   Difficulty,
@@ -17,9 +18,10 @@ import {
 interface SetupWizardProps {
   personas: Persona[];
   topics: Topic[];
+  packs: TopicPack[];
 }
 
-export function SetupWizard({ personas, topics }: SetupWizardProps) {
+export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
   const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [customTopic, setCustomTopic] = useState("");
@@ -82,6 +84,7 @@ export function SetupWizard({ personas, topics }: SetupWizardProps) {
 
       <TopicPicker
         topics={topics}
+        packs={packs}
         selectedTopic={selectedTopic}
         customTopic={customTopic}
         onSelectTopic={setSelectedTopic}

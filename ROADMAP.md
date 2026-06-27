@@ -118,15 +118,21 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
 ## Cross-cutting / tech debt
 
-- [ ] **Tests** — Vitest for `state-machine`, `prompt-builder`,
-  SSE parsing; Playwright for one happy-path debate. Add a `test` script. **M**
-- [ ] **CI** — GitHub Actions: typecheck, lint, test on PRs. **S**
-- [ ] **Configure ESLint** — `next lint` currently prompts for setup;
-  commit a config. **S**
+- [x] **Tests** — Vitest unit suite (32 tests) for `state-machine`,
+  `prompt-builder`, and SSE parsing (parser extracted to `src/lib/sse.ts`
+  for testability); `test`/`test:watch`/`typecheck` scripts added.
+  Playwright happy-path e2e still pending. **M**
+- [x] **CI** — GitHub Actions (`.github/workflows/ci.yml`): lint +
+  typecheck + test on push/PR to `main`. **S**
+- [x] **Configure ESLint** — `.eslintrc.json` (`next/core-web-vitals`);
+  `eslint` + `eslint-config-next` installed, `next lint` no longer
+  prompts. **S**
 - [ ] **Move hardcoded content to data** — personas, topics, and stage
   instructions are in code; database-backed content enables Phase 4. **M**
-- [ ] **Deployment config** — `vercel.json` / function settings,
-  documented env vars, production Supabase project. **S**
+- [x] **Deployment config** — `vercel.json` added; required vs optional
+  env vars, dev scripts, and migration order documented in the README.
+  Streaming routes set `maxDuration = 60` via route segment config.
+  (Production Supabase project still a manual setup step.) **S**
 
 ---
 

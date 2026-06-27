@@ -28,3 +28,28 @@ jobs:
 
       - name: Test
         run: npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      # Placeholder values so the app boots; backend calls fail gracefully
+      # and the e2e suite only exercises public, logged-out surfaces + PWA.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
+      ANTHROPIC_API_KEY: dummy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npm run test:e2e

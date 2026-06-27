@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Persona, PersonaId } from "@/lib/debate/types";
@@ -37,6 +38,14 @@ export function PersonaPicker({
             </Badge>
           </Card>
         ))}
+
+        <Link
+          href="/personas/new"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-stage-border p-4 text-stage-muted transition-colors hover:border-stage-accent hover:text-stage-accent"
+        >
+          <span className="text-2xl leading-none">+</span>
+          <span className="text-sm font-medium">Create persona</span>
+        </Link>
       </div>
     </div>
   );

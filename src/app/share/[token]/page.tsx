@@ -2,12 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
-import { getPersona } from "@/lib/debate/personas";
+import { getPersonaBySlug } from "@/lib/debate/content";
+import { FALLBACK_PERSONA } from "@/lib/debate/personas";
 import {
   DebateConfig,
   DebateFeedback,
   DebateStage,
-  PersonaId,
 } from "@/lib/debate/types";
 import { TurnDisplay } from "@/components/debate/turn-display";
 import { FeedbackPanel } from "@/components/debate/feedback-panel";
@@ -52,7 +52,10 @@ export default async function SharedDebatePage({
   });
   const turns = (turnRows ?? []) as SharedTurn[];
 
-  const persona = getPersona(debate.config.personaId as PersonaId);
+  // A private custom persona isn't readable to anonymous viewers; fall back
+  // to a neutral opponent so the shared transcript still renders.
+  const persona =
+    (await getPersonaBySlug(debate.config.personaId)) ?? FALLBACK_PERSONA;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -67,18 +70,22 @@ export default async function SharedDebatePage({
 
       <div className="debate-card mb-4 flex items-center gap-4 p-4">
         <div
-          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white"
           style={{
             background: `linear-gradient(135deg, ${persona.theme.from}, ${persona.theme.to})`,
           }}
         >
-          <Image
-            src={persona.avatarUrl}
-            alt={persona.displayName}
-            fill
-            sizes="48px"
-            className="object-cover"
-          />
+          {persona.avatarUrl ? (
+            <Image
+              src={persona.avatarUrl}
+              alt={persona.displayName}
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          ) : (
+            <span>{persona.displayName[0]}</span>
+          )}
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-stage-text">

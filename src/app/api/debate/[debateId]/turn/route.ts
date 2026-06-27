@@ -2,10 +2,10 @@ import { createServerClient } from "@/lib/supabase/server";
 import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 import { reportError } from "@/lib/observability";
-import { getPersona } from "@/lib/debate/personas";
+import { getPersonaBySlug } from "@/lib/debate/content";
 import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
 import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
-import { Debate, DebateConfig, DebateStage, DebateTurn, PersonaId } from "@/lib/debate/types";
+import { Debate, DebateConfig, DebateStage, DebateTurn } from "@/lib/debate/types";
 
 // Cap user-submitted turn length before it ever reaches Claude — guards
 // against runaway token cost from oversized payloads.
@@ -163,7 +163,13 @@ export async function POST(
   }
 
   // 4. Build prompt and stream AI response
-  const persona = getPersona(config.personaId as PersonaId);
+  const persona = await getPersonaBySlug(config.personaId);
+  if (!persona) {
+    return new Response(JSON.stringify({ error: "Persona not found" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   const debate: Debate = {
     id: params.debateId,
     config,

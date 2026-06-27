@@ -1,12 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getPersona } from "@/lib/debate/personas";
 import { getStageLabel } from "@/lib/debate/state-machine";
 import {
   DebateConfig,
   DebateFeedback,
   DebateStage,
-  PersonaId,
+  Persona,
 } from "@/lib/debate/types";
 import { DeleteDebateButton } from "./delete-debate-button";
 
@@ -25,9 +24,14 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 });
 
 /** A single row in the "My Debates" dashboard. Links through to resume/view. */
-export function DebateCard({ debate }: { debate: DebateSummary }) {
+export function DebateCard({
+  debate,
+  persona,
+}: {
+  debate: DebateSummary;
+  persona: Persona;
+}) {
   const { config, current_stage, feedback, updated_at } = debate;
-  const persona = getPersona(config.personaId as PersonaId);
   const isComplete = current_stage === "complete";
   const awaitingFeedback = current_stage === "feedback" && !feedback;
 
@@ -38,18 +42,22 @@ export function DebateCard({ debate }: { debate: DebateSummary }) {
         className="flex min-w-0 flex-1 items-center gap-4 transition-opacity hover:opacity-80"
       >
         <div
-          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white"
           style={{
             background: `linear-gradient(135deg, ${persona.theme.from}, ${persona.theme.to})`,
           }}
         >
-          <Image
-            src={persona.avatarUrl}
-            alt={persona.displayName}
-            fill
-            sizes="48px"
-            className="object-cover"
-          />
+          {persona.avatarUrl ? (
+            <Image
+              src={persona.avatarUrl}
+              alt={persona.displayName}
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          ) : (
+            <span>{persona.displayName[0]}</span>
+          )}
         </div>
 
         <div className="min-w-0 flex-1">

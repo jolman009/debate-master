@@ -1,6 +1,6 @@
 import { Persona, PersonaId } from "./types";
 
-const CORE_DEBATE_RULES = `
+export const CORE_DEBATE_RULES = `
 DEBATE FORMAT RULES:
 - You are on a virtual debate stage with a human opponent.
 - Maintain your persona consistently throughout.
@@ -272,6 +272,20 @@ RED LINES:
 - No slurs, no explicit content, no personal attacks
 - Uses humor about ideas and situations, never to demean the person`,
   },
+};
+
+// Used when a debate references a persona that can no longer be resolved
+// (e.g. a deleted custom persona, or a private custom persona on a public
+// share page). Renders as a neutral initial-on-gradient avatar.
+export const FALLBACK_PERSONA: Persona = {
+  id: "unknown",
+  displayName: "Opponent",
+  tagline: "",
+  ideology: "",
+  systemPrompt: "",
+  avatarUrl: "",
+  voiceConfig: { pitch: 1, rate: 1, voicePrefs: [] },
+  theme: { from: "#64748b", to: "#334155", glow: "rgba(100,116,139,0.5)" },
 };
 
 export function getPersona(id: PersonaId): Persona {

@@ -106,10 +106,13 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
 - [ ] **Leaderboards & ELO** — rate users (and personas) by debate
   performance; weekly boards. **M**
-- [ ] **Custom & community personas** — let users define a persona
-  (style, ideology, voice) from a guided form. **L**
-- [ ] **Topic packs** — curated/seasonal topic collections beyond the
-  current 12 hardcoded topics; move topics to the database. **M**
+- [x] **Custom personas** — guided form (`/personas/new`) to define a
+  persona (name, style/worldview, ideology, voice, theme); owner-scoped
+  via RLS, with locked fictional-framing + safety rules in the assembled
+  prompt. Manage at `/personas`. Community/public *sharing* of personas
+  is still a follow-up. **L**
+- [x] **Topic packs** — DB-backed topics + curated packs (Core, Future &
+  Technology, Ethics & Society) with pack-browsing UI (migrations 005/006). **M**
 - [ ] **Human-vs-human debates** — realtime two-player mode with the AI
   as judge/moderator. **L**
 - [ ] **PWA / mobile** — installable, offline-aware shell. **M**
@@ -127,8 +130,11 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 - [x] **Configure ESLint** — `.eslintrc.json` (`next/core-web-vitals`);
   `eslint` + `eslint-config-next` installed, `next lint` no longer
   prompts. **S**
-- [ ] **Move hardcoded content to data** — personas, topics, and stage
-  instructions are in code; database-backed content enables Phase 4. **M**
+- [x] **Move hardcoded content to data** — topics fully DB-backed; personas
+  resolved through a DB-backed content layer (`content.ts`) that merges
+  built-ins with user-created custom personas, with in-code fallback.
+  Stage instructions remain in code by design (tightly coupled to the state
+  machine). **M**
 - [x] **Deployment config** — `vercel.json` added; required vs optional
   env vars, dev scripts, and migration order documented in the README.
   Streaming routes set `maxDuration = 60` via route segment config.

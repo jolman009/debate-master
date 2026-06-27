@@ -11,8 +11,11 @@
 
 import { createServerClient } from "@/lib/supabase/server";
 import { Persona, PersonaId, Topic, TopicPack, Difficulty } from "./types";
-import { getAllPersonas } from "./personas";
+import { getAllPersonas, getPersona } from "./personas";
 import { CURATED_TOPICS } from "./topics";
+
+export const PERSONA_COLUMNS =
+  "slug, display_name, tagline, ideology, system_prompt, avatar_url, avatar_url_speaking, avatar_url_thinking, voice_config, theme";
 
 interface TopicRow {
   slug: string;
@@ -29,7 +32,7 @@ interface TopicPackRow {
   description: string | null;
 }
 
-interface PersonaRow {
+export interface PersonaRow {
   slug: string;
   display_name: string;
   tagline: string | null;
@@ -53,7 +56,7 @@ function rowToTopic(r: TopicRow): Topic {
   };
 }
 
-function rowToPersona(r: PersonaRow): Persona {
+export function rowToPersona(r: PersonaRow): Persona {
   return {
     id: r.slug as PersonaId,
     displayName: r.display_name,
@@ -113,9 +116,7 @@ export async function getPersonas(): Promise<Persona[]> {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("personas")
-      .select(
-        "slug, display_name, tagline, ideology, system_prompt, avatar_url, avatar_url_speaking, avatar_url_thinking, voice_config, theme"
-      )
+      .select(PERSONA_COLUMNS)
       .not("owner_id", "is", null);
     if (error || !data) return builtIns;
     const builtInSlugs = new Set(builtIns.map((p) => p.id));
@@ -125,5 +126,27 @@ export async function getPersonas(): Promise<Persona[]> {
     return [...builtIns, ...custom];
   } catch {
     return builtIns;
+  }
+}
+
+/**
+ * Resolve a single persona by slug for render/runtime use. Built-ins come
+ * from code; otherwise the DB is queried (RLS limits this to public or
+ * owned custom personas). Returns null if it can't be resolved.
+ */
+export async function getPersonaBySlug(slug: PersonaId): Promise<Persona | null> {
+  const builtIn = getPersona(slug);
+  if (builtIn) return builtIn;
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from("personas")
+      .select(PERSONA_COLUMNS)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !data) return null;
+    return rowToPersona(data as PersonaRow);
+  } catch {
+    return null;
   }
 }

@@ -126,12 +126,14 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
 ## Cross-cutting / tech debt
 
-- [x] **Tests** — Vitest unit suite (32 tests) for `state-machine`,
-  `prompt-builder`, and SSE parsing (parser extracted to `src/lib/sse.ts`
-  for testability); `test`/`test:watch`/`typecheck` scripts added.
-  Playwright happy-path e2e still pending. **M**
-- [x] **CI** — GitHub Actions (`.github/workflows/ci.yml`): lint +
-  typecheck + test on push/PR to `main`. **S**
+- [x] **Tests** — Vitest unit suite (52 tests) for `state-machine`,
+  `prompt-builder`, SSE parsing, content layer, and custom-persona prompt
+  assembly. Playwright e2e (`e2e/`, `npm run test:e2e`) covering public
+  surfaces, the auth redirect, the logged-out persona-create rejection, and
+  the PWA manifest + service-worker registration/offline precache. **M**
+- [x] **CI** — GitHub Actions (`.github/workflows/ci.yml`): a `verify` job
+  (lint + typecheck + unit tests) and an `e2e` job (Playwright against a
+  production build) on push/PR to `main`. **S**
 - [x] **Configure ESLint** — `.eslintrc.json` (`next/core-web-vitals`);
   `eslint` + `eslint-config-next` installed, `next lint` no longer
   prompts. **S**

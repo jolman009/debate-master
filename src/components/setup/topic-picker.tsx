@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Topic } from "@/lib/debate/types";
-import { CURATED_TOPICS } from "@/lib/debate/topics";
+import { Topic, TopicPack } from "@/lib/debate/types";
 import { cn } from "@/lib/utils";
 
 interface TopicPickerProps {
+  topics: Topic[];
+  packs: TopicPack[];
   selectedTopic: Topic | null;
   customTopic: string;
   onSelectTopic: (topic: Topic | null) => void;
@@ -25,18 +26,27 @@ const CATEGORIES = [
 ];
 
 export function TopicPicker({
+  topics,
+  packs,
   selectedTopic,
   customTopic,
   onSelectTopic,
   onCustomTopicChange,
 }: TopicPickerProps) {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [activePackId, setActivePackId] = useState<string>("all");
   const [useCustom, setUseCustom] = useState(false);
 
-  const filteredTopics =
-    activeCategory === "all"
-      ? CURATED_TOPICS
-      : CURATED_TOPICS.filter((t) => t.category === activeCategory);
+  const activePack =
+    activePackId === "all" ? null : packs.find((p) => p.id === activePackId);
+
+  // Within a specific pack, show that pack's topics; in "All" mode, filter by
+  // the category chips instead.
+  const filteredTopics = activePack
+    ? topics.filter((t) => t.packId === activePack.id)
+    : activeCategory === "all"
+    ? topics
+    : topics.filter((t) => t.category === activeCategory);
 
   return (
     <div className="space-y-4">
@@ -68,22 +78,60 @@ export function TopicPicker({
         </div>
       ) : (
         <>
-          <div className="flex gap-2 flex-wrap">
-            {CATEGORIES.map((cat) => (
+          {/* Pack tabs (only when packs are available) */}
+          {packs.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
               <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => setActivePackId("all")}
                 className={cn(
-                  "text-sm px-3 py-1 rounded-full transition-colors",
-                  activeCategory === cat.id
+                  "text-sm px-3 py-1.5 rounded-lg font-medium transition-colors",
+                  activePackId === "all"
                     ? "bg-stage-accent text-white"
                     : "bg-stage-surface text-stage-muted hover:text-stage-text"
                 )}
               >
-                {cat.label}
+                All Topics
               </button>
-            ))}
-          </div>
+              {packs.map((pack) => (
+                <button
+                  key={pack.id}
+                  onClick={() => setActivePackId(pack.id)}
+                  className={cn(
+                    "text-sm px-3 py-1.5 rounded-lg font-medium transition-colors",
+                    activePackId === pack.id
+                      ? "bg-stage-accent text-white"
+                      : "bg-stage-surface text-stage-muted hover:text-stage-text"
+                  )}
+                >
+                  {pack.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* In a pack: show its description. In "All": show category chips. */}
+          {activePack ? (
+            activePack.description && (
+              <p className="text-sm text-stage-muted">{activePack.description}</p>
+            )
+          ) : (
+            <div className="flex gap-2 flex-wrap">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={cn(
+                    "text-sm px-3 py-1 rounded-full transition-colors",
+                    activeCategory === cat.id
+                      ? "bg-stage-accent text-white"
+                      : "bg-stage-surface text-stage-muted hover:text-stage-text"
+                  )}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filteredTopics.map((topic) => (

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
+import { getPersonas } from "@/lib/debate/content";
+import { FALLBACK_PERSONA } from "@/lib/debate/personas";
 import { DebateCard, DebateSummary } from "@/components/debate/debate-card";
 import { ProgressSummary } from "@/components/debate/progress-summary";
 
@@ -11,13 +13,17 @@ export default async function DebatesDashboard() {
   const supabase = createServerClient();
 
   // RLS scopes this to the signed-in user's own debates.
-  const { data } = await supabase
-    .from("debates")
-    .select("id, config, current_stage, feedback, updated_at")
-    .is("archived_at", null)
-    .order("updated_at", { ascending: false });
+  const [{ data }, personas] = await Promise.all([
+    supabase
+      .from("debates")
+      .select("id, config, current_stage, feedback, updated_at")
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false }),
+    getPersonas(),
+  ]);
 
   const debates = (data ?? []) as DebateSummary[];
+  const personaMap = new Map(personas.map((p) => [p.id, p]));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -50,7 +56,11 @@ export default async function DebatesDashboard() {
           <ProgressSummary debates={debates} />
           <div className="space-y-3">
             {debates.map((debate) => (
-              <DebateCard key={debate.id} debate={debate} />
+              <DebateCard
+                key={debate.id}
+                debate={debate}
+                persona={personaMap.get(debate.config.personaId) ?? FALLBACK_PERSONA}
+              />
             ))}
           </div>
         </>

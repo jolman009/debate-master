@@ -14,13 +14,10 @@ export type DebateStage =
   | "feedback"
   | "complete";
 
-export type PersonaId =
-  | "destiny"
-  | "andrew-wilson"
-  | "candace"
-  | "ben-shapiro"
-  | "michael-knowles"
-  | "dave-smith";
+// A persona's stable identifier. Built-in personas use fixed slugs (e.g.
+// "destiny"); user-created custom personas use generated slugs, so this is a
+// plain string rather than a fixed union.
+export type PersonaId = string;
 
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
@@ -97,4 +94,11 @@ export interface Topic {
   motion: string;
   category: string;
   difficulty: Difficulty;
+  packId?: string;
+}
+
+export interface TopicPack {
+  id: string;
+  name: string;
+  description: string;
 }

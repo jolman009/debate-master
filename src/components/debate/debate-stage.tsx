@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDebate } from "@/hooks/use-debate";
-import { getPersona } from "@/lib/debate/personas";
-import { DebateConfig, DebateStage as DebateStageType, PersonaId, VoiceConfig } from "@/lib/debate/types";
+import { DebateConfig, DebateStage as DebateStageType, Persona, VoiceConfig } from "@/lib/debate/types";
 import { StageIndicator } from "./stage-indicator";
 import { LiveStage } from "./live-stage";
 import { TurnDisplay } from "./turn-display";
@@ -18,9 +17,10 @@ import { useSpeech } from "@/hooks/use-speech";
 
 interface DebateStageProps {
   debateId: string;
+  persona: Persona;
 }
 
-export function DebateStage({ debateId }: DebateStageProps) {
+export function DebateStage({ debateId, persona }: DebateStageProps) {
   const {
     debate,
     loading,
@@ -44,7 +44,6 @@ export function DebateStage({ debateId }: DebateStageProps) {
   const [showTranscript, setShowTranscript] = useState(false);
 
   const config = debate ? (debate.config as DebateConfig) : null;
-  const persona = config ? getPersona(config.personaId as PersonaId) : null;
   const defaultVoice: VoiceConfig = { pitch: 1, rate: 1, voicePrefs: [] };
 
   const { isMuted, toggleMute, isSupported, isSpeaking, amplitude } = useSpeech(

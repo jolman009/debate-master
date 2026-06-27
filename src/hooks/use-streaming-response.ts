@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { parseSSEBuffer } from "@/lib/sse";
 
 interface StreamResult {
   done: boolean;
@@ -64,36 +65,25 @@ export function useStreamingResponse() {
 
           buffer += decoder.decode(value, { stream: true });
 
-          // Process only complete lines (terminated by \n)
-          const parts = buffer.split("\n");
-          // Keep the last part in the buffer (it may be incomplete)
-          buffer = parts.pop() || "";
+          // Parse complete `data:` lines; the trailing partial line (if any)
+          // is carried over into the next chunk via `rest`.
+          const { messages, rest } = parseSSEBuffer(buffer);
+          buffer = rest;
 
-          for (const line of parts) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data: ")) continue;
-            const data = trimmed.slice(6).trim();
-            if (!data) continue;
+          for (const parsed of messages) {
+            if (parsed.error) {
+              setStreamError(parsed.error);
+              continue;
+            }
 
-            try {
-              const parsed = JSON.parse(data);
+            if (parsed.done) {
+              result = { done: true, nextStage: parsed.nextStage };
+              continue;
+            }
 
-              if (parsed.error) {
-                setStreamError(parsed.error);
-                continue;
-              }
-
-              if (parsed.done) {
-                result = { done: true, nextStage: parsed.nextStage };
-                continue;
-              }
-
-              if (parsed.text) {
-                accumulated += parsed.text;
-                setStreamedText(accumulated);
-              }
-            } catch {
-              // Incomplete JSON, will be completed in next chunk
+            if (parsed.text) {
+              accumulated += parsed.text;
+              setStreamedText(accumulated);
             }
           }
         }

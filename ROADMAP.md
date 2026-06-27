@@ -81,7 +81,7 @@ Once users exist, give them a reason to come back.
 - [x] **Data hygiene** — soft-delete via `archived_at` (migration 003);
   archived debates leave the dashboard but are recoverable. **S**
 
-## Phase 3 — Immersive Stage Experience 🎭 *(code items done)*
+## Phase 3 — Immersive Stage Experience 🎭 *(done — only persona voice-id tuning, a human-judgement task, remains)*
 
 This is the product vision: evolve from a text tool into a multimedia
 debate stage. Build on the existing `live-stage` + audio-reactive bars.
@@ -93,9 +93,11 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
   TTS for fewer, smoother clips; audio elements preload eagerly. **M**
 - [x] **Voice preview in setup** — each persona card plays a sample line
   in its ElevenLabs voice (browser-speech fallback). **S**
-- [ ] **Speaking/thinking pose-variant art** — asset task (no code): drop
-  generated `<id>-speaking.png` / `<id>-thinking.png` into
-  `public/personas/`; the code already uses them when present. **S**
+- [x] **Speaking/thinking pose-variant art** — `<id>-speaking.png` /
+  `<id>-thinking.png` for all 6 personas in `public/personas/`, derived
+  locally from the base art (speaking = brighter/warmer/saturated,
+  thinking = dimmed/desaturated/cool + vignette) and wired via
+  `avatarUrlSpeaking`/`avatarUrlThinking` in `personas.ts`. **S**
 - [ ] **Persona voice-id verification** — listen to each persona's
   `elevenLabsVoiceId` (now easy via the preview button) and adjust to
   taste. Human-judgement task. **S**

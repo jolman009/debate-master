@@ -117,7 +117,10 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
   Technology, Ethics & Society) with pack-browsing UI (migrations 005/006). **M**
 - [ ] **Human-vs-human debates** — realtime two-player mode with the AI
   as judge/moderator. **L**
-- [ ] **PWA / mobile** — installable, offline-aware shell. **M**
+- [x] **PWA / mobile** — installable: web manifest (`app/manifest.ts`), app
+  icons (incl. maskable + apple-touch), theme color, and a service worker
+  (`public/sw.js`) registered in production with an offline fallback page.
+  Conservative caching (static assets + offline page only; never API/auth). **M**
 - [ ] **Monetization** — free tier (browser TTS) vs premium tier
   (ElevenLabs voices, unlimited debates, history); Stripe billing. **L**
 

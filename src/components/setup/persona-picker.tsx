@@ -2,22 +2,21 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PersonaId } from "@/lib/debate/types";
-import { getAllPersonas } from "@/lib/debate/personas";
+import { Persona, PersonaId } from "@/lib/debate/types";
 import { PersonaAvatar } from "@/components/debate/persona-avatar";
 import { VoicePreviewButton } from "./voice-preview-button";
 
 interface PersonaPickerProps {
+  personas: Persona[];
   selectedPersona: PersonaId | null;
   onSelectPersona: (id: PersonaId) => void;
 }
 
 export function PersonaPicker({
+  personas,
   selectedPersona,
   onSelectPersona,
 }: PersonaPickerProps) {
-  const personas = getAllPersonas();
-
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Choose Your Opponent</h2>

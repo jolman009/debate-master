@@ -98,3 +98,9 @@ export interface Topic {
   category: string;
   difficulty: Difficulty;
 }
+
+export interface TopicPack {
+  id: string;
+  name: string;
+  description: string;
+}

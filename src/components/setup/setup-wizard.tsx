@@ -8,12 +8,18 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Topic,
+  Persona,
   PersonaId,
   Difficulty,
   DebateConfig,
 } from "@/lib/debate/types";
 
-export function SetupWizard() {
+interface SetupWizardProps {
+  personas: Persona[];
+  topics: Topic[];
+}
+
+export function SetupWizard({ personas, topics }: SetupWizardProps) {
   const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [customTopic, setCustomTopic] = useState("");
@@ -75,6 +81,7 @@ export function SetupWizard() {
       </div>
 
       <TopicPicker
+        topics={topics}
         selectedTopic={selectedTopic}
         customTopic={customTopic}
         onSelectTopic={setSelectedTopic}
@@ -85,6 +92,7 @@ export function SetupWizard() {
       />
 
       <PersonaPicker
+        personas={personas}
         selectedPersona={selectedPersona}
         onSelectPersona={setSelectedPersona}
       />

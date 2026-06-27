@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { CURATED_TOPICS } from "@/lib/debate/topics";
+import { getTopics } from "@/lib/debate/content";
 
 export async function GET() {
-  return NextResponse.json({ topics: CURATED_TOPICS });
+  const topics = await getTopics();
+  return NextResponse.json({ topics });
 }

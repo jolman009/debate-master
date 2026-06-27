@@ -5,10 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Topic } from "@/lib/debate/types";
-import { CURATED_TOPICS } from "@/lib/debate/topics";
 import { cn } from "@/lib/utils";
 
 interface TopicPickerProps {
+  topics: Topic[];
   selectedTopic: Topic | null;
   customTopic: string;
   onSelectTopic: (topic: Topic | null) => void;
@@ -25,6 +25,7 @@ const CATEGORIES = [
 ];
 
 export function TopicPicker({
+  topics,
   selectedTopic,
   customTopic,
   onSelectTopic,
@@ -35,8 +36,8 @@ export function TopicPicker({
 
   const filteredTopics =
     activeCategory === "all"
-      ? CURATED_TOPICS
-      : CURATED_TOPICS.filter((t) => t.category === activeCategory);
+      ? topics
+      : topics.filter((t) => t.category === activeCategory);
 
   return (
     <div className="space-y-4">

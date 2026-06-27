@@ -1,13 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-let client: ReturnType<typeof createClient> | null = null;
-
+/**
+ * Supabase client for browser use (auth forms, sign-out). Cookie-based so it
+ * stays in sync with the server-side session.
+ */
 export function getSupabaseClient() {
-  if (client) return client;
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  client = createClient(supabaseUrl, supabaseKey);
-  return client;
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 }

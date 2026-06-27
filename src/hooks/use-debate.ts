@@ -13,6 +13,8 @@ interface UseDebateReturn {
   isAiTurn: boolean;
   streamedText: string;
   isStreaming: boolean;
+  streamError: string | null;
+  clearStreamError: () => void;
   stageLabel: string;
   stageInstruction: string;
   submitTurn: (content: string) => Promise<void>;
@@ -29,11 +31,12 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [feedback, setFeedback] = useState<DebateFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
-  const { streamedText, isStreaming, startStream } = useStreamingResponse();
+  const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
+    useStreamingResponse();
 
   const fetchDebate = useCallback(async () => {
     try {
-      const res = await fetch(`/api/debate/${debateId}`);
+      const res = await fetch(`/api/debate/${debateId}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch debate");
       const data = await res.json();
       setDebate(data);
@@ -53,29 +56,34 @@ export function useDebate(debateId: string): UseDebateReturn {
   const isMyTurn = isUserStage(currentStage);
   const isAiTurn = isAiStage(currentStage);
 
+  // The streaming `done` event reports the stage the server already
+  // persisted. Apply it after fetchDebate() so the UI advances even when the
+  // refetch GET returns a stale current_stage.
+  const applyNextStage = useCallback((nextStage?: string) => {
+    if (!nextStage) return;
+    setDebate((prev) =>
+      prev ? { ...prev, current_stage: nextStage as DebateStage } : prev
+    );
+  }, []);
+
   const submitTurn = useCallback(
     async (content: string) => {
       if (!debate) return;
 
       const result = await startStream(debateId, content);
-
-      if (result) {
-        // Refresh debate state after turn completes
-        await fetchDebate();
-      }
+      await fetchDebate();
+      applyNextStage(result?.nextStage);
     },
-    [debate, debateId, startStream, fetchDebate]
+    [debate, debateId, startStream, fetchDebate, applyNextStage]
   );
 
   const triggerAiTurn = useCallback(async () => {
     if (!debate) return;
 
     const result = await startStream(debateId);
-
-    if (result) {
-      await fetchDebate();
-    }
-  }, [debate, debateId, startStream, fetchDebate]);
+    await fetchDebate();
+    applyNextStage(result?.nextStage);
+  }, [debate, debateId, startStream, fetchDebate, applyNextStage]);
 
   const requestFeedback = useCallback(async () => {
     setFeedbackLoading(true);
@@ -87,12 +95,15 @@ export function useDebate(debateId: string): UseDebateReturn {
       const data = await res.json();
       setFeedback(data.feedback);
       await fetchDebate();
+      // The feedback route ends the debate; advance the UI even if the
+      // refetch is stale.
+      applyNextStage("complete");
     } catch (err) {
       console.error("Feedback error:", err);
     } finally {
       setFeedbackLoading(false);
     }
-  }, [debateId, fetchDebate]);
+  }, [debateId, fetchDebate, applyNextStage]);
 
   return {
     debate,
@@ -102,6 +113,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     isAiTurn,
     streamedText,
     isStreaming,
+    streamError,
+    clearStreamError,
     stageLabel: getStageLabel(currentStage),
     stageInstruction: getStageInstruction(currentStage),
     submitTurn,

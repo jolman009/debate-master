@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: Request,
   { params }: { params: { debateId: string } }
@@ -33,8 +35,31 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({
-    ...debate,
-    turns: turns || [],
-  });
+  return NextResponse.json(
+    { ...debate, turns: turns || [] },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+  );
+}
+
+/** Soft-delete: archive the debate so it drops off the dashboard. */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { debateId: string } }
+) {
+  const supabase = createServerClient();
+
+  // RLS scopes this to the owner — a non-owner simply matches no rows.
+  const { error } = await supabase
+    .from("debates")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", params.debateId);
+
+  if (error) {
+    return NextResponse.json(
+      { error: "Failed to remove debate" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }

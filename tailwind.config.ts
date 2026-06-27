@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,14 +11,15 @@ const config: Config = {
     extend: {
       colors: {
         stage: {
-          bg: "#0a0a1a",
-          surface: "#131328",
-          border: "#1e1e3a",
-          accent: "#6366f1",
-          "accent-hover": "#818cf8",
-          pro: "#22c55e",
-          con: "#ef4444",
-          muted: "#64748b",
+          bg: "rgb(var(--stage-bg) / <alpha-value>)",
+          surface: "rgb(var(--stage-surface) / <alpha-value>)",
+          border: "rgb(var(--stage-border) / <alpha-value>)",
+          text: "rgb(var(--stage-text) / <alpha-value>)",
+          accent: "rgb(var(--stage-accent) / <alpha-value>)",
+          "accent-hover": "rgb(var(--stage-accent-hover) / <alpha-value>)",
+          pro: "rgb(var(--stage-pro) / <alpha-value>)",
+          con: "rgb(var(--stage-con) / <alpha-value>)",
+          muted: "rgb(var(--stage-muted) / <alpha-value>)",
         },
       },
       animation: {

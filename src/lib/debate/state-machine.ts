@@ -32,16 +32,30 @@ export function getNextStage(
   return sequence[idx + 1];
 }
 
-export function getStageActor(
-  stage: DebateStage
-): "user" | "ai" | "system" {
-  if (stage === "setup" || stage === "feedback" || stage === "complete") {
-    return "system";
-  }
-  if (stage.endsWith("_user") || stage.startsWith("opening_user") || stage.startsWith("rebuttal_user") || stage.startsWith("closing_user")) {
-    return "user";
-  }
-  return "ai";
+type StageActor = "user" | "ai" | "system";
+
+// Explicit per-stage map: the TS Record type forces every DebateStage to be
+// classified, so adding a new stage is a compile error until it's handled
+// here — no more guessing from name suffixes.
+const STAGE_ACTORS: Record<DebateStage, StageActor> = {
+  setup: "system",
+  opening_user: "user",
+  opening_ai: "ai",
+  rebuttal_user_1: "user",
+  rebuttal_ai_1: "ai",
+  rebuttal_user_2: "user",
+  rebuttal_ai_2: "ai",
+  cross_exam_ai: "ai",
+  cross_exam_user: "user",
+  cross_exam_ai_response: "ai",
+  closing_user: "user",
+  closing_ai: "ai",
+  feedback: "system",
+  complete: "system",
+};
+
+export function getStageActor(stage: DebateStage): StageActor {
+  return STAGE_ACTORS[stage];
 }
 
 export function getStageLabel(stage: DebateStage): string {

@@ -3,8 +3,32 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --stage-bg: 248 250 252;
+    --stage-surface: 255 255 255;
+    --stage-border: 226 232 240;
+    --stage-text: 15 23 42;
+    --stage-muted: 100 116 139;
+    --stage-accent: 99 102 241;
+    --stage-accent-hover: 79 70 229;
+    --stage-pro: 22 163 74;
+    --stage-con: 220 38 38;
+  }
+
+  .dark {
+    --stage-bg: 10 10 26;
+    --stage-surface: 19 19 40;
+    --stage-border: 30 30 58;
+    --stage-text: 255 255 255;
+    --stage-muted: 100 116 139;
+    --stage-accent: 99 102 241;
+    --stage-accent-hover: 129 140 248;
+    --stage-pro: 34 197 94;
+    --stage-con: 239 68 68;
+  }
+
   body {
-    @apply bg-stage-bg text-white antialiased;
+    @apply bg-stage-bg text-stage-text antialiased;
   }
 }
 
@@ -18,6 +42,6 @@
   }
 
   .btn-secondary {
-    @apply bg-stage-surface border border-stage-border hover:border-stage-accent text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-200;
+    @apply bg-stage-surface border border-stage-border hover:border-stage-accent text-stage-text font-medium py-2.5 px-5 rounded-lg transition-colors duration-200;
   }
 }

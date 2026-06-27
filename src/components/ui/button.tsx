@@ -16,9 +16,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           variant === "primary" &&
             "bg-stage-accent hover:bg-stage-accent-hover text-white",
           variant === "secondary" &&
-            "bg-stage-surface border border-stage-border hover:border-stage-accent text-white",
+            "bg-stage-surface border border-stage-border hover:border-stage-accent text-stage-text",
           variant === "ghost" &&
-            "bg-transparent hover:bg-stage-surface text-stage-muted hover:text-white",
+            "bg-transparent hover:bg-stage-surface text-stage-muted hover:text-stage-text",
           size === "sm" && "text-sm py-1.5 px-3",
           size === "md" && "py-2.5 px-5",
           size === "lg" && "text-lg py-3 px-8",

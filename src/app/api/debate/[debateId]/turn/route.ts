@@ -1,15 +1,42 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient } from "@/lib/anthropic";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { reportError } from "@/lib/observability";
 import { getPersona } from "@/lib/debate/personas";
 import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
 import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
 import { Debate, DebateConfig, DebateStage, DebateTurn, PersonaId } from "@/lib/debate/types";
+
+// Cap user-submitted turn length before it ever reaches Claude — guards
+// against runaway token cost from oversized payloads.
+const MAX_TURN_LENGTH = 10_000;
+
+// Allow time for the streamed Claude response.
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
   { params }: { params: { debateId: string } }
 ) {
   const supabase = createServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const rl = await checkRateLimit("ai", user?.id ?? clientIp(request));
+  if (!rl.success) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please slow down." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(rl.retryAfter),
+        },
+      }
+    );
+  }
 
   // 1. Load debate
   const { data: dbDebate, error: debateError } = await supabase
@@ -55,13 +82,31 @@ export async function POST(
       });
     }
 
+    if (body.content.length > MAX_TURN_LENGTH) {
+      return new Response(
+        JSON.stringify({
+          error: `Turn is too long (max ${MAX_TURN_LENGTH.toLocaleString()} characters)`,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Save user turn
-    await supabase.from("debate_turns").insert({
-      debate_id: params.debateId,
-      stage: currentStage,
-      role: "user",
-      content: body.content,
-    });
+    const { error: userTurnError } = await supabase
+      .from("debate_turns")
+      .insert({
+        debate_id: params.debateId,
+        stage: currentStage,
+        role: "user",
+        content: body.content,
+      });
+
+    if (userTurnError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to save your turn" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     turns.push({
       id: "pending",
@@ -76,10 +121,17 @@ export async function POST(
     const nextStage = getNextStage(currentStage, config);
     if (!nextStage || !isAiStage(nextStage)) {
       // No AI response needed, just advance
-      await supabase
+      const { error: advanceError } = await supabase
         .from("debates")
         .update({ current_stage: nextStage || "complete", updated_at: new Date().toISOString() })
         .eq("id", params.debateId);
+
+      if (advanceError) {
+        return new Response(
+          JSON.stringify({ error: "Failed to advance debate stage" }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
 
       return new Response(
         JSON.stringify({ done: true, nextStage: nextStage || "complete" }),
@@ -90,10 +142,17 @@ export async function POST(
     stageForAi = nextStage;
 
     // Update stage to AI stage
-    await supabase
+    const { error: stageError } = await supabase
       .from("debates")
       .update({ current_stage: stageForAi, updated_at: new Date().toISOString() })
       .eq("id", params.debateId);
+
+    if (stageError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to advance debate stage" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
   } else if (isAiStage(currentStage)) {
     stageForAi = currentStage;
   } else {
@@ -153,7 +212,7 @@ export async function POST(
         let fullText = "";
 
         const stream = anthropic.messages.stream({
-          model: "claude-sonnet-4-20250514",
+          model: CLAUDE_MODEL,
           max_tokens: 1500,
           system: systemPrompt,
           messages,
@@ -174,22 +233,32 @@ export async function POST(
         }
 
         // Save AI turn
-        await supabase.from("debate_turns").insert({
-          debate_id: params.debateId,
-          stage: stageForAi,
-          role: "ai",
-          content: fullText,
-        });
+        const { error: aiTurnError } = await supabase
+          .from("debate_turns")
+          .insert({
+            debate_id: params.debateId,
+            stage: stageForAi,
+            role: "ai",
+            content: fullText,
+          });
+
+        if (aiTurnError) {
+          throw new Error("Failed to save AI turn");
+        }
 
         // Advance to next stage
         const nextStage = getNextStage(stageForAi, config);
-        await supabase
+        const { error: advanceError } = await supabase
           .from("debates")
           .update({
             current_stage: nextStage || "complete",
             updated_at: new Date().toISOString(),
           })
           .eq("id", params.debateId);
+
+        if (advanceError) {
+          throw new Error("Failed to advance debate stage");
+        }
 
         controller.enqueue(
           encoder.encode(
@@ -198,10 +267,17 @@ export async function POST(
         );
         controller.close();
       } catch (err) {
-        console.error("Streaming error:", err);
+        reportError(err, {
+          route: "debate/turn",
+          debateId: params.debateId,
+          stage: stageForAi,
+        });
+        // Send a generic message — never leak internal error detail.
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ error: "AI response failed" })}\n\n`
+            `data: ${JSON.stringify({
+              error: "The AI response failed. Please try again.",
+            })}\n\n`
           )
         );
         controller.close();

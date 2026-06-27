@@ -24,13 +24,30 @@ export type PersonaId =
 
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
+export interface VoiceConfig {
+  pitch: number;
+  rate: number;
+  voicePrefs: string[];
+  elevenLabsVoiceId?: string;
+}
+
+export interface ThemeColor {
+  from: string;
+  to: string;
+  glow: string;
+}
+
 export interface Persona {
   id: PersonaId;
   displayName: string;
   tagline: string;
   avatarUrl: string;
+  avatarUrlSpeaking?: string;
+  avatarUrlThinking?: string;
   systemPrompt: string;
   ideology: string;
+  voiceConfig: VoiceConfig;
+  theme: ThemeColor;
 }
 
 export interface DebateConfig {
@@ -58,6 +75,7 @@ export interface Debate {
   current_stage: DebateStage;
   turns: DebateTurn[];
   feedback: DebateFeedback | null;
+  share_token?: string | null;
   created_at: string;
   updated_at: string;
 }

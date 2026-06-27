@@ -30,8 +30,8 @@ export function TurnDisplay({ turn, personaName }: TurnDisplayProps) {
         className={cn(
           "max-w-[85%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
           isUser
-            ? "bg-stage-accent/20 text-white border border-stage-accent/30"
-            : "bg-stage-surface text-white border border-stage-border"
+            ? "bg-stage-accent/20 text-stage-text border border-stage-accent/30"
+            : "bg-stage-surface text-stage-text border border-stage-border"
         )}
       >
         {turn.content}

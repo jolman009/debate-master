@@ -32,13 +32,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 3. **Set up the database:**
 
-Run the migration SQL in your Supabase SQL Editor (Dashboard > SQL Editor > New query):
+Run every migration in `supabase/migrations/` **in numeric order** (001 →
+004) in your Supabase SQL Editor (Dashboard > SQL Editor > New query).
+Later migrations add ownership + RLS (002), soft-delete (003), and
+shareable links (004); skipping them will break auth and sharing.
 
-```sql
--- Paste contents of supabase/migrations/001_initial_schema.sql
-```
-
-Or copy-paste directly:
+The initial schema (`001_initial_schema.sql`) is:
 
 ```sql
 CREATE TABLE debates (
@@ -69,6 +68,37 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Environment variables
+
+See `.env.local.example` for the full, commented list. Summary:
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `ANTHROPIC_API_KEY` | ✅ | Claude API for debate turns and feedback |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon/publishable key |
+| `ELEVENLABS_API_KEY` | — | Premium TTS voices; falls back to browser speech if unset |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | — | Rate limiting; **both** required to enforce, otherwise no-op |
+| `SENTRY_DSN` | — | Error monitoring; logs to console only if unset |
+
+Optional integrations are inert until their keys are set — the app runs
+fine with only the three required vars.
+
+## Development
+
+```bash
+npm run dev        # start the dev server
+npm run lint       # ESLint (next/core-web-vitals)
+npm run typecheck  # tsc --noEmit
+npm test           # run the Vitest unit suite
+npm run test:watch # Vitest in watch mode
+npm run build      # production build
+```
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, and tests on every
+push and pull request to `main`. Deployment targets Vercel (`vercel.json`);
+the streaming routes set `maxDuration = 60` via route segment config.
 
 ## How to Use
 
@@ -102,3 +132,4 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Tailwind CSS**
 - **Anthropic Claude API** (streaming responses)
 - **Supabase** (PostgreSQL)
+- **Vitest** (unit tests) · **GitHub Actions** (CI)

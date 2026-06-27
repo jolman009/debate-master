@@ -1,17 +1,34 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient } from "@/lib/anthropic";
+import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
 import {
   buildFeedbackPrompt,
   FEEDBACK_SYSTEM_PROMPT,
 } from "@/lib/debate/prompt-builder";
 import { DebateTurn } from "@/lib/debate/types";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { reportError } from "@/lib/observability";
+
+// Allow time for the (non-streamed) feedback generation call.
+export const maxDuration = 60;
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: { debateId: string } }
 ) {
   const supabase = createServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const rl = await checkRateLimit("ai", user?.id ?? clientIp(request));
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+    );
+  }
 
   // Load debate
   const { data: debate, error: debateError } = await supabase
@@ -40,7 +57,7 @@ export async function POST(
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 1000,
       system: FEEDBACK_SYSTEM_PROMPT,
       messages: [{ role: "user", content: transcript }],
@@ -77,7 +94,7 @@ export async function POST(
 
     return NextResponse.json({ feedback });
   } catch (err) {
-    console.error("Feedback generation error:", err);
+    reportError(err, { route: "debate/feedback", debateId: params.debateId });
     return NextResponse.json(
       { error: "Failed to generate feedback" },
       { status: 500 }

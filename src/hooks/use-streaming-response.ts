@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { parseSSEBuffer } from "@/lib/sse";
 
 interface StreamResult {
   done: boolean;
@@ -10,6 +11,7 @@ interface StreamResult {
 export function useStreamingResponse() {
   const [streamedText, setStreamedText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const startStream = useCallback(
@@ -19,6 +21,7 @@ export function useStreamingResponse() {
     ): Promise<StreamResult | null> => {
       setIsStreaming(true);
       setStreamedText("");
+      setStreamError(null);
 
       abortRef.current = new AbortController();
 
@@ -31,7 +34,14 @@ export function useStreamingResponse() {
         });
 
         if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+          let message = `Request failed (${res.status})`;
+          try {
+            const errBody = await res.json();
+            if (errBody?.error) message = errBody.error;
+          } catch {
+            // Non-JSON error body — keep the generic message.
+          }
+          throw new Error(message);
         }
 
         // Check if this is a JSON response (no AI turn needed)
@@ -47,38 +57,33 @@ export function useStreamingResponse() {
         const decoder = new TextDecoder();
         let accumulated = "";
         let result: StreamResult | null = null;
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (!data) continue;
+          // Parse complete `data:` lines; the trailing partial line (if any)
+          // is carried over into the next chunk via `rest`.
+          const { messages, rest } = parseSSEBuffer(buffer);
+          buffer = rest;
 
-            try {
-              const parsed = JSON.parse(data);
+          for (const parsed of messages) {
+            if (parsed.error) {
+              setStreamError(parsed.error);
+              continue;
+            }
 
-              if (parsed.error) {
-                console.error("Stream error:", parsed.error);
-                continue;
-              }
+            if (parsed.done) {
+              result = { done: true, nextStage: parsed.nextStage };
+              continue;
+            }
 
-              if (parsed.done) {
-                result = { done: true, nextStage: parsed.nextStage };
-                continue;
-              }
-
-              if (parsed.text) {
-                accumulated += parsed.text;
-                setStreamedText(accumulated);
-              }
-            } catch {
-              // Ignore malformed SSE lines
+            if (parsed.text) {
+              accumulated += parsed.text;
+              setStreamedText(accumulated);
             }
           }
         }
@@ -87,9 +92,11 @@ export function useStreamingResponse() {
         return result;
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          // Cancelled
+          // Cancelled — not an error.
         } else {
-          console.error("Stream failed:", err);
+          setStreamError(
+            (err as Error).message || "Something went wrong. Please try again."
+          );
         }
         setIsStreaming(false);
         return null;
@@ -102,5 +109,21 @@ export function useStreamingResponse() {
     abortRef.current?.abort();
   }, []);
 
-  return { streamedText, isStreaming, startStream, cancelStream };
+  const clearStreamedText = useCallback(() => {
+    setStreamedText("");
+  }, []);
+
+  const clearStreamError = useCallback(() => {
+    setStreamError(null);
+  }, []);
+
+  return {
+    streamedText,
+    isStreaming,
+    streamError,
+    startStream,
+    cancelStream,
+    clearStreamedText,
+    clearStreamError,
+  };
 }

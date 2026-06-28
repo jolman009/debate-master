@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { createServerClient } from "@/lib/supabase/server";
+import { isBillingEnabled } from "@/lib/stripe";
+import { getTierForUser } from "@/lib/billing/tier-server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +17,22 @@ export async function POST(request: Request) {
       { error: "ELEVENLABS_API_KEY not configured" },
       { status: 503 }
     );
+  }
+
+  // Premium-only feature when billing is on; free users get a 403 and the
+  // client falls back to browser speech. No-op when billing is disabled.
+  if (isBillingEnabled()) {
+    const supabase = createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const tier = user ? await getTierForUser(supabase, user.id) : "free";
+    if (tier !== "premium") {
+      return NextResponse.json(
+        { error: "Realistic voices are a Premium feature." },
+        { status: 403 }
+      );
+    }
   }
 
   const rl = await checkRateLimit("tts", clientIp(request));

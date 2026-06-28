@@ -38,6 +38,12 @@ export async function Header() {
           >
             Leaderboard
           </Link>
+          <Link
+            href="/pricing"
+            className="text-sm text-stage-muted hover:text-stage-text transition-colors"
+          >
+            Pricing
+          </Link>
           <ThemeToggle />
           <AuthMenu email={user?.email ?? null} />
         </div>

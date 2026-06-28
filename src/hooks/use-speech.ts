@@ -239,7 +239,9 @@ export function useSpeech(
           signal: ac.signal,
         });
         if (!res.ok) {
-          if (res.status === 503) {
+          // 503 = not configured, 403 = not entitled (free tier): stop trying
+          // ElevenLabs for this session and use the browser voice instead.
+          if (res.status === 503 || res.status === 403) {
             useElevenLabsRef.current = false;
           }
           return null;

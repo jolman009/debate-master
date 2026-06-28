@@ -121,8 +121,11 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
   icons (incl. maskable + apple-touch), theme color, and a service worker
   (`public/sw.js`) registered in production with an offline fallback page.
   Conservative caching (static assets + offline page only; never API/auth). **M**
-- [ ] **Monetization** — free tier (browser TTS) vs premium tier
-  (ElevenLabs voices, unlimited debates, history); Stripe billing. **L**
+- [x] **Monetization** — Stripe monthly subscription. Free = browser TTS +
+  3 debates/month; Premium = ElevenLabs voices + unlimited debates. Checkout
+  + Customer Portal + webhook (service-role sync, migration 008), `/pricing`
+  page, gated `/api/tts` + debate-creation cap. Enforcement is a no-op until
+  Stripe is configured. **L**
 
 ## Cross-cutting / tech debt
 
@@ -159,3 +162,4 @@ debate stage. Build on the existing `live-stage` + audio-reactive bars.
 
 Run the **tests + CI** items alongside Phase 1 so hardening work is
 protected from regressions.
+

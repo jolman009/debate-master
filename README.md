@@ -81,6 +81,10 @@ See `.env.local.example` for the full, commented list. Summary:
 | `ELEVENLABS_API_KEY` | — | Premium TTS voices; falls back to browser speech if unset |
 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | — | Rate limiting; **both** required to enforce, otherwise no-op |
 | `SENTRY_DSN` | — | Error monitoring; logs to console only if unset |
+| `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` | — | Enable the Premium tier (voices + unlimited debates); **both** required, otherwise billing is inert and nothing is gated |
+| `STRIPE_WEBHOOK_SECRET` | — | Verify Stripe webhooks (subscription status sync) |
+| `SUPABASE_SERVICE_ROLE_KEY` | — | Used **only** by the Stripe webhook to write subscription status (no user session) |
+| `NEXT_PUBLIC_APP_URL` | — | Base URL for Stripe Checkout/Portal redirects (defaults to request origin) |
 
 Optional integrations are inert until their keys are set — the app runs
 fine with only the three required vars.

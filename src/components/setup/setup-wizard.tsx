@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TopicPicker } from "./topic-picker";
 import { PersonaPicker } from "./persona-picker";
@@ -31,6 +32,7 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
   const [rebuttalCycles, setRebuttalCycles] = useState<1 | 2>(1);
   const [crossExamEnabled, setCrossExamEnabled] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
 
   const hasTopic = selectedTopic || customTopic.trim().length > 10;
   const canStart = hasTopic && selectedPersona;
@@ -38,6 +40,7 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
   async function handleStart() {
     if (!canStart) return;
     setIsCreating(true);
+    setUpgradeMsg(null);
 
     const topic = selectedTopic?.title || customTopic.trim();
     const motion =
@@ -63,7 +66,15 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
         body: JSON.stringify(config),
       });
 
-      if (!res.ok) throw new Error("Failed to create debate");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.upgrade) {
+          setUpgradeMsg(data.error || "You've reached the free limit.");
+          setIsCreating(false);
+          return;
+        }
+        throw new Error("Failed to create debate");
+      }
 
       const { debateId } = await res.json();
       router.push(`/debate/${debateId}`);
@@ -199,6 +210,15 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
           </div>
         </div>
       </div>
+
+      {upgradeMsg && (
+        <div className="rounded-lg border border-stage-accent/40 bg-stage-accent/10 px-4 py-3 text-center text-sm text-stage-text">
+          {upgradeMsg}{" "}
+          <Link href="/pricing" className="font-medium text-stage-accent hover:underline">
+            View plans →
+          </Link>
+        </div>
+      )}
 
       <div className="flex justify-center pt-4">
         <Button

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllPersonas } from "@/lib/debate/personas";
 import { PersonaAvatar } from "@/components/debate/persona-avatar";
+import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
 
 const STEPS = [
   {
@@ -59,7 +60,11 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl px-4">
       {/* Hero */}
-      <section className="flex flex-col items-center py-20 text-center">
+      <section className="relative flex flex-col items-center py-20 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 mx-auto h-72 max-w-2xl rounded-full bg-stage-accent/15 blur-3xl"
+        />
         <span className="mb-5 rounded-full border border-stage-border bg-stage-surface px-3 py-1 text-xs font-medium text-stage-muted">
           AI-powered debate practice
         </span>
@@ -88,9 +93,17 @@ export default function Home() {
           <p className="mb-4 text-xs uppercase tracking-wider text-stage-muted">
             Your opponents
           </p>
-          <div className="flex flex-wrap items-start justify-center gap-5">
+          <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-5">
             {personas.map((p) => (
-              <PersonaAvatar key={p.id} persona={p} size="md" showName={false} />
+              <div
+                key={p.id}
+                className="flex w-20 flex-col items-center gap-2 text-center"
+              >
+                <PersonaAvatar persona={p} size="md" showName={false} />
+                <span className="text-xs font-medium leading-tight text-stage-text">
+                  {p.displayName}
+                </span>
+              </div>
             ))}
           </div>
         </div>
@@ -121,7 +134,10 @@ export default function Home() {
         </h2>
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <div key={f.title} className="debate-card p-5">
+            <div
+              key={f.title}
+              className="debate-card p-5 transition-colors duration-200 hover:border-stage-accent/40"
+            >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stage-accent/10 text-xl">
                 {f.icon}
               </div>
@@ -140,8 +156,8 @@ export default function Home() {
               Start free, upgrade when you&apos;re hooked
             </h2>
             <p className="mt-1 text-sm text-stage-muted">
-              Three debates a month on the house. Go Premium for realistic
-              voices and unlimited debates.
+              {FREE_DEBATE_LIMIT} debates a month on the house. Go Premium for
+              realistic voices and unlimited debates.
             </p>
           </div>
           <Link
@@ -154,16 +170,22 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="flex flex-col items-center py-20 text-center">
-        <h2 className="text-3xl font-bold text-stage-text">
-          Ready to step onto the stage?
-        </h2>
-        <Link
-          href="/debate/new"
-          className="btn-primary mt-6 text-lg px-8 py-3"
-        >
-          Start a Debate
-        </Link>
+      <section className="py-20">
+        <div className="debate-card flex flex-col items-center bg-gradient-to-br from-stage-accent/10 to-purple-500/5 p-12 text-center">
+          <h2 className="text-3xl font-bold text-stage-text">
+            Ready to step onto the stage?
+          </h2>
+          <p className="mt-3 max-w-md text-stage-muted">
+            Pick a topic, choose an opponent, and start arguing in under a
+            minute.
+          </p>
+          <Link
+            href="/debate/new"
+            className="btn-primary mt-6 text-lg px-8 py-3"
+          >
+            Start a Debate
+          </Link>
+        </div>
       </section>
     </div>
   );

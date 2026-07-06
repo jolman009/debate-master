@@ -44,9 +44,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // A signed-in user has no reason to see the login form — send them to
+  // their dashboard, honoring an explicit internal `?redirect=` if present.
   if (user && path === "/login") {
+    const target = request.nextUrl.searchParams.get("redirect");
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname =
+      target && target.startsWith("/") && !target.startsWith("//")
+        ? target
+        : "/debate";
     url.search = "";
     return NextResponse.redirect(url);
   }

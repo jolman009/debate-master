@@ -30,11 +30,20 @@ export async function POST(
     );
   }
 
-  // Load debate
+  if (!user) {
+    return NextResponse.json(
+      { error: "You must be signed in to request feedback" },
+      { status: 401 }
+    );
+  }
+
+  // Load debate — ownership-scoped so non-owners can't burn tokens on
+  // someone else's transcript or overwrite their feedback.
   const { data: debate, error: debateError } = await supabase
     .from("debates")
     .select("*")
     .eq("id", params.debateId)
+    .eq("user_id", user.id)
     .single();
 
   if (debateError || !debate) {
@@ -82,7 +91,8 @@ export async function POST(
       };
     }
 
-    // Save feedback to debate
+    // Save feedback to debate — ownership filter here too so a stolen
+    // debate row can't have its feedback overwritten.
     await supabase
       .from("debates")
       .update({
@@ -90,7 +100,8 @@ export async function POST(
         current_stage: "complete",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.debateId);
+      .eq("id", params.debateId)
+      .eq("user_id", user.id);
 
     return NextResponse.json({ feedback });
   } catch (err) {

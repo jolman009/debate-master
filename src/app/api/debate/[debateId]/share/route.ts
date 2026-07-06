@@ -15,11 +15,12 @@ export async function POST(
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  // RLS scopes this read to the owner.
+  // Explicit ownership filter — defense in depth, don't lean on RLS alone.
   const { data: existing } = await supabase
     .from("debates")
     .select("share_token")
     .eq("id", params.debateId)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (!existing) {
@@ -32,7 +33,8 @@ export async function POST(
     const { error } = await supabase
       .from("debates")
       .update({ share_token: shareToken })
-      .eq("id", params.debateId);
+      .eq("id", params.debateId)
+      .eq("user_id", user.id);
     if (error) {
       return NextResponse.json(
         { error: "Failed to enable sharing" },
@@ -51,10 +53,18 @@ export async function DELETE(
 ) {
   const supabase = createServerClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+
   const { error } = await supabase
     .from("debates")
     .update({ share_token: null })
-    .eq("id", params.debateId);
+    .eq("id", params.debateId)
+    .eq("user_id", user.id);
 
   if (error) {
     return NextResponse.json(

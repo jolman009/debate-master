@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { parseSSEBuffer } from "@/lib/sse";
 
 interface StreamResult {
@@ -39,7 +39,7 @@ export function useStreamingResponse() {
             const errBody = await res.json();
             if (errBody?.error) message = errBody.error;
           } catch {
-            // Non-JSON error body — keep the generic message.
+            // Non-JSON error body - keep the generic message.
           }
           throw new Error(message);
         }
@@ -53,7 +53,10 @@ export function useStreamingResponse() {
         }
 
         // SSE stream
-        const reader = res.body!.getReader();
+        if (!res.body) {
+          throw new Error("Empty streaming response");
+        }
+        const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let accumulated = "";
         let result: StreamResult | null = null;
@@ -92,7 +95,7 @@ export function useStreamingResponse() {
         return result;
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          // Cancelled — not an error.
+          // Cancelled - not an error.
         } else {
           setStreamError(
             (err as Error).message || "Something went wrong. Please try again."
@@ -107,6 +110,15 @@ export function useStreamingResponse() {
 
   const cancelStream = useCallback(() => {
     abortRef.current?.abort();
+  }, []);
+
+  // Cancel any in-flight stream when the component unmounts. Without this,
+  // navigating away mid-stream leaves the fetch open and the server keeps
+  // token-billing Anthropic until the response completes on its own.
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
   const clearStreamedText = useCallback(() => {

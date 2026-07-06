@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { DebateConfig } from "@/lib/debate/types";
 import { getTierForUser, startOfMonthUtc } from "@/lib/billing/tier-server";
-import { isOverFreeLimit, FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
+import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
+import { reportError } from "@/lib/observability";
 
 export async function POST(request: Request) {
   try {
@@ -35,46 +36,53 @@ export async function POST(request: Request) {
       );
     }
 
-    // Free tier: cap debates per calendar month. (No-op when billing is off,
-    // since getTierForUser returns "premium" then.)
     const tier = await getTierForUser(supabase, user.id);
-    if (tier === "free") {
-      const { count } = await supabase
-        .from("debates")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonthUtc());
-      if (isOverFreeLimit(count ?? 0, tier)) {
-        return NextResponse.json(
-          {
-            error: `You've used your ${FREE_DEBATE_LIMIT} free debates this month. Upgrade to Premium for unlimited debates.`,
-            upgrade: true,
-          },
-          { status: 403 }
-        );
-      }
-    }
+    // Premium users bypass the cap. See migration 009 for the RPC contract:
+    // a negative limit means "skip the check entirely".
+    const freeLimit = tier === "free" ? FREE_DEBATE_LIMIT : -1;
 
-    const { data, error } = await supabase
-      .from("debates")
-      .insert({
-        config,
-        current_stage: "opening_user",
-        user_id: user.id,
-      })
-      .select("id")
-      .single();
+    // Atomic count-and-insert. The RPC takes a per-user advisory lock so
+    // two concurrent create calls cannot both slip past the cap.
+    const { data: rows, error } = await supabase.rpc(
+      "create_debate_with_limit",
+      {
+        p_user_id: user.id,
+        p_config: config,
+        p_free_limit: freeLimit,
+        p_month_start: startOfMonthUtc(),
+      }
+    );
 
     if (error) {
-      console.error("Failed to create debate:", error);
+      reportError(error, { route: "debate/create" });
       return NextResponse.json(
         { error: "Failed to create debate" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ debateId: data.id });
-  } catch {
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row) {
+      reportError(new Error("RPC returned no row"), { route: "debate/create" });
+      return NextResponse.json(
+        { error: "Failed to create debate" },
+        { status: 500 }
+      );
+    }
+
+    if (row.over_limit) {
+      return NextResponse.json(
+        {
+          error: `You have used your ${FREE_DEBATE_LIMIT} free debates this month. Upgrade to Premium for unlimited debates.`,
+          upgrade: true,
+        },
+        { status: 403 }
+      );
+    }
+
+    return NextResponse.json({ debateId: row.debate_id });
+  } catch (err) {
+    reportError(err, { route: "debate/create", phase: "parse" });
     return NextResponse.json(
       { error: "Invalid request" },
       { status: 400 }

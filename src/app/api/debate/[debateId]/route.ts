@@ -9,10 +9,23 @@ export async function GET(
 ) {
   const supabase = createServerClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "You must be signed in to view this debate" },
+      { status: 401 }
+    );
+  }
+
+  // The `user_id` filter enforces ownership. Non-owners see 404, not 403.
   const { data: debate, error: debateError } = await supabase
     .from("debates")
     .select("*")
     .eq("id", params.debateId)
+    .eq("user_id", user.id)
     .single();
 
   if (debateError || !debate) {
@@ -48,11 +61,24 @@ export async function DELETE(
 ) {
   const supabase = createServerClient();
 
-  // RLS scopes this to the owner — a non-owner simply matches no rows.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "You must be signed in to remove a debate" },
+      { status: 401 }
+    );
+  }
+
+  // Explicit ownership filter — don't rely on RLS alone. If the server
+  // client is ever configured with a service-role key, RLS is bypassed.
   const { error } = await supabase
     .from("debates")
     .update({ archived_at: new Date().toISOString() })
-    .eq("id", params.debateId);
+    .eq("id", params.debateId)
+    .eq("user_id", user.id);
 
   if (error) {
     return NextResponse.json(

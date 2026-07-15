@@ -12,6 +12,7 @@ import { FeedbackPanel } from "./feedback-panel";
 import { SpeechToggle } from "./speech-toggle";
 import { TranscriptOverlay } from "./transcript-overlay";
 import { ShareDebate } from "./share-debate";
+import { InvitePanel } from "./invite-panel";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
 
@@ -38,6 +39,12 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
     requestFeedback,
     feedback,
     feedbackLoading,
+    isHuman,
+    waitingForOpponent,
+    inviteToken,
+    viewerSide,
+    opponent,
+    refresh,
   } = useDebate(debateId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -61,11 +68,24 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
   // Auto-trigger AI turns. The `!streamError` guard stops a failed AI turn
   // from re-firing in a loop — recovery is via the manual Retry button.
+  // Human mode never calls Claude, so this stays gated to AI mode.
   useEffect(() => {
-    if (isAiTurn && !isStreaming && debate && !streamError) {
+    if (!isHuman && isAiTurn && !isStreaming && debate && !streamError) {
       triggerAiTurn();
     }
-  }, [isAiTurn, isStreaming, debate?.current_stage, streamError]);
+  }, [isHuman, isAiTurn, isStreaming, debate?.current_stage, streamError]);
+
+  // Human mode has no realtime yet (Phase B): poll while it's not our turn —
+  // i.e. waiting for the opponent to join or to submit — so the stage advances
+  // without a manual refresh. Stops once it's our turn or the debate ends.
+  useEffect(() => {
+    if (!isHuman) return;
+    const stage = debate?.current_stage;
+    const terminal = stage === "complete" || stage === "judge";
+    if (isMyTurn || terminal) return;
+    const id = setInterval(() => refresh(), 4000);
+    return () => clearInterval(id);
+  }, [isHuman, isMyTurn, debate?.current_stage, refresh]);
 
   if (loading) {
     return (
@@ -87,7 +107,11 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
   const currentStage = debate.current_stage as DebateStageType;
   const isFeedbackStage = currentStage === "feedback";
+  const isJudgeStage = currentStage === "judge";
   const isComplete = currentStage === "complete";
+  const opponentTurnPending =
+    isHuman && !waitingForOpponent && !isMyTurn && !isComplete && !isJudgeStage;
+  const opponentName = "Opponent";
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-73px)]">
@@ -136,12 +160,16 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
         <LiveStage
           persona={persona!}
-          userSide={config!.userSide}
+          userSide={isHuman ? viewerSide ?? config!.userSide : config!.userSide}
           isStreaming={isStreaming}
           isSpeaking={isSpeaking}
           isAiTurn={isAiTurn}
           isMyTurn={isMyTurn}
           amplitude={amplitude}
+          isHuman={isHuman}
+          opponentJoined={!waitingForOpponent}
+          opponentActive={opponentTurnPending}
+          opponentName={opponentName}
         />
 
         <StageIndicator config={config!} currentStage={currentStage} />
@@ -171,6 +199,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
             key={turn.id}
             turn={turn}
             personaName={persona!.displayName}
+            viewerSide={viewerSide}
+            opponentName={opponentName}
           />
         ))}
 
@@ -215,7 +245,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
             </div>
           </div>
         )}
-        {isFeedbackStage && !feedback && (
+        {!isHuman && isFeedbackStage && !feedback && (
           <div className="text-center py-4">
             <p className="text-stage-muted text-sm mb-3">
               The debate is over! Get AI feedback on your performance.
@@ -223,6 +253,26 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
             <Button onClick={requestFeedback} disabled={feedbackLoading}>
               {feedbackLoading ? "Generating Feedback..." : "Get Feedback"}
             </Button>
+          </div>
+        )}
+
+        {waitingForOpponent && (
+          <InvitePanel inviteToken={inviteToken} viewerSide={viewerSide} />
+        )}
+
+        {opponentTurnPending && (
+          <div className="text-center py-4">
+            <p className="text-sm text-stage-muted">
+              Waiting for your opponent to respond…
+            </p>
+          </div>
+        )}
+
+        {isJudgeStage && (
+          <div className="text-center py-4">
+            <p className="text-stage-muted text-sm">
+              Both sides have finished. The judge&apos;s verdict is coming soon.
+            </p>
           </div>
         )}
 

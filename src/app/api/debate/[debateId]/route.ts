@@ -20,12 +20,13 @@ export async function GET(
     );
   }
 
-  // The `user_id` filter enforces ownership. Non-owners see 404, not 403.
+  // Load by id and let RLS scope access: AI debates are owner-only (no
+  // participant rows), human debates are readable by both participants.
+  // Non-authorized users (or a bad UUID) see 404, not 403.
   const { data: debate, error: debateError } = await supabase
     .from("debates")
     .select("*")
     .eq("id", params.debateId)
-    .eq("user_id", user.id)
     .single();
 
   if (debateError || !debate) {
@@ -48,8 +49,34 @@ export async function GET(
     );
   }
 
+  const isOwner = debate.user_id === user.id;
+  const isHuman = (debate.config as { mode?: string })?.mode === "human";
+
+  // Human mode: surface the roster (so the client can render the opponent and
+  // gate the waiting room) and the viewer's own side (to resolve "my turn").
+  // The invite token is only for the owner to share.
+  let participants: { user_id: string; side: string }[] = [];
+  let viewerSide: string | null = null;
+  if (isHuman) {
+    const { data: roster } = await supabase.rpc("get_debate_participants", {
+      p_debate_id: params.debateId,
+    });
+    participants = (roster || []).map(
+      (p: { user_id: string; side: string }) => ({
+        user_id: p.user_id,
+        side: p.side,
+      })
+    );
+    viewerSide = participants.find((p) => p.user_id === user.id)?.side ?? null;
+  }
+
   return NextResponse.json(
-    { ...debate, turns: turns || [] },
+    {
+      ...debate,
+      invite_token: isOwner ? debate.invite_token : null,
+      turns: turns || [],
+      ...(isHuman ? { participants, viewerSide } : {}),
+    },
     { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
   );
 }

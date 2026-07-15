@@ -8,9 +8,17 @@ interface UserInputProps {
   onSubmit: (content: string) => void;
   disabled: boolean;
   placeholder: string;
+  // Human mode: fired (throttled upstream) on each keystroke to broadcast a
+  // "typing" signal to the opponent.
+  onTyping?: () => void;
 }
 
-export function UserInput({ onSubmit, disabled, placeholder }: UserInputProps) {
+export function UserInput({
+  onSubmit,
+  disabled,
+  placeholder,
+  onTyping,
+}: UserInputProps) {
   const [content, setContent] = useState("");
 
   const charCount = content.length;
@@ -33,7 +41,10 @@ export function UserInput({ onSubmit, disabled, placeholder }: UserInputProps) {
     <div className="space-y-2">
       <Textarea
         value={content}
-        onChange={(e) => setContent(e.target.value.slice(0, maxChars))}
+        onChange={(e) => {
+          setContent(e.target.value.slice(0, maxChars));
+          onTyping?.();
+        }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}

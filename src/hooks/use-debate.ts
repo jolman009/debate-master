@@ -7,6 +7,7 @@ import {
   DebateFeedback,
   DebateParticipant,
   DebateStage,
+  DebateTurn,
   Side,
 } from "@/lib/debate/types";
 import {
@@ -17,6 +18,7 @@ import {
   getStageInstruction,
 } from "@/lib/debate/state-machine";
 import { useStreamingResponse } from "./use-streaming-response";
+import { useRealtimeDebate } from "./use-realtime-debate";
 
 interface UseDebateReturn {
   debate: Debate | null;
@@ -42,6 +44,11 @@ interface UseDebateReturn {
   viewerSide: Side | null;
   opponent: DebateParticipant | null;
   refresh: () => Promise<void>;
+  // Realtime (Phase B) — all inert in AI mode.
+  realtimeConnected: boolean;
+  onlineSides: Side[];
+  opponentTyping: boolean;
+  broadcastTyping: () => void;
 }
 
 export function useDebate(debateId: string): UseDebateReturn {
@@ -105,6 +112,52 @@ export function useDebate(debateId: string): UseDebateReturn {
       prev ? { ...prev, current_stage: nextStage as DebateStage } : prev
     );
   }, []);
+
+  // --- Realtime (Phase B): live turns, stage sync, presence, typing ---
+  const viewerId =
+    (isHuman && participants.find((p) => p.side === viewerSide)?.user_id) ||
+    null;
+
+  const handleTurnInsert = useCallback((turn: DebateTurn) => {
+    setDebate((prev) => {
+      if (!prev) return prev;
+      if (prev.turns.some((t) => t.id === turn.id)) return prev;
+      return { ...prev, turns: [...prev.turns, turn] };
+    });
+  }, []);
+
+  const handleStageChange = useCallback((stage: string) => {
+    setDebate((prev) =>
+      prev ? { ...prev, current_stage: stage as DebateStage } : prev
+    );
+  }, []);
+
+  const {
+    connected: realtimeConnected,
+    onlineSides,
+    typingSide,
+    broadcastTyping,
+  } = useRealtimeDebate({
+    debateId,
+    enabled: !!isHuman,
+    viewerId,
+    viewerSide,
+    onTurnInsert: handleTurnInsert,
+    onStageChange: handleStageChange,
+  });
+
+  // The opponent joining fires a presence sync before any turn/stage event; the
+  // moment their side comes online while we're still waiting, refetch to pick
+  // up the roster and open the debate.
+  useEffect(() => {
+    if (!isHuman || !waitingForOpponent || !viewerSide) return;
+    const opponentSide: Side = viewerSide === "pro" ? "con" : "pro";
+    if (onlineSides.includes(opponentSide)) {
+      fetchDebate();
+    }
+  }, [isHuman, waitingForOpponent, viewerSide, onlineSides, fetchDebate]);
+
+  const opponentTyping = typingSide != null && typingSide !== viewerSide;
 
   const submitTurn = useCallback(
     async (content: string) => {
@@ -196,5 +249,9 @@ export function useDebate(debateId: string): UseDebateReturn {
     viewerSide,
     opponent,
     refresh: fetchDebate,
+    realtimeConnected,
+    onlineSides,
+    opponentTyping,
+    broadcastTyping,
   };
 }

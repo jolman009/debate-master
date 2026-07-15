@@ -13,6 +13,7 @@ import { SpeechToggle } from "./speech-toggle";
 import { TranscriptOverlay } from "./transcript-overlay";
 import { ShareDebate } from "./share-debate";
 import { InvitePanel } from "./invite-panel";
+import { TypingIndicator } from "./typing-indicator";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
 
@@ -45,6 +46,10 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
     viewerSide,
     opponent,
     refresh,
+    realtimeConnected,
+    onlineSides,
+    opponentTyping,
+    broadcastTyping,
   } = useDebate(debateId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,17 +80,18 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
     }
   }, [isHuman, isAiTurn, isStreaming, debate?.current_stage, streamError]);
 
-  // Human mode has no realtime yet (Phase B): poll while it's not our turn —
-  // i.e. waiting for the opponent to join or to submit — so the stage advances
-  // without a manual refresh. Stops once it's our turn or the debate ends.
+  // Fallback polling for human mode: realtime (Phase B) is the primary sync,
+  // so this only runs when the channel is NOT connected (e.g. before subscribe,
+  // or after a dropped socket). Polls while it's not our turn; stops once it's
+  // our turn, the debate ends, or realtime takes over.
   useEffect(() => {
-    if (!isHuman) return;
+    if (!isHuman || realtimeConnected) return;
     const stage = debate?.current_stage;
     const terminal = stage === "complete" || stage === "judge";
     if (isMyTurn || terminal) return;
     const id = setInterval(() => refresh(), 4000);
     return () => clearInterval(id);
-  }, [isHuman, isMyTurn, debate?.current_stage, refresh]);
+  }, [isHuman, realtimeConnected, isMyTurn, debate?.current_stage, refresh]);
 
   if (loading) {
     return (
@@ -112,6 +118,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
   const opponentTurnPending =
     isHuman && !waitingForOpponent && !isMyTurn && !isComplete && !isJudgeStage;
   const opponentName = "Opponent";
+  const opponentSide: "pro" | "con" = viewerSide === "pro" ? "con" : "pro";
+  const opponentOnline = isHuman && onlineSides.includes(opponentSide);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-73px)]">
@@ -170,6 +178,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
           opponentJoined={!waitingForOpponent}
           opponentActive={opponentTurnPending}
           opponentName={opponentName}
+          opponentOnline={opponentOnline}
+          opponentTyping={opponentTyping}
         />
 
         <StageIndicator config={config!} currentStage={currentStage} />
@@ -261,10 +271,14 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
         )}
 
         {opponentTurnPending && (
-          <div className="text-center py-4">
-            <p className="text-sm text-stage-muted">
-              Waiting for your opponent to respond…
-            </p>
+          <div className="py-4">
+            {opponentTyping ? (
+              <TypingIndicator name={opponentName} />
+            ) : (
+              <p className="text-center text-sm text-stage-muted">
+                Waiting for your opponent to respond…
+              </p>
+            )}
           </div>
         )}
 
@@ -294,11 +308,19 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
         )}
 
         {isMyTurn && !isStreaming && (
-          <UserInput
-            onSubmit={submitTurn}
-            disabled={isStreaming}
-            placeholder={stageInstruction || "Enter your argument..."}
-          />
+          <>
+            {isHuman && opponentTyping && (
+              <div className="mb-2">
+                <TypingIndicator name={opponentName} />
+              </div>
+            )}
+            <UserInput
+              onSubmit={submitTurn}
+              disabled={isStreaming}
+              placeholder={stageInstruction || "Enter your argument..."}
+              onTyping={isHuman ? broadcastTyping : undefined}
+            />
+          </>
         )}
 
         {isAiTurn && (

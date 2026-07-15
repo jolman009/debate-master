@@ -12,6 +12,7 @@ type SpeakerStatus =
   | "thinking"
   | "your-turn"
   | "their-turn"
+  | "typing"
   | "waiting"
   | "listening";
 
@@ -29,6 +30,8 @@ interface LiveStageProps {
   opponentJoined?: boolean;
   opponentActive?: boolean;
   opponentName?: string;
+  opponentOnline?: boolean;
+  opponentTyping?: boolean;
 }
 
 const STATUS_LABEL: Record<SpeakerStatus, string> = {
@@ -36,6 +39,7 @@ const STATUS_LABEL: Record<SpeakerStatus, string> = {
   thinking: "Thinking…",
   "your-turn": "Your turn",
   "their-turn": "Their turn",
+  typing: "Typing…",
   waiting: "Waiting to join…",
   listening: "Listening",
 };
@@ -106,6 +110,8 @@ function HumanLiveStage({
   opponentJoined,
   opponentActive,
   opponentName,
+  opponentOnline,
+  opponentTyping,
 }: LiveStageProps) {
   const viewerSide: Side = userSide;
   const opponentSide: Side = viewerSide === "pro" ? "con" : "pro";
@@ -120,6 +126,8 @@ function HumanLiveStage({
 
   const opponentStatus: SpeakerStatus = !opponentJoined
     ? "waiting"
+    : opponentTyping
+    ? "typing"
     : opponentActive
     ? "their-turn"
     : "listening";
@@ -128,8 +136,9 @@ function HumanLiveStage({
     <OpponentSpeaker
       side={opponentSide}
       name={opponentName || "Opponent"}
-      active={!!opponentActive}
+      active={!!opponentActive || !!opponentTyping}
       status={opponentStatus}
+      online={!!opponentOnline}
     />
   );
 
@@ -152,13 +161,23 @@ interface OpponentSpeakerProps {
   name: string;
   active: boolean;
   status: SpeakerStatus;
+  online: boolean;
 }
 
-function OpponentSpeaker({ side, name, active, status }: OpponentSpeakerProps) {
+function OpponentSpeaker({ side, name, active, status, online }: OpponentSpeakerProps) {
   const colorVar = side === "pro" ? "var(--stage-pro)" : "var(--stage-con)";
   return (
     <SpeakerColumn align={side === "pro" ? "left" : "right"}>
-      <UserAvatarLarge active={active} colorVar={colorVar} />
+      <div className="relative shrink-0">
+        <UserAvatarLarge active={active} colorVar={colorVar} />
+        <span
+          title={online ? "Online" : "Offline"}
+          className={cn(
+            "absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-stage-bg",
+            online ? "bg-green-500" : "bg-stage-muted"
+          )}
+        />
+      </div>
       <SpeakerInfo
         align={side === "pro" ? "left" : "right"}
         name={name}
@@ -320,7 +339,8 @@ function SpeakerInfo({
 function StatusPill({ status }: { status: SpeakerStatus }) {
   const speaking = status === "speaking";
   const yourTurn = status === "your-turn";
-  const accented = speaking || yourTurn || status === "their-turn";
+  const accented =
+    speaking || yourTurn || status === "their-turn" || status === "typing";
   return (
     <span
       className={cn(

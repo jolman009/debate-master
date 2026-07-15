@@ -84,13 +84,24 @@ export function subscribeToDebate(
       if (side === "pro" || side === "con") handlers.onTyping(side);
     });
 
-  channel.subscribe((status) => {
-    const connected = status === "SUBSCRIBED";
-    handlers.onStatus(connected);
-    if (connected) {
-      // Announce our presence once the channel is live.
-      void channel.track(me);
-    }
+  // postgres_changes are RLS-filtered against the subscriber's JWT: without an
+  // authenticated token the participant SELECT policies match nothing and NO
+  // row events arrive (presence/broadcast still work — they're token-agnostic).
+  // A freshly-created browser client hasn't pushed its token to the realtime
+  // socket yet, so set it explicitly BEFORE subscribing.
+  let cancelled = false;
+  void supabase.auth.getSession().then(({ data }) => {
+    if (cancelled) return;
+    const token = data.session?.access_token;
+    if (token) supabase.realtime.setAuth(token);
+    channel.subscribe((status) => {
+      const connected = status === "SUBSCRIBED";
+      handlers.onStatus(connected);
+      if (connected) {
+        // Announce our presence once the channel is live.
+        void channel.track(me);
+      }
+    });
   });
 
   return {
@@ -102,6 +113,7 @@ export function subscribeToDebate(
       });
     },
     teardown: () => {
+      cancelled = true;
       void supabase.removeChannel(channel);
     },
   };

@@ -14,6 +14,7 @@ import {
   PersonaId,
   Difficulty,
   DebateConfig,
+  DebateMode,
 } from "@/lib/debate/types";
 
 interface SetupWizardProps {
@@ -27,6 +28,7 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [customTopic, setCustomTopic] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaId | null>(null);
+  const [mode, setMode] = useState<DebateMode>("ai");
   const [userSide, setUserSide] = useState<"pro" | "con">("pro");
   const [difficulty, setDifficulty] = useState<Difficulty>("intermediate");
   const [rebuttalCycles, setRebuttalCycles] = useState<1 | 2>(1);
@@ -34,8 +36,10 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
 
+  const isHuman = mode === "human";
   const hasTopic = selectedTopic || customTopic.trim().length > 10;
-  const canStart = hasTopic && selectedPersona;
+  // Human debates need no persona — the opponent is another person.
+  const canStart = hasTopic && (isHuman || selectedPersona);
 
   async function handleStart() {
     if (!canStart) return;
@@ -53,10 +57,11 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
       topic,
       motion,
       userSide,
-      personaId: selectedPersona!,
+      personaId: isHuman ? "" : selectedPersona!,
       difficulty,
       rebuttalCycles,
       crossExamEnabled,
+      mode,
     };
 
     try {
@@ -93,6 +98,43 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
         </p>
       </div>
 
+      {/* Opponent mode */}
+      <div className="space-y-3">
+        <h2 className="text-xl font-bold">Opponent</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setMode("ai")}
+            className={cn(
+              "debate-card text-left transition-colors",
+              !isHuman
+                ? "border-stage-accent/60 ring-1 ring-stage-accent/40"
+                : "opacity-70 hover:opacity-100"
+            )}
+          >
+            <p className="font-semibold text-sm">AI Persona</p>
+            <p className="text-xs text-stage-muted mt-1">
+              Debate a curated or custom AI opponent right now.
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("human")}
+            className={cn(
+              "debate-card text-left transition-colors",
+              isHuman
+                ? "border-stage-accent/60 ring-1 ring-stage-accent/40"
+                : "opacity-70 hover:opacity-100"
+            )}
+          >
+            <p className="font-semibold text-sm">A Friend</p>
+            <p className="text-xs text-stage-muted mt-1">
+              Get an invite link and debate another person live.
+            </p>
+          </button>
+        </div>
+      </div>
+
       <TopicPicker
         topics={topics}
         packs={packs}
@@ -105,11 +147,13 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
         }}
       />
 
-      <PersonaPicker
-        personas={personas}
-        selectedPersona={selectedPersona}
-        onSelectPersona={setSelectedPersona}
-      />
+      {!isHuman && (
+        <PersonaPicker
+          personas={personas}
+          selectedPersona={selectedPersona}
+          onSelectPersona={setSelectedPersona}
+        />
+      )}
 
       {/* Options */}
       <div className="space-y-4">
@@ -118,7 +162,14 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Side */}
           <div className="debate-card">
-            <label className="block text-sm font-medium mb-2">Your Side</label>
+            <label className="block text-sm font-medium mb-2">
+              Your Side
+              {isHuman && (
+                <span className="ml-1 font-normal text-xs text-stage-muted">
+                  (your friend takes the other)
+                </span>
+              )}
+            </label>
             <div className="flex gap-2">
               <button
                 onClick={() => setUserSide("pro")}
@@ -226,7 +277,11 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
           disabled={!canStart || isCreating}
           onClick={handleStart}
         >
-          {isCreating ? "Creating Debate..." : "Step Onto the Stage"}
+          {isCreating
+            ? "Creating Debate..."
+            : isHuman
+            ? "Create Invite Link"
+            : "Step Onto the Stage"}
         </Button>
       </div>
     </div>

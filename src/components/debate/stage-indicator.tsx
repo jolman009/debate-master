@@ -27,7 +27,11 @@ export function StageIndicator({ config, currentStage }: StageIndicatorProps) {
         ]
       : []),
     { label: "Closing", stages: stages.filter((s) => s.startsWith("closing")) },
-    { label: "Feedback", stages: stages.filter((s) => s === "feedback") },
+    {
+      // Human mode ends with a neutral judge verdict; AI mode with feedback.
+      label: config.mode === "human" ? "Verdict" : "Feedback",
+      stages: stages.filter((s) => s === "feedback" || s === "judge"),
+    },
   ];
 
   return (

@@ -1,8 +1,21 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Debate, DebateFeedback, DebateStage } from "@/lib/debate/types";
-import { isUserStage, isAiStage, getStageLabel, getStageInstruction } from "@/lib/debate/state-machine";
+import {
+  Debate,
+  DebateConfig,
+  DebateFeedback,
+  DebateParticipant,
+  DebateStage,
+  Side,
+} from "@/lib/debate/types";
+import {
+  isUserStage,
+  isAiStage,
+  getActiveSide,
+  getStageLabel,
+  getStageInstruction,
+} from "@/lib/debate/state-machine";
 import { useStreamingResponse } from "./use-streaming-response";
 
 interface UseDebateReturn {
@@ -22,6 +35,13 @@ interface UseDebateReturn {
   requestFeedback: () => Promise<void>;
   feedback: DebateFeedback | null;
   feedbackLoading: boolean;
+  // Human-vs-human extras (all inert / defaults in AI mode).
+  isHuman: boolean;
+  waitingForOpponent: boolean;
+  inviteToken: string | null;
+  viewerSide: Side | null;
+  opponent: DebateParticipant | null;
+  refresh: () => Promise<void>;
 }
 
 export function useDebate(debateId: string): UseDebateReturn {
@@ -30,6 +50,7 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<DebateFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
     useStreamingResponse();
@@ -52,9 +73,28 @@ export function useDebate(debateId: string): UseDebateReturn {
     fetchDebate();
   }, [fetchDebate]);
 
+  const config = (debate?.config ?? null) as DebateConfig | null;
+  const isHuman = config?.mode === "human";
   const currentStage = (debate?.current_stage || "setup") as DebateStage;
-  const isMyTurn = isUserStage(currentStage);
-  const isAiTurn = isAiStage(currentStage);
+
+  const participants = debate?.participants ?? [];
+  const viewerSide = debate?.viewerSide ?? null;
+  const waitingForOpponent = !!isHuman && participants.length < 2;
+  const opponent =
+    (isHuman && participants.find((p) => p.side !== viewerSide)) || null;
+
+  // "My turn": AI mode keys off the user-stage classification; human mode
+  // compares the active side to the viewer's own side (and only once both
+  // players are present).
+  const isMyTurn = isHuman
+    ? !waitingForOpponent &&
+      viewerSide != null &&
+      config != null &&
+      getActiveSide(currentStage, config) === viewerSide
+    : isUserStage(currentStage);
+
+  // The AI never acts in human mode.
+  const isAiTurn = !isHuman && isAiStage(currentStage);
 
   // The streaming `done` event reports the stage the server already
   // persisted. Apply it after fetchDebate() so the UI advances even when the
@@ -69,6 +109,29 @@ export function useDebate(debateId: string): UseDebateReturn {
   const submitTurn = useCallback(
     async (content: string) => {
       if (!debate) return;
+      setActionError(null);
+
+      // Human mode: plain JSON POST, no SSE, no Claude. Refetch to pick up the
+      // opponent's turns and the advanced stage.
+      if (debate.config?.mode === "human") {
+        try {
+          const res = await fetch(`/api/debate/${debateId}/turn`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            setActionError(data.error || "Failed to submit your turn");
+            return;
+          }
+          await fetchDebate();
+          applyNextStage(data?.nextStage);
+        } catch {
+          setActionError("Failed to submit your turn");
+        }
+        return;
+      }
 
       const result = await startStream(debateId, content);
       await fetchDebate();
@@ -78,7 +141,7 @@ export function useDebate(debateId: string): UseDebateReturn {
   );
 
   const triggerAiTurn = useCallback(async () => {
-    if (!debate) return;
+    if (!debate || debate.config?.mode === "human") return;
 
     const result = await startStream(debateId);
     await fetchDebate();
@@ -105,6 +168,11 @@ export function useDebate(debateId: string): UseDebateReturn {
     }
   }, [debateId, fetchDebate, applyNextStage]);
 
+  const clearErrors = useCallback(() => {
+    clearStreamError();
+    setActionError(null);
+  }, [clearStreamError]);
+
   return {
     debate,
     loading,
@@ -113,8 +181,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     isAiTurn,
     streamedText,
     isStreaming,
-    streamError,
-    clearStreamError,
+    streamError: streamError ?? actionError,
+    clearStreamError: clearErrors,
     stageLabel: getStageLabel(currentStage),
     stageInstruction: getStageInstruction(currentStage),
     submitTurn,
@@ -122,5 +190,11 @@ export function useDebate(debateId: string): UseDebateReturn {
     requestFeedback,
     feedback,
     feedbackLoading,
+    isHuman: !!isHuman,
+    waitingForOpponent,
+    inviteToken: debate?.invite_token ?? null,
+    viewerSide,
+    opponent,
+    refresh: fetchDebate,
   };
 }

@@ -5,6 +5,7 @@ import { reportError } from "@/lib/observability";
 import { getPersonaBySlug } from "@/lib/debate/content";
 import { buildSystemPrompt, buildMessages } from "@/lib/debate/prompt-builder";
 import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine";
+import { submitHumanTurn } from "@/lib/debate/turn-service";
 import { Debate, DebateConfig, DebateStage, DebateTurn } from "@/lib/debate/types";
 
 // Cap user-submitted turn length before it ever reaches Claude - guards
@@ -63,13 +64,14 @@ export async function POST(
     );
   }
 
-  // 1. Load debate - the `user_id` filter enforces ownership. A non-owner
-  // (or a bad UUID) sees a 404 rather than confirming the debate exists.
+  // 1. Load debate. RLS scopes visibility: an AI debate is owner-only (no
+  // participant rows), while a human debate is readable by both participants.
+  // A non-authorized user (or bad UUID) sees a 404 rather than a confirmation
+  // that the debate exists.
   const { data: dbDebate, error: debateError } = await supabase
     .from("debates")
     .select("*")
     .eq("id", params.debateId)
-    .eq("user_id", user.id)
     .single();
 
   if (debateError || !dbDebate) {
@@ -81,6 +83,50 @@ export async function POST(
 
   const config = dbDebate.config as DebateConfig;
   const currentStage = dbDebate.current_stage as DebateStage;
+
+  // Human mode: no Claude call, no SSE. Turn authority + insert + advance are
+  // handled server-side, returning plain JSON.
+  if (config.mode === "human") {
+    let humanBody: { content?: string } = {};
+    try {
+      humanBody = await request.json();
+    } catch {
+      // Missing/invalid body handled as "content required" below.
+    }
+
+    const result = await submitHumanTurn(supabase, {
+      debate: { id: dbDebate.id, config, current_stage: currentStage },
+      userId: user.id,
+      content: humanBody.content,
+    });
+
+    if (!result.ok) {
+      if (result.status === 500) {
+        reportError(new Error(result.error), {
+          route: "debate/turn",
+          debateId: params.debateId,
+          stage: currentStage,
+          mode: "human",
+        });
+      }
+      return new Response(
+        JSON.stringify(
+          result.conflict
+            ? { error: result.error, conflict: true }
+            : { error: result.error }
+        ),
+        { status: result.status, headers: JSON_HEADERS }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ done: true, nextStage: result.nextStage }),
+      { headers: JSON_HEADERS }
+    );
+  }
+
+  // AI mode below — the original single-request "save user turn + stream AI
+  // reply" flow, unchanged.
 
   // 2. Load existing turns
   const { data: existingTurns } = await supabase

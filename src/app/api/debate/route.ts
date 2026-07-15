@@ -9,9 +9,12 @@ export async function POST(request: Request) {
   try {
     const config: DebateConfig = await request.json();
 
-    if (!config.topic || !config.personaId || !config.userSide) {
+    const isHuman = config.mode === "human";
+
+    // AI mode needs a persona to embody; human mode does not.
+    if (!config.topic || !config.userSide || (!isHuman && !config.personaId)) {
       return NextResponse.json(
-        { error: "Missing required fields: topic, personaId, userSide" },
+        { error: "Missing required fields: topic, userSide" + (isHuman ? "" : ", personaId") },
         { status: 400 }
       );
     }
@@ -34,6 +37,40 @@ export async function POST(request: Request) {
         { error: "You must be signed in to start a debate" },
         { status: 401 }
       );
+    }
+
+    // Human debates are free-to-play (growth via invites) and don't count
+    // against the AI monthly cap — a dedicated RPC creates the debate plus the
+    // owner's participant row and mints an invite token, all atomically.
+    if (isHuman) {
+      const { data: rows, error } = await supabase.rpc("create_human_debate", {
+        p_config: config,
+      });
+
+      if (error) {
+        reportError(error, { route: "debate/create", mode: "human" });
+        return NextResponse.json(
+          { error: "Failed to create debate" },
+          { status: 500 }
+        );
+      }
+
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (!row?.debate_id) {
+        reportError(new Error("create_human_debate returned no row"), {
+          route: "debate/create",
+          mode: "human",
+        });
+        return NextResponse.json(
+          { error: "Failed to create debate" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        debateId: row.debate_id,
+        inviteToken: row.invite_token,
+      });
     }
 
     const tier = await getTierForUser(supabase, user.id);

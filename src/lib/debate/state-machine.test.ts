@@ -3,6 +3,8 @@ import {
   buildStageSequence,
   getNextStage,
   getStageActor,
+  getStageActorInfo,
+  getActiveSide,
   getStageLabel,
   getStageInstruction,
   isTerminal,
@@ -121,6 +123,88 @@ describe("getVisibleStages", () => {
   });
 });
 
+describe("human mode", () => {
+  const humanCfg = (overrides: Partial<DebateConfig> = {}) =>
+    makeConfig({ mode: "human", ...overrides });
+
+  it("builds a side-named sequence that starts with pro and ends at judge", () => {
+    expect(buildStageSequence(humanCfg())).toEqual([
+      "setup",
+      "opening_pro",
+      "opening_con",
+      "rebuttal_pro_1",
+      "rebuttal_con_1",
+      "closing_pro",
+      "closing_con",
+      "judge",
+      "complete",
+    ]);
+  });
+
+  it("adds side-named rebuttal and cross-exam stages when configured", () => {
+    const seq = buildStageSequence(
+      humanCfg({ rebuttalCycles: 2, crossExamEnabled: true })
+    );
+    expect(seq).toEqual(
+      expect.arrayContaining([
+        "rebuttal_pro_2",
+        "rebuttal_con_2",
+        "cross_exam_pro",
+        "cross_exam_con",
+      ])
+    );
+    // cross-exam sits after rebuttals, before closing
+    expect(seq.indexOf("cross_exam_pro")).toBeLessThan(
+      seq.indexOf("closing_pro")
+    );
+  });
+
+  it("advances pro → con → pro across the debate", () => {
+    const cfg = humanCfg();
+    expect(getNextStage("opening_pro", cfg)).toBe("opening_con");
+    expect(getNextStage("opening_con", cfg)).toBe("rebuttal_pro_1");
+    expect(getNextStage("rebuttal_con_1", cfg)).toBe("closing_pro");
+    expect(getNextStage("closing_con", cfg)).toBe("judge");
+  });
+
+  it("resolves the active side per stage (human stages carry it intrinsically)", () => {
+    const cfg = humanCfg();
+    expect(getActiveSide("opening_pro", cfg)).toBe("pro");
+    expect(getActiveSide("opening_con", cfg)).toBe("con");
+    expect(getActiveSide("closing_pro", cfg)).toBe("pro");
+    // system stages have no active side
+    expect(getActiveSide("judge", cfg)).toBeNull();
+    expect(getActiveSide("complete", cfg)).toBeNull();
+    expect(getActiveSide("setup", cfg)).toBeNull();
+  });
+
+  it("derives the active side from userSide for AI-mode stages", () => {
+    const proUser = makeConfig({ userSide: "pro" });
+    expect(getActiveSide("opening_user", proUser)).toBe("pro");
+    expect(getActiveSide("opening_ai", proUser)).toBe("con");
+    const conUser = makeConfig({ userSide: "con" });
+    expect(getActiveSide("opening_user", conUser)).toBe("con");
+    expect(getActiveSide("opening_ai", conUser)).toBe("pro");
+  });
+
+  it("classifies human debater stages as human turns, judge as system", () => {
+    expect(getStageActorInfo("opening_pro")).toEqual({
+      kind: "human",
+      side: "pro",
+    });
+    expect(getStageActor("opening_pro")).toBe("user");
+    expect(isAiStage("opening_con")).toBe(false);
+    expect(getStageActor("judge")).toBe("system");
+  });
+
+  it("shows judge (not feedback) as a visible stage in human mode", () => {
+    const visible = getVisibleStages(humanCfg());
+    expect(visible).toContain("judge");
+    expect(visible).not.toContain("feedback");
+    expect(visible).not.toContain("complete");
+  });
+});
+
 describe("labels and instructions", () => {
   const allStages: DebateStage[] = [
     "setup",
@@ -136,6 +220,17 @@ describe("labels and instructions", () => {
     "closing_user",
     "closing_ai",
     "feedback",
+    "opening_pro",
+    "opening_con",
+    "rebuttal_pro_1",
+    "rebuttal_con_1",
+    "rebuttal_pro_2",
+    "rebuttal_con_2",
+    "cross_exam_pro",
+    "cross_exam_con",
+    "closing_pro",
+    "closing_con",
+    "judge",
     "complete",
   ];
 

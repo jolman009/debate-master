@@ -1,16 +1,31 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { DebateTurn } from "@/lib/debate/types";
+import { DebateTurn, Side } from "@/lib/debate/types";
 import { getStageLabel } from "@/lib/debate/state-machine";
 
 interface TurnDisplayProps {
   turn: DebateTurn;
   personaName?: string;
+  // Human mode: the viewer's side, so their own turns sit on the right.
+  viewerSide?: Side | null;
+  opponentName?: string;
 }
 
-export function TurnDisplay({ turn, personaName }: TurnDisplayProps) {
-  const isUser = turn.role === "user";
+export function TurnDisplay({
+  turn,
+  personaName,
+  viewerSide,
+  opponentName,
+}: TurnDisplayProps) {
+  const isSideRole = turn.role === "pro" || turn.role === "con";
+  // Human turns are "mine" when the role matches my side; AI turns when "user".
+  const isUser = isSideRole ? turn.role === viewerSide : turn.role === "user";
+  const authorLabel = isUser
+    ? "You"
+    : isSideRole
+    ? opponentName || (turn.role === "pro" ? "Pro" : "Con")
+    : personaName || "AI";
   const stageLabel = getStageLabel(turn.stage);
 
   return (
@@ -21,9 +36,7 @@ export function TurnDisplay({ turn, personaName }: TurnDisplayProps) {
       )}
     >
       <div className="flex items-center gap-2 text-xs text-stage-muted px-1">
-        <span className="font-medium">
-          {isUser ? "You" : personaName || "AI"}
-        </span>
+        <span className="font-medium">{authorLabel}</span>
         <span>{stageLabel}</span>
       </div>
       <div

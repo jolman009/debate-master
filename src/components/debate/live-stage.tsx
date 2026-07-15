@@ -7,7 +7,13 @@ import { Persona } from "@/lib/debate/types";
 import { AudioBars } from "./audio-bars";
 
 type Side = "pro" | "con";
-type SpeakerStatus = "speaking" | "thinking" | "your-turn" | "listening";
+type SpeakerStatus =
+  | "speaking"
+  | "thinking"
+  | "your-turn"
+  | "their-turn"
+  | "waiting"
+  | "listening";
 
 interface LiveStageProps {
   persona: Persona;
@@ -17,16 +23,31 @@ interface LiveStageProps {
   isAiTurn: boolean;
   isMyTurn: boolean;
   amplitude: number;
+  // Human-vs-human mode. When set, the opponent column renders another human
+  // instead of the AI persona.
+  isHuman?: boolean;
+  opponentJoined?: boolean;
+  opponentActive?: boolean;
+  opponentName?: string;
 }
 
 const STATUS_LABEL: Record<SpeakerStatus, string> = {
   speaking: "Speaking",
   thinking: "Thinking…",
   "your-turn": "Your turn",
+  "their-turn": "Their turn",
+  waiting: "Waiting to join…",
   listening: "Listening",
 };
 
-export function LiveStage({
+export function LiveStage(props: LiveStageProps) {
+  if (props.isHuman) {
+    return <HumanLiveStage {...props} />;
+  }
+  return <AiLiveStage {...props} />;
+}
+
+function AiLiveStage({
   persona,
   userSide,
   isStreaming,
@@ -76,6 +97,79 @@ export function LiveStage({
         {conColumn}
       </div>
     </div>
+  );
+}
+
+function HumanLiveStage({
+  userSide,
+  isMyTurn,
+  opponentJoined,
+  opponentActive,
+  opponentName,
+}: LiveStageProps) {
+  const viewerSide: Side = userSide;
+  const opponentSide: Side = viewerSide === "pro" ? "con" : "pro";
+
+  const viewerColumn = (
+    <UserSpeaker
+      side={viewerSide}
+      active={isMyTurn}
+      status={isMyTurn ? "your-turn" : "listening"}
+    />
+  );
+
+  const opponentStatus: SpeakerStatus = !opponentJoined
+    ? "waiting"
+    : opponentActive
+    ? "their-turn"
+    : "listening";
+
+  const opponentColumn = (
+    <OpponentSpeaker
+      side={opponentSide}
+      name={opponentName || "Opponent"}
+      active={!!opponentActive}
+      status={opponentStatus}
+    />
+  );
+
+  const proColumn = viewerSide === "pro" ? viewerColumn : opponentColumn;
+  const conColumn = viewerSide === "con" ? viewerColumn : opponentColumn;
+
+  return (
+    <div className="debate-card px-4 py-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+        {proColumn}
+        <Divider />
+        {conColumn}
+      </div>
+    </div>
+  );
+}
+
+interface OpponentSpeakerProps {
+  side: Side;
+  name: string;
+  active: boolean;
+  status: SpeakerStatus;
+}
+
+function OpponentSpeaker({ side, name, active, status }: OpponentSpeakerProps) {
+  const colorVar = side === "pro" ? "var(--stage-pro)" : "var(--stage-con)";
+  return (
+    <SpeakerColumn align={side === "pro" ? "left" : "right"}>
+      <UserAvatarLarge active={active} colorVar={colorVar} />
+      <SpeakerInfo
+        align={side === "pro" ? "left" : "right"}
+        name={name}
+        side={side}
+        status={status}
+        active={active}
+        amplitude={0}
+        speaking={false}
+        barColor={`rgb(${colorVar})`}
+      />
+    </SpeakerColumn>
   );
 }
 
@@ -226,7 +320,7 @@ function SpeakerInfo({
 function StatusPill({ status }: { status: SpeakerStatus }) {
   const speaking = status === "speaking";
   const yourTurn = status === "your-turn";
-  const accented = speaking || yourTurn;
+  const accented = speaking || yourTurn || status === "their-turn";
   return (
     <span
       className={cn(

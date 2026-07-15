@@ -15,10 +15,12 @@
 --  * `debate_participants` has NO direct INSERT policy. Participants are only
 --    ever created through the two SECURITY DEFINER functions below, so the
 --    "claim a side" logic (and its uniqueness) is server-controlled.
---  * RLS avoids cross-table recursion: the `debate_participants` SELECT policy
---    references only `debates` (not itself), and `debates`/`debate_turns`
---    policies reference `debate_participants` whose own policy does not
---    reference them back through participants — so no policy evaluates itself.
+--  * RLS avoids cross-table recursion: `debates`/`debate_turns` policies check
+--    membership by querying `debate_participants`, so `debate_participants`'
+--    own SELECT policy is a bare `user_id = auth.uid()` with NO back-reference
+--    to `debates`. Any reference there would make the two tables' policies
+--    evaluate each other forever (Postgres 42P17). The roster is exposed
+--    instead via the get_debate_participants() SECURITY DEFINER function.
 
 -- 1. invite_token on debates --------------------------------------------------
 ALTER TABLE debates
@@ -102,20 +104,17 @@ CREATE POLICY "Participants insert joined turns" ON debate_turns
     )
   );
 
--- debate_participants: you may read your OWN participant row, or any row of a
--- debate you OWN. (References `debates`, never `debate_participants`, so it
--- cannot recurse.) The full roster — including the opponent's row — is read
--- through get_debate_participants() below, which is safe for either player.
+-- debate_participants: you may read only your OWN participant row. This policy
+-- MUST NOT reference `debates` — the debates/turns policies above reference
+-- debate_participants, so any back-reference here creates mutual recursion
+-- (Postgres 42P17). The full roster, including the opponent's row, is read
+-- through get_debate_participants() below (SECURITY DEFINER, bypasses RLS), so
+-- own-row visibility here is all the participant policies above need.
 DROP POLICY IF EXISTS "Read own or owned participant rows" ON debate_participants;
-CREATE POLICY "Read own or owned participant rows" ON debate_participants
+DROP POLICY IF EXISTS "Read own participant rows" ON debate_participants;
+CREATE POLICY "Read own participant rows" ON debate_participants
   FOR SELECT
-  USING (
-    user_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM debates d
-      WHERE d.id = debate_participants.debate_id AND d.user_id = auth.uid()
-    )
-  );
+  USING (user_id = auth.uid());
 
 -- 5. create_human_debate(config) ---------------------------------------------
 -- Atomically creates a human debate + the owner's participant row and mints an

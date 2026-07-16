@@ -12,16 +12,26 @@
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabaseClient } from "./client";
-import { DebateTurn, Side } from "@/lib/debate/types";
+import { DebateTurn, JudgeResult, Side } from "@/lib/debate/types";
 
 export interface DebatePresence {
   userId: string;
   side: Side | null;
 }
 
+/**
+ * The fields we consume from a live `debates` UPDATE. REPLICA IDENTITY FULL
+ * (migration 011) means the payload carries the whole row, so the judge's
+ * verdict reaches BOTH players — not just the one who requested it.
+ */
+export interface DebateRowPatch {
+  current_stage?: string;
+  judge_result?: JudgeResult | null;
+}
+
 export interface DebateChannelHandlers {
   onTurnInsert: (turn: DebateTurn) => void;
-  onStageChange: (stage: string) => void;
+  onDebateUpdate: (patch: DebateRowPatch) => void;
   onPresenceSync: (onlineSides: Side[]) => void;
   onTyping: (side: Side) => void;
   onStatus: (connected: boolean) => void;
@@ -61,10 +71,7 @@ export function subscribeToDebate(
         table: "debates",
         filter: `id=eq.${debateId}`,
       },
-      (payload) => {
-        const stage = (payload.new as { current_stage?: string }).current_stage;
-        if (stage) handlers.onStageChange(stage);
-      }
+      (payload) => handlers.onDebateUpdate(payload.new as DebateRowPatch)
     )
     .on("presence", { event: "sync" }, () => {
       const state = channel.presenceState() as Record<

@@ -14,6 +14,7 @@ import { TranscriptOverlay } from "./transcript-overlay";
 import { ShareDebate } from "./share-debate";
 import { InvitePanel } from "./invite-panel";
 import { TypingIndicator } from "./typing-indicator";
+import { JudgePanel } from "./judge-panel";
 import { Button } from "@/components/ui/button";
 import { useSpeech } from "@/hooks/use-speech";
 
@@ -50,6 +51,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
     onlineSides,
     opponentTyping,
     broadcastTyping,
+    judgeResult,
+    ratingDelta,
   } = useDebate(debateId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -282,12 +285,23 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
           </div>
         )}
 
-        {isJudgeStage && (
+        {isHuman && isJudgeStage && !judgeResult && (
           <div className="text-center py-4">
-            <p className="text-stage-muted text-sm">
-              Both sides have finished. The judge&apos;s verdict is coming soon.
+            <p className="text-stage-muted text-sm mb-3">
+              Both sides have finished. Let the judge decide the winner.
             </p>
+            <Button onClick={requestFeedback} disabled={feedbackLoading}>
+              {feedbackLoading ? "The judge is deliberating..." : "Get the Verdict"}
+            </Button>
           </div>
+        )}
+
+        {isHuman && judgeResult && (
+          <JudgePanel
+            judge={judgeResult}
+            viewerSide={viewerSide}
+            ratingDelta={ratingDelta}
+          />
         )}
 
         {feedback && <FeedbackPanel feedback={feedback} />}
@@ -301,7 +315,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
           </div>
         )}
 
-        {isComplete && !feedback && (
+        {isComplete && !feedback && !judgeResult && (
           <div className="text-center py-4">
             <p className="text-stage-muted text-sm">Debate complete!</p>
           </div>

@@ -21,9 +21,16 @@ interface SetupWizardProps {
   personas: Persona[];
   topics: Topic[];
   packs: TopicPack[];
+  /** Running inside the Android TWA — hide the upgrade link (Play policy). */
+  inTwa?: boolean;
 }
 
-export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
+export function SetupWizard({
+  personas,
+  topics,
+  packs,
+  inTwa = false,
+}: SetupWizardProps) {
   const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [customTopic, setCustomTopic] = useState("");
@@ -265,9 +272,11 @@ export function SetupWizard({ personas, topics, packs }: SetupWizardProps) {
       {upgradeMsg && (
         <div className="rounded-lg border border-stage-accent/40 bg-stage-accent/10 px-4 py-3 text-center text-sm text-stage-text">
           {upgradeMsg}{" "}
-          <Link href="/pricing" className="font-medium text-stage-accent hover:underline">
-            View plans →
-          </Link>
+          {!inTwa && (
+            <Link href="/pricing" className="font-medium text-stage-accent hover:underline">
+              View plans →
+            </Link>
+          )}
         </div>
       )}
 

@@ -9,6 +9,17 @@ const nextConfig = {
       "require-in-the-middle",
     ],
   },
+  async rewrites() {
+    return [
+      {
+        // Android Digital Asset Links must live at this exact well-known path.
+        // A route handler (rather than a static public/ file) lets the package
+        // name + signing fingerprints come from env vars.
+        source: "/.well-known/assetlinks.json",
+        destination: "/api/assetlinks",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

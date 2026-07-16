@@ -97,6 +97,30 @@ export interface DebateParticipant {
   side: Side;
   role: string;
   joined_at?: string;
+  // Set once the judge has ruled (Phase D).
+  score?: number | null;
+  result?: "win" | "loss" | "draw" | null;
+  rating_delta?: number | null;
+}
+
+/** One side's scorecard from the neutral judge. */
+export interface JudgeSideScore {
+  score: number;
+  argumentStrength: number;
+  evidenceUsage: number;
+  rebuttalQuality: number;
+  rhetoricalSkill: number;
+  summary: string;
+  strengths: string[];
+  improvements: string[];
+}
+
+/** The two-sided verdict for a human-vs-human debate. */
+export interface JudgeResult {
+  pro: JudgeSideScore;
+  con: JudgeSideScore;
+  winner: Side | "draw";
+  rationale: string;
 }
 
 export interface Debate {
@@ -104,7 +128,11 @@ export interface Debate {
   config: DebateConfig;
   current_stage: DebateStage;
   turns: DebateTurn[];
+  // AI mode only — the one-sided coach feedback.
   feedback: DebateFeedback | null;
+  // Human mode only — the two-sided judge verdict. Deliberately NOT stored in
+  // `feedback` so the AI Practice leaderboard keeps excluding human debates.
+  judge_result?: JudgeResult | null;
   share_token?: string | null;
   // Present for human debates; only the owner sees it in API responses.
   invite_token?: string | null;

@@ -8,6 +8,7 @@ import {
   DebateParticipant,
   DebateStage,
   DebateTurn,
+  JudgeResult,
   Side,
 } from "@/lib/debate/types";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@/lib/debate/state-machine";
 import { useStreamingResponse } from "./use-streaming-response";
 import { useRealtimeDebate } from "./use-realtime-debate";
+import type { DebateRowPatch } from "@/lib/supabase/realtime";
 
 interface UseDebateReturn {
   debate: Debate | null;
@@ -49,6 +51,10 @@ interface UseDebateReturn {
   onlineSides: Side[];
   opponentTyping: boolean;
   broadcastTyping: () => void;
+  // The two-sided judge verdict (Phase D). Human mode only.
+  judgeResult: JudgeResult | null;
+  // The viewer's Elo change from this debate, once judged.
+  ratingDelta: number | null;
 }
 
 export function useDebate(debateId: string): UseDebateReturn {
@@ -126,11 +132,28 @@ export function useDebate(debateId: string): UseDebateReturn {
     });
   }, []);
 
-  const handleStageChange = useCallback((stage: string) => {
-    setDebate((prev) =>
-      prev ? { ...prev, current_stage: stage as DebateStage } : prev
-    );
-  }, []);
+  // A live `debates` UPDATE carries the whole row, so this syncs the stage AND
+  // delivers the judge's verdict to the player who didn't request it.
+  const handleDebateUpdate = useCallback(
+    (patch: DebateRowPatch) => {
+      setDebate((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        if (patch.current_stage) {
+          next.current_stage = patch.current_stage as DebateStage;
+        }
+        if (patch.judge_result !== undefined) {
+          next.judge_result = patch.judge_result;
+        }
+        return next;
+      });
+      // The verdict also stamps per-participant Elo deltas, which live on
+      // debate_participants and don't come over this channel — refetch so the
+      // player who didn't request the verdict still sees their rating change.
+      if (patch.judge_result) fetchDebate();
+    },
+    [fetchDebate]
+  );
 
   const {
     connected: realtimeConnected,
@@ -143,7 +166,7 @@ export function useDebate(debateId: string): UseDebateReturn {
     viewerId,
     viewerSide,
     onTurnInsert: handleTurnInsert,
-    onStageChange: handleStageChange,
+    onDebateUpdate: handleDebateUpdate,
   });
 
   // The opponent joining fires a presence sync before any turn/stage event; the
@@ -201,21 +224,38 @@ export function useDebate(debateId: string): UseDebateReturn {
     applyNextStage(result?.nextStage);
   }, [debate, debateId, startStream, fetchDebate, applyNextStage]);
 
+  // AI mode: one-sided coach feedback. Human mode: the two-sided judge verdict
+  // (same endpoint, branched server-side). Either player may request the
+  // verdict; the server refuses to judge the same debate twice.
   const requestFeedback = useCallback(async () => {
     setFeedbackLoading(true);
+    setActionError(null);
     try {
       const res = await fetch(`/api/debate/${debateId}/feedback`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed to get feedback");
-      const data = await res.json();
-      setFeedback(data.feedback);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setActionError(data.error || "Failed to get the result");
+        return;
+      }
+
+      if (data.judgeResult) {
+        setDebate((prev) =>
+          prev
+            ? { ...prev, judge_result: data.judgeResult, current_stage: "complete" }
+            : prev
+        );
+      } else if (data.feedback) {
+        setFeedback(data.feedback);
+      }
+
       await fetchDebate();
-      // The feedback route ends the debate; advance the UI even if the
-      // refetch is stale.
+      // The route ends the debate; advance the UI even if the refetch is stale.
       applyNextStage("complete");
-    } catch (err) {
-      console.error("Feedback error:", err);
+    } catch {
+      setActionError("Failed to get the result");
     } finally {
       setFeedbackLoading(false);
     }
@@ -253,5 +293,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     onlineSides,
     opponentTyping,
     broadcastTyping,
+    judgeResult: debate?.judge_result ?? null,
+    ratingDelta:
+      participants.find((p) => p.side === viewerSide)?.rating_delta ?? null,
   };
 }

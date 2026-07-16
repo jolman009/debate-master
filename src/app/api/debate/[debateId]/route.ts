@@ -55,18 +55,28 @@ export async function GET(
   // Human mode: surface the roster (so the client can render the opponent and
   // gate the waiting room) and the viewer's own side (to resolve "my turn").
   // The invite token is only for the owner to share.
-  let participants: { user_id: string; side: string }[] = [];
+  interface RosterRow {
+    user_id: string;
+    side: string;
+    score: number | null;
+    result: string | null;
+    rating_delta: number | null;
+  }
+  let participants: RosterRow[] = [];
   let viewerSide: string | null = null;
   if (isHuman) {
     const { data: roster } = await supabase.rpc("get_debate_participants", {
       p_debate_id: params.debateId,
     });
-    participants = (roster || []).map(
-      (p: { user_id: string; side: string }) => ({
-        user_id: p.user_id,
-        side: p.side,
-      })
-    );
+    // Judged outcomes (score/result/rating_delta) come through too, so each
+    // player can see their own Elo change on the verdict.
+    participants = (roster || []).map((p: RosterRow) => ({
+      user_id: p.user_id,
+      side: p.side,
+      score: p.score ?? null,
+      result: p.result ?? null,
+      rating_delta: p.rating_delta ?? null,
+    }));
     viewerSide = participants.find((p) => p.user_id === user.id)?.side ?? null;
   }
 

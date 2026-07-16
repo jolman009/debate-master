@@ -1,4 +1,4 @@
-import { Debate, DebateStage, DebateTurn, Persona } from "./types";
+import { Debate, DebateConfig, DebateStage, DebateTurn, Persona } from "./types";
 import { getStageLabel } from "./state-machine";
 
 interface AnthropicMessage {
@@ -108,6 +108,75 @@ export function buildFeedbackPrompt(turns: DebateTurn[]): string {
   }
   return transcript;
 }
+
+/**
+ * Transcript for the human-vs-human judge. Speakers are labelled only by SIDE
+ * (PRO/CON) — never by name or identity — so the judge rules on the arguments
+ * alone and cannot favour a player it "knows".
+ */
+export function buildJudgePrompt(
+  turns: DebateTurn[],
+  config: DebateConfig
+): string {
+  let prompt = `MOTION: "${config.motion || config.topic}"\n\n`;
+  prompt += "DEBATE TRANSCRIPT:\n\n";
+  for (const turn of turns) {
+    const speaker = turn.role === "pro" ? "PRO" : "CON";
+    const stageLabel = getStageLabel(turn.stage);
+    prompt += `--- ${speaker} (${stageLabel}) ---\n${turn.content}\n\n`;
+  }
+  prompt +=
+    "Judge this debate. Score both sides and declare the winner as valid JSON.";
+  return prompt;
+}
+
+export const JUDGE_SYSTEM_PROMPT = `You are a neutral, impartial debate judge ruling on a completed debate between two human debaters, PRO and CON.
+
+Judge ONLY what is in the transcript. Apply the SAME rubric to both sides with equal rigour. Your personal opinion on the motion is irrelevant — judge who argued better, not who you agree with. Do not favour a side for going first or last.
+
+Score EACH side independently on a 1-10 scale:
+- argumentStrength: How strong and well-supported were their arguments?
+- evidenceUsage: How well did they use evidence, examples, and data?
+- rebuttalQuality: How effectively did they counter the other side's points?
+- rhetoricalSkill: How persuasive was their delivery and structure?
+- score: Their overall performance
+
+For each side also provide:
+- summary: A 2-3 sentence assessment of that side's case
+- strengths: 2-4 specific things that side did well (array of strings)
+- improvements: 2-4 specific things that side could have done better (array of strings)
+
+Then decide:
+- winner: "pro", "con", or "draw" — "draw" ONLY when the sides are genuinely inseparable
+- rationale: 2-4 sentences explaining the decision, citing the decisive exchanges
+
+The winner must be consistent with the scores: do not declare a winner whose overall score is lower than the other side's.
+
+Respond ONLY with valid JSON matching this exact structure:
+{
+  "pro": {
+    "score": number,
+    "argumentStrength": number,
+    "evidenceUsage": number,
+    "rebuttalQuality": number,
+    "rhetoricalSkill": number,
+    "summary": "string",
+    "strengths": ["string"],
+    "improvements": ["string"]
+  },
+  "con": {
+    "score": number,
+    "argumentStrength": number,
+    "evidenceUsage": number,
+    "rebuttalQuality": number,
+    "rhetoricalSkill": number,
+    "summary": "string",
+    "strengths": ["string"],
+    "improvements": ["string"]
+  },
+  "winner": "pro" | "con" | "draw",
+  "rationale": "string"
+}`;
 
 export const FEEDBACK_SYSTEM_PROMPT = `You are an expert debate coach analyzing a completed debate. You are NO LONGER in persona - speak as a neutral, constructive coach.
 

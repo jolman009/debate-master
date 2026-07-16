@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DebateTurn, Side } from "@/lib/debate/types";
-import { subscribeToDebate } from "@/lib/supabase/realtime";
+import { subscribeToDebate, DebateRowPatch } from "@/lib/supabase/realtime";
 
 interface UseRealtimeDebateArgs {
   debateId: string;
@@ -11,7 +11,7 @@ interface UseRealtimeDebateArgs {
   viewerId: string | null;
   viewerSide: Side | null;
   onTurnInsert: (turn: DebateTurn) => void;
-  onStageChange: (stage: string) => void;
+  onDebateUpdate: (patch: DebateRowPatch) => void;
 }
 
 interface UseRealtimeDebateReturn {
@@ -31,15 +31,15 @@ export function useRealtimeDebate({
   viewerId,
   viewerSide,
   onTurnInsert,
-  onStageChange,
+  onDebateUpdate,
 }: UseRealtimeDebateArgs): UseRealtimeDebateReturn {
   const [connected, setConnected] = useState(false);
   const [onlineSides, setOnlineSides] = useState<Side[]>([]);
   const [typingSide, setTypingSide] = useState<Side | null>(null);
 
   // Keep the latest callbacks without forcing a resubscribe on every render.
-  const cbs = useRef({ onTurnInsert, onStageChange });
-  cbs.current = { onTurnInsert, onStageChange };
+  const cbs = useRef({ onTurnInsert, onDebateUpdate });
+  cbs.current = { onTurnInsert, onDebateUpdate };
 
   const typingTimer = useRef<ReturnType<typeof setTimeout>>();
   const broadcastRef = useRef<() => void>(() => {});
@@ -53,7 +53,7 @@ export function useRealtimeDebate({
       { userId: viewerId, side: viewerSide },
       {
         onTurnInsert: (t) => cbs.current.onTurnInsert(t),
-        onStageChange: (s) => cbs.current.onStageChange(s),
+        onDebateUpdate: (patch) => cbs.current.onDebateUpdate(patch),
         onPresenceSync: (sides) => setOnlineSides(sides),
         onTyping: (side) => {
           // Broadcast doesn't echo to the sender, but guard anyway so we only

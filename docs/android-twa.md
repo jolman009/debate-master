@@ -133,3 +133,52 @@ payments happen on the web, not in-app), screenshots, feature graphic.
   curl -s -H "Referer: android-app://app.debatemaster.twa" http://localhost:3000/ | grep -c "See Pricing"   # 0
   curl -s http://localhost:3000/ | grep -c "See Pricing"                                                     # 1
   ```
+
+---
+
+## Troubleshooting Bubblewrap
+
+### `NGHTTP2_PROTOCOL_ERROR` at ~95% while "building the JDK17 binaries"
+
+This is Bubblewrap's **bundled downloader** failing to fetch the JDK/Android
+SDK — it is *not* about your app or the manifest. The usual trigger is a very
+new Node.js (e.g. Node 24) whose HTTP/2 client the downloader wasn't tested
+against; the stream dies near the end of the transfer.
+
+**Fix: skip the download entirely by pointing Bubblewrap at tools you already
+have.** JDK 17 (Microsoft OpenJDK / Temurin) and the Android SDK ship with
+Android Studio. Note that a newer JDK (21) will NOT substitute — Bubblewrap
+pins to **17**.
+
+PowerShell (this is a Windows box — `rm -rf` is bash and will error with
+"A parameter cannot be found that matches parameter name 'rf'"):
+
+```powershell
+# 1. Remove the corrupt partial download, or Bubblewrap reuses it and re-fails
+Remove-Item -Recurse -Force "$env:USERPROFILE\.bubblewrap\jdk" -ErrorAction SilentlyContinue
+
+# 2. Point Bubblewrap at existing tools (adjust versions to what's installed)
+bubblewrap updateConfig --jdkPath "C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot"
+bubblewrap updateConfig --androidSdkPath "$env:LOCALAPPDATA\Android\Sdk"
+
+# 3. Confirm
+bubblewrap doctor
+```
+
+Find installed JDKs under `C:\Program Files\Microsoft\` or
+`C:\Program Files\Eclipse Adoptium\`; the Android Studio SDK lives at
+`%LOCALAPPDATA%\Android\Sdk` (must contain `cmdline-tools`, `platform-tools`,
+`platforms`, `build-tools`, and `licenses`).
+
+If JDK 17 isn't present: `winget install Microsoft.OpenJDK.17`.
+
+### Fallbacks if you don't have the local toolchain
+
+- **Run Bubblewrap under Node 20** (`nvm`/`fnm`), which its downloader supports.
+  Your app's own dev/build can stay on any Node — this only needs to hold for
+  the packaging run.
+- **[pwabuilder.com](https://www.pwabuilder.com)** → paste the URL →
+  *Package for stores* → Android. Runs Bubblewrap server-side and returns a
+  signed `.aab` + keystore + assetlinks values. Save the keystore; it gives the
+  **upload** cert fingerprint only — you still need Play's **App Signing**
+  fingerprint after the first upload (both go in `ANDROID_CERT_FINGERPRINTS`).

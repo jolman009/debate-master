@@ -6,7 +6,13 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Debate Master",
     description:
       "Sharpen your debate skills against AI personas in structured, turn-based debates.",
-    start_url: "/",
+    // Launch into the dashboard, not the marketing landing page — someone
+    // tapping the installed icon wants their debates. (Signed-out users are
+    // redirected to /login by middleware, which returns them here after auth.)
+    start_url: "/debate",
+    // Scope the app to the whole origin so invite links (/debate/join/…) and
+    // auth callbacks open inside the app rather than kicking out to a browser.
+    scope: "/",
     display: "standalone",
     background_color: "#0a0a1a",
     theme_color: "#6366f1",

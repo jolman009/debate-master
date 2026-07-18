@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllPersonas } from "@/lib/debate/personas";
 import { PersonaAvatar } from "@/components/debate/persona-avatar";
 import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
+import { isTwa } from "@/lib/platform/twa-server";
 
 const STEPS = [
   {
@@ -56,6 +57,8 @@ const FEATURES = [
 
 export default function Home() {
   const personas = getAllPersonas();
+  // Play policy: no purchase/steering surfaces inside the Android app.
+  const inTwa = isTwa();
 
   return (
     <div className="mx-auto max-w-5xl px-4">
@@ -80,12 +83,14 @@ export default function Home() {
           <Link href="/debate/new" className="btn-primary text-lg px-8 py-3">
             Start a Debate
           </Link>
-          <Link
-            href="/pricing"
-            className="rounded-lg border border-stage-border px-8 py-3 text-lg font-medium text-stage-text transition-colors hover:border-stage-accent"
-          >
-            See Pricing
-          </Link>
+          {!inTwa && (
+            <Link
+              href="/pricing"
+              className="rounded-lg border border-stage-border px-8 py-3 text-lg font-medium text-stage-text transition-colors hover:border-stage-accent"
+            >
+              See Pricing
+            </Link>
+          )}
         </div>
 
         {/* Persona lineup */}
@@ -148,26 +153,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing teaser */}
-      <section className="py-16">
-        <div className="debate-card flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <h2 className="text-xl font-bold text-stage-text">
-              Start free, upgrade when you&apos;re hooked
-            </h2>
-            <p className="mt-1 text-sm text-stage-muted">
-              {FREE_DEBATE_LIMIT} debates a month on the house. Go Premium for
-              realistic voices and unlimited debates.
-            </p>
+      {/* Pricing teaser — omitted in the Play app (no selling/steering). */}
+      {!inTwa && (
+        <section className="py-16">
+          <div className="debate-card flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
+            <div>
+              <h2 className="text-xl font-bold text-stage-text">
+                Start free, upgrade when you&apos;re hooked
+              </h2>
+              <p className="mt-1 text-sm text-stage-muted">
+                {FREE_DEBATE_LIMIT} debates a month on the house. Go Premium for
+                realistic voices and unlimited debates.
+              </p>
+            </div>
+            <Link
+              href="/pricing"
+              className="btn-primary shrink-0 px-6 py-2.5"
+            >
+              View plans
+            </Link>
           </div>
-          <Link
-            href="/pricing"
-            className="btn-primary shrink-0 px-6 py-2.5"
-          >
-            View plans
-          </Link>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Final CTA */}
       <section className="py-20">

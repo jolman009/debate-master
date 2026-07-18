@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createServerClient } from "@/lib/supabase/server";
+import { isTwa } from "@/lib/platform/twa-server";
 import { AuthMenu } from "./auth-menu";
 
 export async function Header() {
@@ -8,6 +9,9 @@ export async function Header() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Play policy: no purchase or steering surfaces inside the Android app.
+  const inTwa = isTwa();
 
   return (
     <header className="border-b border-stage-border px-6 py-4">
@@ -38,12 +42,14 @@ export async function Header() {
           >
             Leaderboard
           </Link>
-          <Link
-            href="/pricing"
-            className="text-sm text-stage-muted hover:text-stage-text transition-colors"
-          >
-            Pricing
-          </Link>
+          {!inTwa && (
+            <Link
+              href="/pricing"
+              className="text-sm text-stage-muted hover:text-stage-text transition-colors"
+            >
+              Pricing
+            </Link>
+          )}
           <ThemeToggle />
           <AuthMenu email={user?.email ?? null} />
         </div>

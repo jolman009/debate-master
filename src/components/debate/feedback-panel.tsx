@@ -1,6 +1,7 @@
 "use client";
 
 import { DebateFeedback } from "@/lib/debate/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface FeedbackPanelProps {
@@ -18,7 +19,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            score >= 7 ? "bg-stage-pro" : score >= 4 ? "bg-yellow-500" : "bg-stage-con"
+            score >= 7 ? "bg-stage-pro" : score >= 4 ? "bg-stage-warning" : "bg-stage-con"
           )}
           style={{ width: `${score * 10}%` }}
         />
@@ -31,6 +32,9 @@ export function FeedbackPanel({ feedback }: FeedbackPanelProps) {
   return (
     <div className="debate-card space-y-6">
       <div className="text-center">
+        <Badge variant="warning" className="mb-3">
+          AI-generated coaching
+        </Badge>
         <h2 className="text-2xl font-bold mb-1">Debate Feedback</h2>
         <div className="flex items-center justify-center gap-2">
           <span className="text-4xl font-bold text-stage-accent">
@@ -64,13 +68,13 @@ export function FeedbackPanel({ feedback }: FeedbackPanelProps) {
           </ul>
         </div>
         <div>
-          <h3 className="font-semibold text-yellow-500 text-sm mb-2">
+          <h3 className="font-semibold text-stage-warning text-sm mb-2">
             Areas for Improvement
           </h3>
           <ul className="space-y-1">
             {feedback.improvements.map((s, i) => (
               <li key={i} className="text-sm text-stage-muted flex gap-2">
-                <span className="text-yellow-500 shrink-0">-</span>
+                <span className="text-stage-warning shrink-0">-</span>
                 {s}
               </li>
             ))}

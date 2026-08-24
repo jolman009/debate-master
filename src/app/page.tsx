@@ -122,7 +122,7 @@ export default function Home() {
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {STEPS.map((s) => (
             <div key={s.n} className="text-center">
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-stage-accent text-lg font-bold text-white">
+              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-stage-accent text-lg font-bold text-stage-on-accent">
                 {s.n}
               </div>
               <h3 className="mt-3 font-semibold text-stage-text">{s.title}</h3>

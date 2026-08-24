@@ -120,7 +120,7 @@ function TabLink({
       className={cn(
         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
         active
-          ? "bg-stage-accent text-white"
+          ? "bg-stage-accent text-stage-on-accent"
           : "text-stage-muted hover:text-stage-text"
       )}
     >

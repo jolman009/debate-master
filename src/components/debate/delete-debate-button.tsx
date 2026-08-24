@@ -28,7 +28,7 @@ export function DeleteDebateButton({ debateId }: { debateId: string }) {
       disabled={busy}
       aria-label="Remove debate"
       title="Remove debate"
-      className="shrink-0 rounded-lg p-2 text-stage-muted transition-colors hover:bg-stage-bg hover:text-stage-con disabled:opacity-50"
+      className="touch-target shrink-0 rounded-lg p-2 text-stage-muted transition-colors hover:bg-stage-bg hover:text-stage-con disabled:opacity-50"
     >
       <svg
         viewBox="0 0 24 24"

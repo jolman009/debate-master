@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "pro" | "con" | "accent";
+  variant?: "default" | "pro" | "con" | "accent" | "warning";
   className?: string;
 }
 
@@ -15,6 +15,7 @@ export function Badge({ children, variant = "default", className }: BadgeProps) 
         variant === "pro" && "bg-stage-pro/20 text-stage-pro",
         variant === "con" && "bg-stage-con/20 text-stage-con",
         variant === "accent" && "bg-stage-accent/20 text-stage-accent",
+        variant === "warning" && "bg-stage-warning/15 text-stage-warning",
         className
       )}
     >

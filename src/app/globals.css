@@ -4,31 +4,65 @@
 
 @layer base {
   :root {
+    --nav-bottom-inset: 0px;
     --stage-bg: 248 250 252;
     --stage-surface: 255 255 255;
-    --stage-border: 226 232 240;
+    --stage-surface-raised: 241 245 249;
+    --stage-border: 203 213 225;
+    --stage-border-strong: 100 116 139;
     --stage-text: 15 23 42;
-    --stage-muted: 100 116 139;
-    --stage-accent: 99 102 241;
-    --stage-accent-hover: 79 70 229;
-    --stage-pro: 22 163 74;
-    --stage-con: 220 38 38;
+    --stage-muted: 71 85 105;
+    --stage-accent: 79 70 229;
+    --stage-accent-hover: 67 56 202;
+    --stage-on-accent: 255 255 255;
+    --stage-focus: 67 56 202;
+    --stage-pro: 21 128 61;
+    --stage-con: 185 28 28;
+    --stage-warning: 161 98 7;
   }
 
   .dark {
     --stage-bg: 10 10 26;
     --stage-surface: 19 19 40;
-    --stage-border: 30 30 58;
+    --stage-surface-raised: 30 30 58;
+    --stage-border: 64 64 96;
+    --stage-border-strong: 148 163 184;
     --stage-text: 255 255 255;
-    --stage-muted: 100 116 139;
-    --stage-accent: 99 102 241;
-    --stage-accent-hover: 129 140 248;
+    --stage-muted: 203 213 225;
+    --stage-accent: 129 140 248;
+    --stage-accent-hover: 165 180 252;
+    --stage-on-accent: 15 23 42;
+    --stage-focus: 199 210 254;
     --stage-pro: 34 197 94;
     --stage-con: 239 68 68;
+    --stage-warning: 252 211 77;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-stage-bg text-stage-text antialiased;
+  }
+
+  :where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid rgb(var(--stage-focus)) !important;
+    outline-offset: 3px !important;
+  }
+
+  :where(button, input, textarea, select):disabled {
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --nav-bottom-inset: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+
+  body:has([data-bottom-nav]) main {
+    padding-bottom: var(--nav-bottom-inset);
   }
 }
 
@@ -38,10 +72,31 @@
   }
 
   .btn-primary {
-    @apply bg-stage-accent hover:bg-stage-accent-hover text-white font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex min-h-11 items-center justify-center bg-stage-accent hover:bg-stage-accent-hover text-stage-on-accent font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-stage-surface border border-stage-border hover:border-stage-accent text-stage-text font-medium py-2.5 px-5 rounded-lg transition-colors duration-200;
+    @apply inline-flex min-h-11 items-center justify-center bg-stage-surface border border-stage-border hover:border-stage-accent text-stage-text font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+}
+
+@layer utilities {
+  .touch-target {
+    @apply min-h-11 min-w-11;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }

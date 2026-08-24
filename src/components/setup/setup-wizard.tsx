@@ -42,6 +42,7 @@ export function SetupWizard({
   const [crossExamEnabled, setCrossExamEnabled] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const isHuman = mode === "human";
   const hasTopic = selectedTopic || customTopic.trim().length > 10;
@@ -52,6 +53,7 @@ export function SetupWizard({
     if (!canStart) return;
     setIsCreating(true);
     setUpgradeMsg(null);
+    setCreateError(null);
 
     const topic = selectedTopic?.title || customTopic.trim();
     const motion =
@@ -92,9 +94,16 @@ export function SetupWizard({
       router.push(`/debate/${debateId}`);
     } catch (err) {
       console.error("Failed to create debate:", err);
+      setCreateError((err as Error).message || "Failed to create debate");
       setIsCreating(false);
     }
   }
+
+  const missingRequirements = !hasTopic
+    ? "Choose a topic or enter a custom motion before starting."
+    : !isHuman && !selectedPersona
+    ? "Choose an AI opponent before starting."
+    : null;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
@@ -106,41 +115,43 @@ export function SetupWizard({
       </div>
 
       {/* Opponent mode */}
-      <div className="space-y-3">
-        <h2 className="text-xl font-bold">Opponent</h2>
+      <fieldset className="space-y-3">
+        <legend className="text-xl font-bold">Opponent</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setMode("ai")}
-            className={cn(
-              "debate-card text-left transition-colors",
-              !isHuman
-                ? "border-stage-accent/60 ring-1 ring-stage-accent/40"
-                : "opacity-70 hover:opacity-100"
-            )}
-          >
-            <p className="font-semibold text-sm">AI Persona</p>
-            <p className="text-xs text-stage-muted mt-1">
-              Debate a curated or custom AI opponent right now.
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("human")}
-            className={cn(
-              "debate-card text-left transition-colors",
-              isHuman
-                ? "border-stage-accent/60 ring-1 ring-stage-accent/40"
-                : "opacity-70 hover:opacity-100"
-            )}
-          >
-            <p className="font-semibold text-sm">A Friend</p>
-            <p className="text-xs text-stage-muted mt-1">
-              Get an invite link and debate another person live.
-            </p>
-          </button>
+          <label className="block">
+            <input
+              type="radio"
+              name="debate-mode"
+              value="ai"
+              checked={!isHuman}
+              onChange={() => setMode("ai")}
+              className="peer sr-only"
+            />
+            <span className="debate-card block cursor-pointer text-left transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus peer-checked:border-stage-accent peer-checked:ring-1 peer-checked:ring-stage-accent">
+              <span className="text-sm font-semibold">AI Persona</span>
+              <span className="mt-1 block text-xs text-stage-muted">
+                Debate a curated or custom AI simulation right now.
+              </span>
+            </span>
+          </label>
+          <label className="block">
+            <input
+              type="radio"
+              name="debate-mode"
+              value="human"
+              checked={isHuman}
+              onChange={() => setMode("human")}
+              className="peer sr-only"
+            />
+            <span className="debate-card block cursor-pointer text-left transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus peer-checked:border-stage-accent peer-checked:ring-1 peer-checked:ring-stage-accent">
+              <span className="text-sm font-semibold">A Friend</span>
+              <span className="mt-1 block text-xs text-stage-muted">
+                Get an invite link and debate another person live.
+              </span>
+            </span>
+          </label>
         </div>
-      </div>
+      </fieldset>
 
       <TopicPicker
         topics={topics}
@@ -168,117 +179,155 @@ export function SetupWizard({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Side */}
-          <div className="debate-card">
-            <label className="block text-sm font-medium mb-2">
+          <fieldset className="debate-card">
+            <legend className="mb-2 block text-sm font-medium">
               Your Side
               {isHuman && (
                 <span className="ml-1 font-normal text-xs text-stage-muted">
                   (your friend takes the other)
                 </span>
               )}
-            </label>
+            </legend>
             <div className="flex gap-2">
-              <button
-                onClick={() => setUserSide("pro")}
-                className={cn(
-                  "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                  userSide === "pro"
-                    ? "bg-stage-pro/20 text-stage-pro border border-stage-pro/50"
-                    : "bg-stage-bg text-stage-muted border border-stage-border"
-                )}
-              >
-                Pro (For)
-              </button>
-              <button
-                onClick={() => setUserSide("con")}
-                className={cn(
-                  "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                  userSide === "con"
-                    ? "bg-stage-con/20 text-stage-con border border-stage-con/50"
-                    : "bg-stage-bg text-stage-muted border border-stage-border"
-                )}
-              >
-                Con (Against)
-              </button>
+              {(["pro", "con"] as const).map((side) => (
+                <label key={side} className="flex-1">
+                  <input
+                    type="radio"
+                    name="user-side"
+                    value={side}
+                    checked={userSide === side}
+                    onChange={() => setUserSide(side)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    className={cn(
+                      "flex min-h-11 cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus",
+                      side === "pro"
+                        ? "peer-checked:border-stage-pro/60 peer-checked:bg-stage-pro/15 peer-checked:text-stage-pro"
+                        : "peer-checked:border-stage-con/60 peer-checked:bg-stage-con/15 peer-checked:text-stage-con",
+                      userSide !== side &&
+                        "border-stage-border bg-stage-bg text-stage-muted"
+                    )}
+                  >
+                    {side === "pro" ? "Pro (For)" : "Con (Against)"}
+                  </span>
+                </label>
+              ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Difficulty */}
-          <div className="debate-card">
-            <label className="block text-sm font-medium mb-2">Difficulty</label>
+          <fieldset className="debate-card">
+            <legend className="mb-2 block text-sm font-medium">Difficulty</legend>
             <div className="flex gap-2">
               {(["beginner", "intermediate", "advanced"] as Difficulty[]).map(
                 (d) => (
-                  <button
+                  <label
                     key={d}
-                    onClick={() => setDifficulty(d)}
-                    className={cn(
-                      "flex-1 py-2 px-2 rounded-lg text-xs font-medium capitalize transition-colors",
-                      difficulty === d
-                        ? "bg-stage-accent/20 text-stage-accent border border-stage-accent/50"
-                        : "bg-stage-bg text-stage-muted border border-stage-border"
-                    )}
+                    className="flex-1"
                   >
-                    {d}
-                  </button>
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      value={d}
+                      checked={difficulty === d}
+                      onChange={() => setDifficulty(d)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      className={cn(
+                        "flex min-h-11 cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs font-medium capitalize transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus",
+                        difficulty === d
+                          ? "border-stage-accent/60 bg-stage-accent/15 text-stage-accent"
+                          : "border-stage-border bg-stage-bg text-stage-muted"
+                      )}
+                    >
+                      {d}
+                    </span>
+                  </label>
                 )
               )}
             </div>
-          </div>
+          </fieldset>
 
           {/* Rebuttal Cycles */}
-          <div className="debate-card">
-            <label className="block text-sm font-medium mb-2">
+          <fieldset className="debate-card">
+            <legend className="mb-2 block text-sm font-medium">
               Rebuttal Rounds
-            </label>
+            </legend>
             <div className="flex gap-2">
               {([1, 2] as const).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setRebuttalCycles(n)}
-                  className={cn(
-                    "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                    rebuttalCycles === n
-                      ? "bg-stage-accent/20 text-stage-accent border border-stage-accent/50"
-                      : "bg-stage-bg text-stage-muted border border-stage-border"
-                  )}
-                >
-                  {n} {n === 1 ? "Round" : "Rounds"}
-                </button>
+                <label key={n} className="flex-1">
+                  <input
+                    type="radio"
+                    name="rebuttal-cycles"
+                    value={n}
+                    checked={rebuttalCycles === n}
+                    onChange={() => setRebuttalCycles(n)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    className={cn(
+                      "flex min-h-11 cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus",
+                      rebuttalCycles === n
+                        ? "border-stage-accent/60 bg-stage-accent/15 text-stage-accent"
+                        : "border-stage-border bg-stage-bg text-stage-muted"
+                    )}
+                  >
+                    {n} {n === 1 ? "Round" : "Rounds"}
+                  </span>
+                </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Cross-Examination */}
-          <div className="debate-card">
-            <label className="block text-sm font-medium mb-2">
+          <fieldset className="debate-card">
+            <legend className="block text-sm font-medium mb-2">
               Cross-Examination
+            </legend>
+            <label className="block">
+              <input
+                type="checkbox"
+                checked={crossExamEnabled}
+                onChange={(e) => setCrossExamEnabled(e.target.checked)}
+                className="peer sr-only"
+              />
+              <span
+                className={cn(
+                  "flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus",
+                  crossExamEnabled
+                    ? "border-stage-accent/60 bg-stage-accent/15 text-stage-accent"
+                    : "border-stage-border bg-stage-bg text-stage-muted"
+                )}
+              >
+                {crossExamEnabled ? "Enabled" : "Disabled"}
+              </span>
             </label>
-            <button
-              onClick={() => setCrossExamEnabled(!crossExamEnabled)}
-              className={cn(
-                "w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                crossExamEnabled
-                  ? "bg-stage-accent/20 text-stage-accent border border-stage-accent/50"
-                  : "bg-stage-bg text-stage-muted border border-stage-border"
-              )}
-            >
-              {crossExamEnabled ? "Enabled" : "Disabled"}
-            </button>
-          </div>
+          </fieldset>
         </div>
       </div>
 
       {upgradeMsg && (
-        <div className="rounded-lg border border-stage-accent/40 bg-stage-accent/10 px-4 py-3 text-center text-sm text-stage-text">
+        <div role="alert" className="rounded-lg border border-stage-accent/40 bg-stage-accent/10 px-4 py-3 text-center text-sm text-stage-text">
           {upgradeMsg}{" "}
           {!inTwa && (
             <Link href="/pricing" className="font-medium text-stage-accent hover:underline">
-              View plans →
+              View plans
             </Link>
           )}
         </div>
       )}
+
+      {createError && (
+        <p role="alert" className="text-center text-sm text-stage-con">
+          {createError}
+        </p>
+      )}
+
+      <p role="status" aria-live="polite" className="text-center text-sm text-stage-muted">
+        {missingRequirements ?? (isCreating ? "Creating your debate." : "Ready to start.")}
+      </p>
 
       <div className="flex justify-center pt-4">
         <Button

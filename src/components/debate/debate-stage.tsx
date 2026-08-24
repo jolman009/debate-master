@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useDebate } from "@/hooks/use-debate";
 import { DebateConfig, DebateStage as DebateStageType, Persona, VoiceConfig } from "@/lib/debate/types";
@@ -16,6 +17,7 @@ import { InvitePanel } from "./invite-panel";
 import { TypingIndicator } from "./typing-indicator";
 import { JudgePanel } from "./judge-panel";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useSpeech } from "@/hooks/use-speech";
 
 interface DebateStageProps {
@@ -57,6 +59,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [completionAnnouncement, setCompletionAnnouncement] = useState("");
+  const wasStreamingRef = useRef(false);
 
   const config = debate ? (debate.config as DebateConfig) : null;
   const defaultVoice: VoiceConfig = { pitch: 1, rate: 1, voicePrefs: [] };
@@ -96,6 +100,16 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
     return () => clearInterval(id);
   }, [isHuman, realtimeConnected, isMyTurn, debate?.current_stage, refresh]);
 
+  useEffect(() => {
+    if (isStreaming) {
+      setCompletionAnnouncement("");
+    }
+    if (wasStreamingRef.current && !isStreaming) {
+      setCompletionAnnouncement("AI response complete.");
+    }
+    wasStreamingRef.current = isStreaming;
+  }, [isStreaming]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -123,15 +137,58 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
   const opponentName = "Opponent";
   const opponentSide: "pro" | "con" = viewerSide === "pro" ? "con" : "pro";
   const opponentOnline = isHuman && onlineSides.includes(opponentSide);
+  const liveStatus = streamError
+    ? `Connection or response error: ${streamError}`
+    : completionAnnouncement
+    ? completionAnnouncement
+    : isMyTurn
+    ? "Your turn."
+    : isAiTurn
+    ? isStreaming
+      ? "AI response in progress."
+      : "AI thinking."
+    : isHuman && !realtimeConnected
+    ? "Realtime connection interrupted. Trying to reconnect."
+    : opponentTurnPending
+    ? "Waiting for your opponent."
+    : "";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-73px)]">
+    <div className="mx-auto flex h-[100svh] max-w-3xl flex-col px-4 py-4 supports-[height:100dvh]:h-[100dvh]">
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {liveStatus}
+      </div>
       {/* Header */}
       <div className="space-y-4 shrink-0">
         <div className="flex items-start justify-between gap-3">
-          <div className="text-xs text-stage-muted">
+          <div className="min-w-0 text-xs text-stage-muted">
+            <Link
+              href="/debate"
+              className="mb-2 inline-flex min-h-11 items-center rounded-lg pr-3 text-sm font-medium text-stage-muted transition-colors hover:text-stage-text"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="mr-1.5 h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              Library
+            </Link>
             <p className="uppercase tracking-wider mb-0.5">Topic</p>
-            <p className="text-sm font-medium text-stage-text">{config!.topic}</p>
+            <p className="truncate text-sm font-medium text-stage-text" title={config!.topic}>
+              {config!.topic}
+            </p>
+            {!isHuman && (
+              <Badge variant="accent" className="mt-2">
+                AI simulation
+              </Badge>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <Button
@@ -236,7 +293,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
       {/* Input / Feedback */}
       <div className="shrink-0 pt-4 border-t border-stage-border">
         {streamError && (
-          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-stage-con/40 bg-stage-con/10 px-3 py-2">
+          <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-stage-con/40 bg-stage-con/10 px-3 py-2">
             <p className="text-sm text-stage-con">{streamError}</p>
             <div className="flex shrink-0 items-center gap-3">
               {isAiTurn && (
@@ -261,7 +318,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
         {!isHuman && isFeedbackStage && !feedback && (
           <div className="text-center py-4">
             <p className="text-stage-muted text-sm mb-3">
-              The debate is over! Get AI feedback on your performance.
+              The debate is over. Get AI-generated coaching on your performance.
             </p>
             <Button onClick={requestFeedback} disabled={feedbackLoading}>
               {feedbackLoading ? "Generating Feedback..." : "Get Feedback"}

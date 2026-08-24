@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,10 +15,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const inputClass =
-  "w-full rounded-lg border border-stage-border bg-stage-bg px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent";
+  "min-h-11 w-full rounded-lg border border-stage-border bg-stage-bg px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent";
 
 export function PersonaForm() {
   const router = useRouter();
+  const idPrefix = useId();
   const [displayName, setDisplayName] = useState("");
   const [tagline, setTagline] = useState("");
   const [ideology, setIdeology] = useState("");
@@ -31,6 +32,14 @@ export function PersonaForm() {
   const [error, setError] = useState<string | null>(null);
 
   const theme = THEME_PRESETS[themeIndex];
+  const nameId = `${idPrefix}-name`;
+  const taglineId = `${idPrefix}-tagline`;
+  const ideologyId = `${idPrefix}-ideology`;
+  const worldviewId = `${idPrefix}-worldview`;
+  const worldviewHelpId = `${idPrefix}-worldview-help`;
+  const voiceIdInputId = `${idPrefix}-voice`;
+  const pitchId = `${idPrefix}-pitch`;
+  const rateId = `${idPrefix}-rate`;
 
   const previewPersona: Persona = {
     id: "preview",
@@ -86,8 +95,9 @@ export function PersonaForm() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium">Name</label>
+          <label htmlFor={nameId} className="mb-1 block text-sm font-medium">Name</label>
           <input
+            id={nameId}
             className={inputClass}
             value={displayName}
             maxLength={LIMITS.displayName}
@@ -96,8 +106,9 @@ export function PersonaForm() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Tagline</label>
+          <label htmlFor={taglineId} className="mb-1 block text-sm font-medium">Tagline</label>
           <input
+            id={taglineId}
             className={inputClass}
             value={tagline}
             maxLength={LIMITS.tagline}
@@ -108,10 +119,11 @@ export function PersonaForm() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label htmlFor={ideologyId} className="mb-1 block text-sm font-medium">
           Ideology / leaning <span className="text-stage-muted">(optional)</span>
         </label>
         <input
+          id={ideologyId}
           className={inputClass}
           value={ideology}
           maxLength={LIMITS.ideology}
@@ -121,17 +133,19 @@ export function PersonaForm() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label htmlFor={worldviewId} className="mb-1 block text-sm font-medium">
           Style &amp; worldview
         </label>
         <Textarea
+          id={worldviewId}
           value={worldview}
           rows={6}
           maxLength={LIMITS.worldviewMax}
           onChange={(e) => setWorldview(e.target.value)}
           placeholder="Describe how this character argues, what they believe, their rhetorical style and priorities. This shapes their debate behavior."
+          aria-describedby={worldviewHelpId}
         />
-        <p className="mt-1 text-xs text-stage-muted">
+        <p id={worldviewHelpId} className="mt-1 text-xs text-stage-muted">
           {worldview.trim().length}/{LIMITS.worldviewMax} · min{" "}
           {LIMITS.worldviewMin}. A fictional-character framing and safety rules
           are always applied on top of this.
@@ -140,16 +154,18 @@ export function PersonaForm() {
 
       {/* Theme */}
       <div>
-        <label className="mb-2 block text-sm font-medium">Theme</label>
+        <fieldset>
+          <legend className="mb-2 block text-sm font-medium">Theme</legend>
         <div className="flex flex-wrap gap-3">
           {THEME_PRESETS.map((t, i) => (
             <button
               key={t.from}
               type="button"
               aria-label={`Theme ${i + 1}`}
+              aria-pressed={themeIndex === i}
               onClick={() => setThemeIndex(i)}
               className={cn(
-                "h-9 w-9 rounded-full ring-offset-2 ring-offset-stage-bg transition",
+                "min-h-11 min-w-11 rounded-full ring-offset-2 ring-offset-stage-bg transition",
                 themeIndex === i && "ring-2 ring-stage-accent"
               )}
               style={{
@@ -158,13 +174,15 @@ export function PersonaForm() {
             />
           ))}
         </div>
+        </fieldset>
       </div>
 
       {/* Voice */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="sm:col-span-3">
-          <label className="mb-1 block text-sm font-medium">Voice</label>
+          <label htmlFor={voiceIdInputId} className="mb-1 block text-sm font-medium">Synthetic voice</label>
           <select
+            id={voiceIdInputId}
             className={inputClass}
             value={voiceId}
             onChange={(e) => setVoiceId(e.target.value)}
@@ -178,10 +196,11 @@ export function PersonaForm() {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label htmlFor={pitchId} className="mb-1 block text-sm font-medium">
             Pitch: {pitch.toFixed(2)}
           </label>
           <input
+            id={pitchId}
             type="range"
             min={0.5}
             max={2}
@@ -192,10 +211,11 @@ export function PersonaForm() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label htmlFor={rateId} className="mb-1 block text-sm font-medium">
             Rate: {rate.toFixed(2)}
           </label>
           <input
+            id={rateId}
             type="range"
             min={0.5}
             max={2}
@@ -207,7 +227,7 @@ export function PersonaForm() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-stage-con">{error}</p>}
+      {error && <p role="alert" className="text-sm text-stage-con">{error}</p>}
 
       <div className="flex justify-end gap-3">
         <Button

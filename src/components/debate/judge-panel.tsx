@@ -1,6 +1,7 @@
 "use client";
 
 import { JudgeResult, JudgeSideScore, Side } from "@/lib/debate/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface JudgePanelProps {
@@ -30,9 +31,12 @@ export function JudgePanel({ judge, viewerSide, ratingDelta }: JudgePanelProps) 
         ratingDelta={ratingDelta}
       />
 
-      <p className="text-sm text-stage-muted text-center max-w-2xl mx-auto">
-        {judge.rationale}
-      </p>
+      <div className="text-center max-w-2xl mx-auto">
+        <Badge variant="warning" className="mb-3">
+          AI-generated verdict and coaching
+        </Badge>
+        <p className="text-sm text-stage-muted">{judge.rationale}</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <SideCard
@@ -142,7 +146,7 @@ function SideCard({
             </span>
           )}
           {isWinner && (
-            <span className="rounded-full bg-stage-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+            <span className="rounded-full bg-stage-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-stage-on-accent">
               Winner
             </span>
           )}
@@ -174,7 +178,7 @@ function SideCard({
         <BulletList
           title="Could improve"
           items={data.improvements}
-          className="text-yellow-500"
+          className="text-stage-warning"
           marker="-"
         />
       </div>
@@ -196,7 +200,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
             score >= 7
               ? "bg-stage-pro"
               : score >= 4
-              ? "bg-yellow-500"
+              ? "bg-stage-warning"
               : "bg-stage-con"
           )}
           style={{ width: `${score * 10}%` }}

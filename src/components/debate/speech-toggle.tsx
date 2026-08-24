@@ -16,7 +16,8 @@ export function SpeechToggle({ isMuted, onToggle, isSupported }: SpeechTogglePro
       variant="ghost"
       size="sm"
       onClick={onToggle}
-      title={isMuted ? "Unmute AI voice" : "Mute AI voice"}
+      aria-label={isMuted ? "Unmute synthetic voice" : "Mute synthetic voice"}
+      title={isMuted ? "Unmute synthetic voice" : "Mute synthetic voice"}
       className="relative"
     >
       {isMuted ? (

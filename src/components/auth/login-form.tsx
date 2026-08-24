@@ -90,7 +90,7 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stage-border bg-stage-surface px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent"
+            className="mt-1 min-h-11 w-full rounded-lg border border-stage-border bg-stage-surface px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent"
           />
         </div>
         <div>
@@ -109,12 +109,16 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
             }
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-stage-border bg-stage-surface px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent"
+            className="mt-1 min-h-11 w-full rounded-lg border border-stage-border bg-stage-surface px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent"
           />
         </div>
 
-        {error && <p className="text-sm text-stage-con">{error}</p>}
-        {notice && <p className="text-sm text-stage-pro">{notice}</p>}
+        {error && <p role="alert" className="text-sm text-stage-con">{error}</p>}
+        {notice && (
+          <p role="status" aria-live="polite" className="text-sm text-stage-pro">
+            {notice}
+          </p>
+        )}
 
         <Button type="submit" disabled={loading} className="w-full">
           {loading

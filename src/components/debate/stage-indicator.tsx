@@ -57,7 +57,7 @@ export function StageIndicator({ config, currentStage }: StageIndicatorProps) {
             <div
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                isActive && "bg-stage-accent text-white",
+                isActive && "bg-stage-accent text-stage-on-accent",
                 isComplete && "bg-stage-accent/20 text-stage-accent",
                 !isActive && !isComplete && "bg-stage-surface text-stage-muted"
               )}

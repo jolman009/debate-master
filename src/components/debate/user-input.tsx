@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +19,8 @@ export function UserInput({
   placeholder,
   onTyping,
 }: UserInputProps) {
+  const inputId = useId();
+  const helpId = useId();
   const [content, setContent] = useState("");
 
   const charCount = content.length;
@@ -39,7 +41,11 @@ export function UserInput({
 
   return (
     <div className="space-y-2">
+      <label htmlFor={inputId} className="block text-sm font-medium">
+        Your argument
+      </label>
       <Textarea
+        id={inputId}
         value={content}
         onChange={(e) => {
           setContent(e.target.value.slice(0, maxChars));
@@ -48,12 +54,13 @@ export function UserInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
+        aria-describedby={helpId}
         rows={5}
         className="min-h-[120px]"
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-stage-muted">
-          {charCount}/{maxChars} chars | Ctrl+Enter to submit
+        <span id={helpId} className="text-xs text-stage-muted">
+          {charCount}/{maxChars} chars. Ctrl+Enter to submit.
         </span>
         <Button
           onClick={handleSubmit}

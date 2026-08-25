@@ -39,7 +39,7 @@ export function PersonaPicker({
                 onChange={() => onSelectPersona(persona.id)}
                 className="peer sr-only"
               />
-              <span className="block min-h-full cursor-pointer rounded-xl border border-stage-border bg-stage-surface p-4 transition-all duration-200 hover:border-stage-accent/50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus peer-checked:border-stage-accent peer-checked:ring-1 peer-checked:ring-stage-accent peer-checked:shadow-lg peer-checked:shadow-stage-accent/10">
+              <span className="block min-h-full cursor-pointer rounded-lg border border-stage-border bg-stage-surface p-4 transition-all duration-200 hover:border-stage-accent/50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-stage-focus peer-checked:border-stage-accent peer-checked:ring-1 peer-checked:ring-stage-accent peer-checked:shadow-lg peer-checked:shadow-stage-accent/10">
                 <span className="mb-2 block">
                   <PersonaAvatar persona={persona} size="sm" />
                 </span>
@@ -56,7 +56,7 @@ export function PersonaPicker({
 
         <Link
           href="/personas/new"
-          className="flex min-h-[132px] flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-stage-border p-4 text-stage-muted transition-colors hover:border-stage-accent hover:text-stage-accent"
+          className="flex min-h-[132px] flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-stage-border p-4 text-stage-muted transition-colors hover:border-stage-accent hover:text-stage-accent"
         >
           <span className="text-2xl leading-none">+</span>
           <span className="text-sm font-medium">Create persona</span>

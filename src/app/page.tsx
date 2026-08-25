@@ -1,196 +1,198 @@
+import Image from "next/image";
 import Link from "next/link";
-import { getAllPersonas } from "@/lib/debate/personas";
 import { PersonaAvatar } from "@/components/debate/persona-avatar";
 import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
+import { getAllPersonas } from "@/lib/debate/personas";
 import { isTwa } from "@/lib/platform/twa-server";
 
-const STEPS = [
+const ROUNDS = [
   {
-    n: 1,
-    title: "Pick a topic",
-    body: "Choose from curated topic packs or bring your own motion.",
+    number: "01",
+    title: "Set the motion",
+    body: "Choose a focused question, take a side, and set the level of challenge.",
   },
   {
-    n: 2,
-    title: "Choose your opponent",
-    body: "Face one of six distinct AI personas — or design your own.",
+    number: "02",
+    title: "Make the case",
+    body: "Move through openings, rebuttals, cross-examination, and closing statements.",
   },
   {
-    n: 3,
-    title: "Debate & get scored",
-    body: "Trade opening, rebuttals, cross-exam, and closing — then get coached.",
-  },
-];
-
-const FEATURES = [
-  {
-    icon: "🎭",
-    title: "Six distinct personas",
-    body: "Each argues with its own worldview, rhetoric, and voice.",
-  },
-  {
-    icon: "🗣️",
-    title: "An immersive stage",
-    body: "Audio-reactive avatars and realistic voices bring the debate to life.",
-  },
-  {
-    icon: "📊",
-    title: "Coaching feedback",
-    body: "Scored on argument, evidence, rebuttal, and rhetoric — with tips.",
-  },
-  {
-    icon: "✨",
-    title: "Custom personas",
-    body: "Build an opponent with its own style, ideology, voice, and theme.",
-  },
-  {
-    icon: "🏆",
-    title: "Leaderboard",
-    body: "Climb a performance ranking weighted by debate difficulty.",
-  },
-  {
-    icon: "📚",
-    title: "Topic packs",
-    body: "Curated and seasonal collections, from tech & AI to ethics.",
+    number: "03",
+    title: "Study the tape",
+    body: "Review AI-generated coaching grounded in the moments that shaped the debate.",
   },
 ];
 
 export default function Home() {
   const personas = getAllPersonas();
-  // Play policy: no purchase/steering surfaces inside the Android app.
   const inTwa = isTwa();
 
   return (
-    <div className="mx-auto max-w-5xl px-4">
-      {/* Hero */}
-      <section className="relative flex flex-col items-center py-20 text-center">
+    <div className="overflow-hidden">
+      <section className="hero-stage relative isolate flex min-h-[31rem] items-end overflow-hidden bg-[#08090d] text-white sm:min-h-[34rem] lg:min-h-[38rem]">
+        <Image
+          src="/images/debate-stage-hero.png"
+          alt="An empty debate chamber with two illuminated lecterns"
+          fill
+          priority
+          sizes="100vw"
+          className="stage-depth -z-20 object-cover object-[64%_center] sm:object-center"
+        />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 mx-auto h-72 max-w-2xl rounded-full bg-stage-accent/15 blur-3xl"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.78)_36%,rgba(5,6,10,0.12)_72%),linear-gradient(0deg,rgba(5,6,10,0.8)_0%,transparent_48%)]"
         />
-        <span className="mb-5 rounded-full border border-stage-border bg-stage-surface px-3 py-1 text-xs font-medium text-stage-muted">
-          AI-powered debate practice
-        </span>
-        <h1 className="max-w-3xl bg-gradient-to-r from-stage-accent to-purple-400 bg-clip-text text-5xl font-bold leading-tight text-transparent sm:text-6xl">
-          Out-argue the AI. Sharpen your mind.
-        </h1>
-        <p className="mt-5 max-w-xl text-lg text-stage-muted">
-          Step onto a virtual stage and go head-to-head with AI debate
-          personas in structured, turn-based debates — then get scored and
-          coached on your performance.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/debate/new" className="btn-primary text-lg px-8 py-3">
-            Start a Debate
-          </Link>
-          {!inTwa && (
-            <Link
-              href="/pricing"
-              className="rounded-lg border border-stage-border px-8 py-3 text-lg font-medium text-stage-text transition-colors hover:border-stage-accent"
-            >
-              See Pricing
-            </Link>
-          )}
-        </div>
 
-        {/* Persona lineup */}
-        <div className="mt-14 w-full">
-          <p className="mb-4 text-xs uppercase tracking-wider text-stage-muted">
-            Your opponents
+        <div className="mx-auto w-full max-w-6xl px-5 pb-14 pt-24 sm:px-8 sm:pb-20 lg:px-10">
+          <div className="max-w-xl">
+            <p className="motion-hero-kicker border-l-2 border-stage-accent pl-3 text-sm font-semibold uppercase text-white/80">
+              Structured debate practice
+            </p>
+            <h1 className="motion-hero-title font-editorial mt-5 text-5xl font-semibold leading-[1.02] text-white sm:text-7xl">
+              Debate Master
+            </h1>
+            <p className="motion-hero-copy mt-5 max-w-lg text-lg leading-7 text-white/80 sm:text-xl sm:leading-8">
+              Build sharper arguments under pressure, then see exactly where
+              your case held and where it gave way.
+            </p>
+            <div className="motion-hero-actions mt-8 flex flex-wrap items-center gap-5">
+              <Link href="/debate/new" className="btn-primary px-7 py-3 text-base">
+                Start a debate
+              </Link>
+              {!inTwa && (
+                <Link
+                  href="/pricing"
+                  className="inline-flex min-h-11 items-center text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-stage-accent"
+                >
+                  View plans
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr] lg:px-10">
+        <div className="max-w-md">
+          <p className="text-sm font-semibold uppercase text-stage-accent">
+            The format
           </p>
-          <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-5">
-            {personas.map((p) => (
-              <div
-                key={p.id}
-                className="flex w-20 flex-col items-center gap-2 text-center"
-              >
-                <PersonaAvatar persona={p} size="md" showName={false} />
-                <span className="text-xs font-medium leading-tight text-stage-text">
-                  {p.displayName}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-16">
-        <h2 className="text-center text-2xl font-bold text-stage-text">
-          How it works
-        </h2>
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {STEPS.map((s) => (
-            <div key={s.n} className="text-center">
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-stage-accent text-lg font-bold text-stage-on-accent">
-                {s.n}
-              </div>
-              <h3 className="mt-3 font-semibold text-stage-text">{s.title}</h3>
-              <p className="mt-1 text-sm text-stage-muted">{s.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-16">
-        <h2 className="text-center text-2xl font-bold text-stage-text">
-          Everything you need to get better
-        </h2>
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="debate-card p-5 transition-colors duration-200 hover:border-stage-accent/40"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stage-accent/10 text-xl">
-                {f.icon}
-              </div>
-              <h3 className="mt-3 font-semibold text-stage-text">{f.title}</h3>
-              <p className="mt-1 text-sm text-stage-muted">{f.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing teaser — omitted in the Play app (no selling/steering). */}
-      {!inTwa && (
-        <section className="py-16">
-          <div className="debate-card flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
-            <div>
-              <h2 className="text-xl font-bold text-stage-text">
-                Start free, upgrade when you&apos;re hooked
-              </h2>
-              <p className="mt-1 text-sm text-stage-muted">
-                {FREE_DEBATE_LIMIT} debates a month on the house. Go Premium for
-                realistic voices and unlimited debates.
-              </p>
-            </div>
-            <Link
-              href="/pricing"
-              className="btn-primary shrink-0 px-6 py-2.5"
-            >
-              View plans
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Final CTA */}
-      <section className="py-20">
-        <div className="debate-card flex flex-col items-center bg-gradient-to-br from-stage-accent/10 to-purple-500/5 p-12 text-center">
-          <h2 className="text-3xl font-bold text-stage-text">
-            Ready to step onto the stage?
+          <h2 className="font-editorial mt-3 text-4xl font-semibold leading-tight text-stage-text">
+            Practice the argument, not the interface.
           </h2>
-          <p className="mt-3 max-w-md text-stage-muted">
-            Pick a topic, choose an opponent, and start arguing in under a
-            minute.
+          <p className="mt-5 text-base leading-6 text-stage-muted">
+            Each debate follows a clear competitive structure, so attention
+            stays on reasoning, evidence, and response.
           </p>
-          <Link
-            href="/debate/new"
-            className="btn-primary mt-6 text-lg px-8 py-3"
-          >
-            Start a Debate
+        </div>
+
+        <ol className="border-t border-stage-border">
+          {ROUNDS.map((round) => (
+            <li
+              key={round.number}
+              className="editorial-row grid gap-3 border-b border-stage-border py-7 sm:grid-cols-[3rem_1fr] sm:gap-5"
+            >
+              <span className="tabular-nums text-sm font-semibold text-stage-accent">
+                {round.number}
+              </span>
+              <div>
+                <h3 className="text-lg font-semibold text-stage-text">
+                  {round.title}
+                </h3>
+                <p className="mt-2 max-w-xl text-base leading-6 text-stage-muted">
+                  {round.body}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="border-y border-stage-border bg-stage-surface">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:items-center lg:px-10">
+          <div>
+            <p className="text-sm font-semibold uppercase text-stage-accent">
+              Evidence-based coaching
+            </p>
+            <h2 className="font-editorial mt-3 max-w-lg text-4xl font-semibold leading-tight text-stage-text">
+              Feedback points back to the exchange.
+            </h2>
+            <p className="mt-5 max-w-lg text-base leading-6 text-stage-muted">
+              AI-generated scores are presented as coaching estimates, with
+              transcript evidence and a focused recommendation for the next
+              round.
+            </p>
+            <Link
+              href="/debate/new"
+              className="mt-7 inline-flex min-h-11 items-center text-sm font-semibold text-stage-text underline decoration-stage-accent/60 underline-offset-4 transition-colors hover:text-stage-accent"
+            >
+              Put an argument on the record
+            </Link>
+          </div>
+
+          <figure className="border-l-2 border-stage-accent pl-5 sm:pl-8">
+            <blockquote className="font-editorial text-2xl leading-9 text-stage-text sm:text-3xl sm:leading-10">
+              “You answered the objection directly, but the conclusion reached
+              beyond the evidence you established.”
+            </blockquote>
+            <figcaption className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-stage-border pt-4 text-sm text-stage-muted">
+              <span className="font-semibold text-stage-text">
+                AI-generated coaching
+              </span>
+              <span>Rebuttal evidence</span>
+              <span className="tabular-nums">7.8 / 10 estimate</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div>
+            <p className="text-sm font-semibold uppercase text-stage-accent">
+              The opponent room
+            </p>
+            <h2 className="font-editorial mt-3 text-4xl font-semibold leading-tight text-stage-text">
+              Pressure-test your case from another point of view.
+            </h2>
+          </div>
+          <p className="max-w-xl text-base leading-6 text-stage-muted lg:justify-self-end">
+            Every AI persona is visibly labeled and brings a distinct rhetorical
+            style. Choose the kind of resistance your argument needs.
+          </p>
+        </div>
+
+        <div className="mt-10 grid grid-cols-2 border-y border-stage-border sm:grid-cols-3 lg:grid-cols-6">
+          {personas.map((persona) => (
+            <div
+              key={persona.id}
+              className="editorial-row flex min-w-0 flex-col items-center gap-3 px-3 py-6 text-center"
+            >
+              <PersonaAvatar persona={persona} size="md" showName={false} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-stage-text">
+                  {persona.displayName}
+                </p>
+                <p className="mt-1 text-sm text-stage-muted">AI persona</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="border-t border-stage-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-7 px-5 py-16 sm:px-8 sm:py-20 md:flex-row md:items-end md:justify-between lg:px-10">
+          <div>
+            <h2 className="font-editorial text-4xl font-semibold leading-tight text-stage-text">
+              Take the lectern.
+            </h2>
+            <p className="mt-3 max-w-xl text-base leading-6 text-stage-muted">
+              Start with {FREE_DEBATE_LIMIT} debates each month. Choose a motion
+              and begin in under a minute.
+            </p>
+          </div>
+          <Link href="/debate/new" className="btn-primary shrink-0 px-7 py-3 text-base">
+            Start a debate
           </Link>
         </div>
       </section>

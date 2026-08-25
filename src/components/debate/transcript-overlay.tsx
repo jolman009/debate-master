@@ -38,7 +38,28 @@ export function TranscriptOverlay({
     closeRef.current?.focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const focusable = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '[role="dialog"] a, [role="dialog"] button, [role="dialog"] [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((node) => !node.hasAttribute("disabled"));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
 
@@ -64,7 +85,7 @@ export function TranscriptOverlay({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="motion-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -82,7 +103,7 @@ export function TranscriptOverlay({
           maxWidth: "calc(100vw - 2rem)",
           maxHeight: "calc(100vh - 2rem)",
         }}
-        className="flex flex-col bg-stage-bg border border-stage-border rounded-xl shadow-2xl"
+        className="motion-dialog flex flex-col rounded-lg border border-stage-border bg-stage-bg shadow-2xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-stage-border shrink-0">
@@ -98,7 +119,7 @@ export function TranscriptOverlay({
             ref={closeRef}
             onClick={onClose}
             aria-label="Close transcript"
-            className="rounded-lg p-1.5 text-stage-muted transition-colors hover:bg-stage-surface hover:text-stage-text"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-stage-muted transition-colors hover:bg-stage-surface hover:text-stage-text"
           >
             <svg
               viewBox="0 0 24 24"
@@ -134,7 +155,7 @@ export function TranscriptOverlay({
         </div>
 
         {/* Resize affordance */}
-        <div className="shrink-0 select-none border-t border-stage-border px-4 py-1.5 text-right text-[10px] text-stage-muted">
+        <div className="shrink-0 select-none border-t border-stage-border px-4 py-1.5 text-right text-xs text-stage-muted">
           Drag the bottom-right corner to resize
         </div>
       </div>

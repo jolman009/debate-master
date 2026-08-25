@@ -143,6 +143,7 @@ describe("buildFeedbackPrompt", () => {
       makeTurn("opening_ai", "ai", "ai said"),
     ]);
     expect(out).toContain("DEBATE TRANSCRIPT");
+    expect(out).toContain("TURN_ID: opening_user-user");
     expect(out).toContain("USER");
     expect(out).toContain("AI OPPONENT");
     expect(out).toContain("user said");
@@ -154,10 +155,11 @@ describe("FEEDBACK_SYSTEM_PROMPT", () => {
   it("names every scoring dimension and asks for JSON", () => {
     for (const key of [
       "overallScore",
-      "argumentStrength",
-      "evidenceUsage",
-      "rebuttalQuality",
-      "rhetoricalSkill",
+      "version",
+      "strongestMoment",
+      "priorityImprovement",
+      "rubric",
+      "practiceRecommendation",
       "summary",
       "strengths",
       "improvements",

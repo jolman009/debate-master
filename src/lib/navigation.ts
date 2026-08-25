@@ -38,6 +38,13 @@ export const PRODUCT_NAV_ITEMS: NavItem[] = [
   },
 ];
 
+export const BOTTOM_NAV_HREFS = [
+  "/debate",
+  "/debate/new",
+  "/personas",
+  "/leaderboard",
+] as const;
+
 export function navItemVisible(
   item: NavItem,
   signedIn: boolean,
@@ -51,4 +58,28 @@ export function navItemVisible(
 export function navItemActive(pathname: string, item: NavItem) {
   if (item.match === "exact") return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+export function getVisibleNavItems(signedIn: boolean, inTwa: boolean) {
+  return PRODUCT_NAV_ITEMS.filter((item) =>
+    navItemVisible(item, signedIn, inTwa)
+  );
+}
+
+export function getDesktopNavItems(signedIn: boolean, inTwa: boolean) {
+  return getVisibleNavItems(signedIn, inTwa).filter((item) =>
+    signedIn ? item.href !== "/pricing" : true
+  );
+}
+
+export function getBottomNavItems(signedIn: boolean, inTwa: boolean) {
+  if (!signedIn) return [];
+  return getVisibleNavItems(signedIn, inTwa).filter((item) =>
+    BOTTOM_NAV_HREFS.includes(item.href as (typeof BOTTOM_NAV_HREFS)[number])
+  );
+}
+
+export function getProfileMenuNavItems(signedIn: boolean, inTwa: boolean) {
+  if (!signedIn) return [];
+  return getVisibleNavItems(signedIn, inTwa);
 }

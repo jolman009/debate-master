@@ -6,7 +6,46 @@ import { test, expect } from "@playwright/test";
 test("home page loads with nav", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/Debate Master/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Debate Master" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start a debate" }).first()
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", {
+      name: "An empty debate chamber with two illuminated lecterns",
+    })
+  ).toBeVisible();
   await expect(page.getByRole("link", { name: "Leaderboard" })).toBeVisible();
+
+  const nextSectionTop = await page.locator("main section").nth(1).evaluate(
+    (element) => element.getBoundingClientRect().top
+  );
+  expect(nextSectionTop).toBeLessThan(page.viewportSize()!.height);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test.describe("reduced motion", () => {
+  test("home content appears without spatial animation", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const motion = await page.locator(".motion-hero-title").evaluate((element) => {
+      const style = getComputedStyle(element);
+      const duration = style.animationDuration;
+      return {
+        durationMs: duration.endsWith("ms")
+          ? Number.parseFloat(duration)
+          : Number.parseFloat(duration) * 1000,
+        opacity: style.opacity,
+      };
+    });
+    expect(motion.durationMs).toBeLessThanOrEqual(0.001);
+    expect(motion.opacity).toBe("1");
+  });
 });
 
 test("protected /debate/new redirects to login", async ({ page }) => {

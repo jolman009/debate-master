@@ -160,11 +160,15 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
       </div>
       {/* Header */}
       <div className="space-y-4 shrink-0">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 text-xs text-stage-muted">
+        <header
+          aria-label="Debate controls"
+          className="flex items-start justify-between gap-3"
+        >
+          <div className="min-w-0">
             <Link
               href="/debate"
               className="mb-2 inline-flex min-h-11 items-center rounded-lg pr-3 text-sm font-medium text-stage-muted transition-colors hover:text-stage-text"
+              aria-label="Back to debate library"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -180,21 +184,30 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
               </svg>
               Library
             </Link>
-            <p className="uppercase tracking-wider mb-0.5">Topic</p>
-            <p className="truncate text-sm font-medium text-stage-text" title={config!.topic}>
-              {config!.topic}
+            <p className="mb-0.5 text-xs uppercase text-stage-muted">
+              Motion
             </p>
-            {!isHuman && (
-              <Badge variant="accent" className="mt-2">
-                AI simulation
-              </Badge>
-            )}
+            <h1
+              className="max-w-[14rem] truncate text-sm font-semibold text-stage-text sm:max-w-md"
+              title={config!.motion || config!.topic}
+              aria-label={`Motion: ${config!.motion || config!.topic}`}
+            >
+              {config!.motion || config!.topic}
+            </h1>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {!isHuman ? (
+                <Badge variant="accent">AI simulation</Badge>
+              ) : (
+                <Badge>Human debate</Badge>
+              )}
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1" aria-label="Debate tools">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowTranscript(true)}
+              aria-label="Open full transcript"
               title="View full transcript"
               className="gap-1.5"
             >
@@ -224,7 +237,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
               isSupported={isSupported}
             />
           </div>
-        </div>
+        </header>
 
         <LiveStage
           persona={persona!}
@@ -246,7 +259,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
         {/* Stage banner */}
         {!isComplete && (
-          <div className="debate-card py-3 px-4 text-center">
+          <div key={currentStage} className="motion-status border-y border-stage-border px-4 py-3 text-center">
             <p className="text-sm font-semibold text-stage-accent">
               {stageLabel}
             </p>

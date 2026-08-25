@@ -9,6 +9,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-ui)"],
+        editorial: ["var(--font-editorial)"],
+      },
+      fontSize: {
+        xs: ["0.8125rem", { lineHeight: "1.125rem" }],
+      },
       colors: {
         stage: {
           bg: "rgb(var(--stage-bg) / <alpha-value>)",

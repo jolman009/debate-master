@@ -5,9 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   NavItem,
-  PRODUCT_NAV_ITEMS,
+  getBottomNavItems,
+  getDesktopNavItems,
+  getProfileMenuNavItems,
   navItemActive,
-  navItemVisible,
 } from "@/lib/navigation";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -34,13 +35,8 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
     pathname.startsWith("/debate/") &&
     pathname !== "/debate/new" &&
     !pathname.startsWith("/debate/join/");
-  const navItems = PRODUCT_NAV_ITEMS.filter((item) =>
-    navItemVisible(item, signedIn, inTwa)
-  );
-  const desktopItems = navItems.filter((item) => item.href !== "/pricing");
-  const bottomItems = navItems
-    .filter((item) => ["/debate", "/debate/new", "/personas", "/leaderboard"].includes(item.href))
-    .slice(0, 4);
+  const desktopItems = getDesktopNavItems(signedIn, inTwa);
+  const bottomItems = getBottomNavItems(signedIn, inTwa);
 
   if (isLiveDebateRoute) {
     return null;
@@ -50,7 +46,7 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
     <>
       <header className="border-b border-stage-border bg-stage-bg/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-stage-bg/80">
         <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4">
-          <Link href={signedIn ? "/debate" : "/"} className="min-h-11 inline-flex items-center text-xl font-bold text-stage-text">
+          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center text-xl font-semibold text-stage-text">
             Debate<span className="text-stage-accent">Master</span>
           </Link>
 
@@ -61,13 +57,7 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
-            {!inTwa && (
-              <NavLink
-                item={{ href: "/pricing", label: "Pricing", match: "prefix" }}
-                pathname={pathname}
-              />
-            )}
-            <ProfileMenu email={email} />
+            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} />
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -84,7 +74,7 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
                 Leaderboard
               </Link>
             )}
-            <ProfileMenu email={email} compact />
+            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} compact />
           </div>
         </nav>
       </header>
@@ -104,7 +94,7 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
                 icon={BOTTOM_ICONS[item.href] ?? "practice"}
               />
             ))}
-            <ProfileMenu email={email} bottom />
+            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} bottom />
           </div>
         </nav>
       )}
@@ -145,7 +135,7 @@ function BottomNavLink({
       href={item.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex min-h-14 flex-col items-center justify-center rounded-lg px-1 text-[11px] font-medium transition-colors",
+        "flex min-h-14 flex-col items-center justify-center rounded-lg px-1 text-xs font-medium transition-colors",
         active
           ? "bg-stage-surface text-stage-accent"
           : "text-stage-muted hover:bg-stage-surface/70 hover:text-stage-text",
@@ -162,10 +152,14 @@ function BottomNavLink({
 
 function ProfileMenu({
   email,
+  inTwa,
+  pathname,
   compact = false,
   bottom = false,
 }: {
   email: string | null;
+  inTwa: boolean;
+  pathname: string;
   compact?: boolean;
   bottom?: boolean;
 }) {
@@ -174,6 +168,7 @@ function ProfileMenu({
   const [loading, setLoading] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuItems = getProfileMenuNavItems(!!email, inTwa);
 
   const initials = useMemo(() => {
     if (!email) return "?";
@@ -259,12 +254,13 @@ function ProfileMenu({
       <button
         ref={buttonRef}
         type="button"
-        aria-haspopup="menu"
+        aria-label="Open profile menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className={cn(
           "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg text-sm font-medium text-stage-muted transition-colors hover:bg-stage-surface/70 hover:text-stage-text",
-          bottom && "flex min-h-14 w-full flex-col px-1 text-[11px]",
+          bottom && "flex min-h-14 w-full flex-col px-1 text-xs",
           compact ? "px-2" : "px-3"
         )}
       >
@@ -288,7 +284,8 @@ function ProfileMenu({
       {open && (
         <div
           ref={menuRef}
-          role="menu"
+          role="dialog"
+          aria-label="Profile menu"
           className={cn(
             "absolute z-50 w-64 rounded-lg border border-stage-border bg-stage-surface p-2 shadow-xl shadow-black/10",
             bottom
@@ -300,21 +297,31 @@ function ProfileMenu({
             <p className="truncate text-sm font-medium text-stage-text">{email}</p>
             <p className="text-xs text-stage-muted">Account</p>
           </div>
-          <Link
-            href="/personas"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="mt-2 flex min-h-11 items-center rounded-md px-2 text-sm text-stage-muted hover:bg-stage-bg hover:text-stage-text"
-          >
-            Persona library
-          </Link>
+          <div className="mt-2">
+            {menuItems.map((item) => {
+              const active = navItemActive(pathname, item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center rounded-md px-2 text-sm hover:bg-stage-bg hover:text-stage-text",
+                    active ? "bg-stage-bg text-stage-text" : "text-stage-muted"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
           <div className="flex min-h-11 items-center justify-between rounded-md px-2">
             <span className="text-sm text-stage-muted">Theme</span>
             <ThemeToggle />
           </div>
           <button
             type="button"
-            role="menuitem"
             onClick={signOut}
             disabled={loading}
             className="flex min-h-11 w-full items-center rounded-md px-2 text-left text-sm text-stage-muted hover:bg-stage-bg hover:text-stage-text disabled:opacity-60"

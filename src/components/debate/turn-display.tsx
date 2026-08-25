@@ -31,7 +31,7 @@ export function TurnDisplay({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1",
+        "motion-turn flex flex-col gap-1",
         isUser ? "items-end" : "items-start"
       )}
     >
@@ -41,7 +41,7 @@ export function TurnDisplay({
       </div>
       <div
         className={cn(
-          "max-w-[85%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+          "max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
           isUser
             ? "bg-stage-accent/20 text-stage-text border border-stage-accent/30"
             : "bg-stage-surface text-stage-text border border-stage-border"

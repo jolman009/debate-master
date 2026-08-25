@@ -1,4 +1,5 @@
 import { DebateFeedback } from "@/lib/debate/types";
+import { adaptFeedback } from "@/lib/debate/feedback";
 import { DebateSummary } from "./debate-card";
 
 type NumericDimension =
@@ -25,7 +26,8 @@ const avg = (nums: number[]) =>
 export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
   const scored = debates
     .map((d) => d.feedback)
-    .filter((f): f is DebateFeedback => f != null);
+    .filter((f): f is DebateFeedback => f != null)
+    .map(adaptFeedback);
 
   if (scored.length === 0) return null;
 
@@ -35,8 +37,8 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
   const delta = scored[0].overallScore - scored[scored.length - 1].overallScore;
 
   return (
-    <div className="debate-card mb-6 p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-stage-muted">
+    <section className="mb-8 border-y border-stage-border py-5">
+      <h2 className="text-sm font-semibold uppercase text-stage-muted">
         Your Progress
       </h2>
 
@@ -66,7 +68,7 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
 
       <div className="mt-4 space-y-2">
         {DIMENSIONS.map(({ key, label }) => {
-          const val = avg(scored.map((f) => f[key]));
+          const val = avg(scored.map((f) => f.rubric[key].score));
           return (
             <div key={key} className="flex items-center gap-3">
               <span className="w-20 shrink-0 text-xs text-stage-muted">
@@ -78,14 +80,14 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
                   style={{ width: `${(val / 10) * 100}%` }}
                 />
               </div>
-              <span className="w-8 shrink-0 text-right text-xs font-medium text-stage-text">
+              <span className="w-8 shrink-0 text-right text-xs font-medium tabular-nums text-stage-text">
                 {val.toFixed(1)}
               </span>
             </div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -100,7 +102,7 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="text-2xl font-bold text-stage-text">
+      <p className="tabular-nums text-2xl font-bold text-stage-text">
         {value}
         {suffix && (
           <span className="text-sm font-medium text-stage-muted">

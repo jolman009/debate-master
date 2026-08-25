@@ -36,10 +36,10 @@ export function DebateCard({
   const awaitingFeedback = current_stage === "feedback" && !feedback;
 
   return (
-    <div className="debate-card flex items-center gap-3 p-4 transition-colors hover:border-stage-accent">
+    <div className="editorial-row flex items-center gap-2 border-b border-stage-border px-1 py-4 last:border-b-0 sm:gap-3 sm:px-2">
       <Link
         href={`/debate/${debate.id}`}
-        className="flex min-w-0 flex-1 items-center gap-4 transition-opacity hover:opacity-80"
+        className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md sm:gap-4"
       >
         <div
           className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white"
@@ -62,7 +62,7 @@ export function DebateCard({
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-stage-text">
-            {config.topic}
+            {config.motion || config.topic}
           </p>
           <p className="mt-0.5 truncate text-xs text-stage-muted">
             vs {persona.displayName} · {config.userSide.toUpperCase()} ·{" "}
@@ -72,7 +72,7 @@ export function DebateCard({
 
         <div className="shrink-0 text-right">
           {feedback ? (
-            <span className="text-sm font-bold text-stage-accent">
+            <span className="tabular-nums text-sm font-bold text-stage-accent">
               {feedback.overallScore}/10
             </span>
           ) : (
@@ -80,7 +80,7 @@ export function DebateCard({
               {awaitingFeedback ? "Awaiting feedback" : "In progress"}
             </span>
           )}
-          <p className="mt-0.5 text-[11px] text-stage-muted">
+          <p className="mt-0.5 text-xs text-stage-muted">
             {isComplete ? "Complete" : getStageLabel(current_stage)}
           </p>
         </div>

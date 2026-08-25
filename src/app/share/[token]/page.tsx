@@ -60,7 +60,7 @@ export default async function SharedDebatePage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="text-xs uppercase tracking-wider text-stage-muted">
+        <span className="text-xs uppercase text-stage-muted">
           Shared debate · read-only
         </span>
         <Link href="/" className="text-xs text-stage-accent hover:underline">
@@ -68,7 +68,7 @@ export default async function SharedDebatePage({
         </Link>
       </div>
 
-      <div className="debate-card mb-4 flex items-center gap-4 p-4">
+      <div className="mb-4 flex items-center gap-4 border-y border-stage-border px-1 py-4">
         <div
           className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white"
           style={{
@@ -98,7 +98,7 @@ export default async function SharedDebatePage({
       </div>
 
       {turns.length === 0 ? (
-        <p className="debate-card py-10 text-center text-sm text-stage-muted">
+        <p className="border-y border-stage-border py-10 text-center text-sm text-stage-muted">
           This debate has no turns yet.
         </p>
       ) : (

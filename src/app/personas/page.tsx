@@ -26,10 +26,12 @@ export default async function PersonasPage() {
   const personas = ((data ?? []) as PersonaRow[]).map(rowToPersona);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stage-text">My Personas</h1>
+          <h1 className="font-editorial text-3xl font-semibold text-stage-text">
+            My Personas
+          </h1>
           <p className="mt-0.5 text-sm text-stage-muted">
             {personas.length} custom{" "}
             {personas.length === 1 ? "persona" : "personas"}
@@ -41,7 +43,7 @@ export default async function PersonasPage() {
       </div>
 
       {personas.length === 0 ? (
-        <div className="debate-card py-12 text-center">
+        <div className="border-y border-stage-border py-14 text-center">
           <p className="text-stage-muted">
             You haven&apos;t created any custom personas yet.
           </p>
@@ -53,11 +55,11 @@ export default async function PersonasPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="border-y border-stage-border">
           {personas.map((persona) => (
             <div
               key={persona.id}
-              className="debate-card flex items-center gap-3 p-4"
+              className="editorial-row flex min-h-20 items-center gap-3 border-b border-stage-border px-1 py-4 last:border-b-0 sm:px-2"
             >
               <div className="min-w-0 flex-1">
                 <PersonaAvatar persona={persona} size="md" />

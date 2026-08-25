@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -10,13 +10,14 @@ interface JoinLeaderboardProps {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-stage-border bg-stage-bg px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent";
+  "min-h-11 w-full rounded-lg border border-stage-border bg-stage-bg px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent";
 
 export function JoinLeaderboard({
   initialDisplayName,
   initialOptIn,
 }: JoinLeaderboardProps) {
   const router = useRouter();
+  const displayNameId = useId();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [optIn, setOptIn] = useState(initialOptIn);
   const [saving, setSaving] = useState(false);
@@ -56,14 +57,20 @@ export function JoinLeaderboard({
       </p>
 
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <input
-          className={inputClass}
-          value={displayName}
-          maxLength={30}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Display name"
-        />
-        <label className="flex shrink-0 items-center gap-2 text-sm text-stage-muted">
+        <div className="min-w-0 flex-1">
+          <label htmlFor={displayNameId} className="sr-only">
+            Public display name
+          </label>
+          <input
+            id={displayNameId}
+            className={inputClass}
+            value={displayName}
+            maxLength={30}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Display name"
+          />
+        </div>
+        <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-stage-muted">
           <input
             type="checkbox"
             checked={optIn}
@@ -76,9 +83,11 @@ export function JoinLeaderboard({
         </Button>
       </div>
 
-      {error && <p className="mt-2 text-sm text-stage-con">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-sm text-stage-con">{error}</p>}
       {saved && !error && (
-        <p className="mt-2 text-sm text-stage-accent">Saved.</p>
+        <p role="status" aria-live="polite" className="mt-2 text-sm text-stage-accent">
+          Saved.
+        </p>
       )}
     </div>
   );

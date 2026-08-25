@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
+import { isTwa } from "@/lib/platform/twa-server";
 import { isBillingEnabled } from "@/lib/stripe";
 import { getTierForUser } from "@/lib/billing/tier-server";
 import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
@@ -40,11 +41,20 @@ export default async function PricingPage({
   const tier = user && billingEnabled ? await getTierForUser(supabase, user.id) : "free";
   const isPremium = billingEnabled && tier === "premium";
 
+  // Play policy: inside the Android app this page is informational only — no
+  // checkout, no billing portal, and nothing that points at the web to pay.
+  // Premium unlocked on the web still works here; we just don't sell it.
+  const inTwa = isTwa();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-2xl font-bold text-stage-text">Pricing</h1>
+      <h1 className="text-2xl font-bold text-stage-text">
+        {inTwa ? "Plans" : "Pricing"}
+      </h1>
       <p className="mt-0.5 text-sm text-stage-muted">
-        Debate for free, or go Premium for realistic voices and unlimited debates.
+        {inTwa
+          ? "What's included in each plan."
+          : "Debate for free, or go Premium for realistic voices and unlimited debates."}
       </p>
 
       {searchParams.status === "success" && (
@@ -96,7 +106,14 @@ export default async function PricingPage({
           </ul>
 
           <div className="mt-5">
-            {!billingEnabled ? (
+            {inTwa ? (
+              // Informational only — no CTA of any kind.
+              isPremium && (
+                <p className="text-sm font-medium text-stage-accent">
+                  You&apos;re on Premium ✓
+                </p>
+              )
+            ) : !billingEnabled ? (
               <p className="text-sm text-stage-muted">
                 Premium isn&apos;t available yet — check back soon.
               </p>

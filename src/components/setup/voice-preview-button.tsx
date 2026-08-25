@@ -85,11 +85,11 @@ export function VoicePreviewButton({ persona }: { persona: Persona }) {
       onClick={preview}
       aria-label={
         state === "playing"
-          ? `Stop ${persona.displayName}'s voice preview`
-          : `Preview ${persona.displayName}'s voice`
+          ? `Stop ${persona.displayName}'s synthetic voice preview`
+          : `Preview ${persona.displayName}'s synthetic voice`
       }
-      title="Preview voice"
-      className="absolute right-2 top-2 z-10 rounded-full bg-stage-bg/80 p-1.5 text-stage-muted backdrop-blur transition-colors hover:text-stage-accent"
+      title="Preview synthetic voice"
+      className="absolute right-2 top-2 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-stage-bg/90 p-2 text-stage-muted backdrop-blur transition-colors hover:text-stage-accent"
     >
       {state === "loading" ? (
         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" aria-hidden>

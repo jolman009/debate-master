@@ -26,10 +26,12 @@ export default async function DebatesDashboard() {
   const personaMap = new Map(personas.map((p) => [p.id, p]));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stage-text">My Debates</h1>
+          <h1 className="font-editorial text-3xl font-semibold text-stage-text">
+            My Debates
+          </h1>
           <p className="mt-0.5 text-sm text-stage-muted">
             {debates.length} {debates.length === 1 ? "debate" : "debates"}
           </p>
@@ -40,7 +42,7 @@ export default async function DebatesDashboard() {
       </div>
 
       {debates.length === 0 ? (
-        <div className="debate-card py-12 text-center">
+        <div className="border-y border-stage-border py-14 text-center">
           <p className="text-stage-muted">
             You haven&apos;t started any debates yet.
           </p>
@@ -54,7 +56,7 @@ export default async function DebatesDashboard() {
       ) : (
         <>
           <ProgressSummary debates={debates} />
-          <div className="space-y-3">
+          <div className="border-y border-stage-border">
             {debates.map((debate) => (
               <DebateCard
                 key={debate.id}

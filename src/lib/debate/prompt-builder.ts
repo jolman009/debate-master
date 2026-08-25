@@ -104,7 +104,7 @@ export function buildFeedbackPrompt(turns: DebateTurn[]): string {
   for (const turn of turns) {
     const speaker = turn.role === "user" ? "USER" : "AI OPPONENT";
     const stageLabel = getStageLabel(turn.stage);
-    transcript += `--- ${speaker} (${stageLabel}) ---\n${turn.content}\n\n`;
+    transcript += `--- TURN_ID: ${turn.id} | ${speaker} (${stageLabel}) ---\n${turn.content}\n\n`;
   }
   return transcript;
 }
@@ -187,19 +187,44 @@ Evaluate the USER's performance (not the AI's) across these dimensions on a 1-10
 - rhetoricalSkill: How persuasive was their delivery and structure?
 - overallScore: Overall debate performance
 
+Use evidence from the transcript. Evidence references MUST use exact TURN_ID values from the transcript and excerpts MUST be copied exactly from that turn. Prefer USER turns when coaching the user's performance. If no exact excerpt supports a claim, leave that claim's evidence array empty.
+
 Also provide:
 - summary: A 2-3 sentence overall assessment
-- strengths: 2-4 specific things they did well (as an array of strings)
-- improvements: 2-4 specific areas for improvement (as an array of strings)
+- strongestMoment: one concrete thing the user did best
+- priorityImprovement: the one most important thing to improve next
+- rubric: a score and rationale for each scoring dimension
+- practiceRecommendation: a user-controlled next practice suggestion
+- strengths: 2-4 specific things they did well (array of strings)
+- improvements: 2-4 specific areas for improvement (array of strings)
 
 Respond ONLY with valid JSON matching this exact structure:
 {
+  "version": 2,
   "overallScore": number,
-  "argumentStrength": number,
-  "evidenceUsage": number,
-  "rebuttalQuality": number,
-  "rhetoricalSkill": number,
   "summary": "string",
+  "strongestMoment": {
+    "title": "string",
+    "detail": "string",
+    "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }]
+  },
+  "priorityImprovement": {
+    "title": "string",
+    "detail": "string",
+    "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }]
+  },
+  "rubric": {
+    "argumentStrength": { "score": number, "rationale": "string", "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }] },
+    "evidenceUsage": { "score": number, "rationale": "string", "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }] },
+    "rebuttalQuality": { "score": number, "rationale": "string", "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }] },
+    "rhetoricalSkill": { "score": number, "rationale": "string", "evidence": [{ "turnId": "string", "excerpt": "exact transcript excerpt" }] }
+  },
+  "practiceRecommendation": {
+    "focus": "string",
+    "motion": "string",
+    "difficulty": "beginner" | "intermediate" | "advanced",
+    "rationale": "string"
+  },
   "strengths": ["string"],
   "improvements": ["string"]
 }`;

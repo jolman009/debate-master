@@ -1,6 +1,7 @@
 "use client";
 
 import { JudgeResult, JudgeSideScore, Side } from "@/lib/debate/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface JudgePanelProps {
@@ -23,18 +24,21 @@ export function JudgePanel({ judge, viewerSide, ratingDelta }: JudgePanelProps) 
       : "loss";
 
   return (
-    <div className="debate-card space-y-6">
+    <section className="motion-panel space-y-6 border-y border-stage-border py-6">
       <Verdict
         winner={winner}
         viewerResult={viewerResult}
         ratingDelta={ratingDelta}
       />
 
-      <p className="text-sm text-stage-muted text-center max-w-2xl mx-auto">
-        {judge.rationale}
-      </p>
+      <div className="text-center max-w-2xl mx-auto">
+        <Badge variant="warning" className="mb-3">
+          AI-generated verdict and coaching
+        </Badge>
+        <p className="text-sm text-stage-muted">{judge.rationale}</p>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 border-y border-stage-border sm:grid-cols-2">
         <SideCard
           side="pro"
           data={judge.pro}
@@ -48,7 +52,7 @@ export function JudgePanel({ judge, viewerSide, ratingDelta }: JudgePanelProps) 
           isViewer={viewerSide === "con"}
         />
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -80,8 +84,8 @@ function Verdict({
       : "text-stage-accent";
 
   return (
-    <div className="text-center space-y-2">
-      <p className="text-xs uppercase tracking-wider text-stage-muted">
+    <div className="space-y-2 text-center">
+      <p className="text-xs uppercase text-stage-muted">
         The Judge&apos;s Verdict
       </p>
       <h2 className={cn("text-3xl font-bold", tone)}>{headline}</h2>
@@ -94,6 +98,7 @@ function Verdict({
         <p className="text-sm font-semibold">
           <span
             className={cn(
+              "tabular-nums",
               ratingDelta > 0
                 ? "text-stage-pro"
                 : ratingDelta < 0
@@ -125,30 +130,30 @@ function SideCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 space-y-3",
+        "space-y-3 py-4 sm:px-4 sm:first:border-r sm:first:border-stage-border",
         isWinner
-          ? "border-stage-accent/60 bg-stage-accent/5"
-          : "border-stage-border"
+          ? "bg-stage-accent/5"
+          : ""
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={cn("text-xs font-bold tracking-wider", sideColor)}>
+          <span className={cn("text-xs font-bold", sideColor)}>
             {side.toUpperCase()}
           </span>
           {isViewer && (
-            <span className="text-[10px] uppercase tracking-wider text-stage-accent">
+            <span className="text-xs uppercase text-stage-accent">
               you
             </span>
           )}
           {isWinner && (
-            <span className="rounded-full bg-stage-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+            <span className="rounded-full bg-stage-accent px-2 py-0.5 text-xs font-semibold uppercase text-stage-on-accent">
               Winner
             </span>
           )}
         </div>
         <span className="shrink-0">
-          <span className="text-2xl font-bold text-stage-accent">
+          <span className="tabular-nums text-2xl font-bold text-stage-accent">
             {data.score}
           </span>
           <span className="text-xs text-stage-muted">/10</span>
@@ -174,7 +179,7 @@ function SideCard({
         <BulletList
           title="Could improve"
           items={data.improvements}
-          className="text-yellow-500"
+          className="text-stage-warning"
           marker="-"
         />
       </div>
@@ -187,7 +192,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
         <span className="text-stage-muted">{label}</span>
-        <span className="font-semibold">{score}/10</span>
+        <span className="tabular-nums font-semibold">{score}/10</span>
       </div>
       <div className="h-1.5 bg-stage-bg rounded-full overflow-hidden">
         <div
@@ -196,7 +201,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
             score >= 7
               ? "bg-stage-pro"
               : score >= 4
-              ? "bg-yellow-500"
+              ? "bg-stage-warning"
               : "bg-stage-con"
           )}
           style={{ width: `${score * 10}%` }}

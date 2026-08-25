@@ -82,7 +82,7 @@ export default async function LeaderboardPage({
           />
         </div>
       ) : (
-        <div className="debate-card my-5 p-4 text-sm text-stage-muted">
+        <div className="my-5 border-y border-stage-border py-4 text-sm text-stage-muted">
           <Link href="/login" className="text-stage-accent hover:underline">
             Sign in
           </Link>{" "}
@@ -120,7 +120,7 @@ function TabLink({
       className={cn(
         "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
         active
-          ? "bg-stage-accent text-white"
+          ? "bg-stage-accent text-stage-on-accent"
           : "text-stage-muted hover:text-stage-text"
       )}
     >
@@ -131,7 +131,7 @@ function TabLink({
 
 function EmptyBoard({ message }: { message: string }) {
   return (
-    <div className="debate-card py-12 text-center text-sm text-stage-muted">
+    <div className="border-y border-stage-border py-12 text-center text-sm text-stage-muted">
       {message}
     </div>
   );
@@ -150,9 +150,9 @@ function RankedBoard({
     );
   }
   return (
-    <div className="overflow-x-auto rounded-xl border border-stage-border">
+    <div className="overflow-x-auto rounded-lg border border-stage-border">
       <table className="w-full text-sm">
-        <thead className="bg-stage-surface text-xs uppercase tracking-wider text-stage-muted">
+        <thead className="bg-stage-surface text-xs uppercase text-stage-muted">
           <tr>
             <th className="px-4 py-2.5 text-left font-medium">#</th>
             <th className="px-4 py-2.5 text-left font-medium">Debater</th>
@@ -216,9 +216,9 @@ function PracticeBoard({
     );
   }
   return (
-    <div className="overflow-x-auto rounded-xl border border-stage-border">
+    <div className="overflow-x-auto rounded-lg border border-stage-border">
       <table className="w-full text-sm">
-        <thead className="bg-stage-surface text-xs uppercase tracking-wider text-stage-muted">
+        <thead className="bg-stage-surface text-xs uppercase text-stage-muted">
           <tr>
             <th className="px-4 py-2.5 text-left font-medium">#</th>
             <th className="px-4 py-2.5 text-left font-medium">Debater</th>

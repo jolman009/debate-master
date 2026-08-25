@@ -17,7 +17,18 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "desktop",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: "tablet",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } },
+    },
+    {
+      name: "compact",
+      use: { ...devices["Pixel 5"], viewport: { width: 360, height: 800 } },
+    },
   ],
   webServer: {
     command: `npm run build && npm run start -- -p ${PORT}`,

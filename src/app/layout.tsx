@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { TwaDetect } from "@/components/platform/twa-detect";
 
 export const metadata: Metadata = {
   title: "Debate Master - AI-Powered Debate Platform",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6366f1",
+  themeColor: "#a16207",
 };
 
 const themeInitScript = `
@@ -50,6 +51,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
         </div>
         <ServiceWorkerRegister />
+        <TwaDetect />
       </body>
     </html>
   );

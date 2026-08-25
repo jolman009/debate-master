@@ -38,3 +38,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Android TWA (Bubblewrap) — the packaging project is generated into the repo
+# root; keep ALL of it out of the web app's git history.
+# CRITICAL: the keystore + gradle.properties can hold signing secrets and must
+# NEVER be committed (this is a public repo). Back the keystore up separately.
+*.keystore
+*.jks
+/twa-manifest.json
+/gradlew
+/gradlew.bat
+/gradle/
+/.gradle/
+/app/
+/build.gradle
+/settings.gradle
+/gradle.properties
+/build/reports/
+/manifest-checksum.txt
+/store_icon.png
+/app-release-bundle.aab
+/app-release-signed.apk

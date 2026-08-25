@@ -144,7 +144,8 @@ export interface Debate {
   updated_at: string;
 }
 
-export interface DebateFeedback {
+export interface DebateFeedbackV1 {
+  version?: 1;
   overallScore: number;
   argumentStrength: number;
   evidenceUsage: number;
@@ -154,6 +155,49 @@ export interface DebateFeedback {
   strengths: string[];
   improvements: string[];
 }
+
+export interface FeedbackEvidenceReference {
+  turnId: string;
+  stage: DebateStage;
+  speakerRole: DebateTurn["role"];
+  excerpt: string;
+}
+
+export interface FeedbackCoachingClaim {
+  title: string;
+  detail: string;
+  evidence: FeedbackEvidenceReference[];
+}
+
+export interface FeedbackRubricItem {
+  score: number;
+  rationale: string;
+  evidence: FeedbackEvidenceReference[];
+}
+
+export interface DebateFeedbackV2 {
+  version: 2;
+  overallScore: number;
+  summary: string;
+  strongestMoment: FeedbackCoachingClaim;
+  priorityImprovement: FeedbackCoachingClaim;
+  rubric: {
+    argumentStrength: FeedbackRubricItem;
+    evidenceUsage: FeedbackRubricItem;
+    rebuttalQuality: FeedbackRubricItem;
+    rhetoricalSkill: FeedbackRubricItem;
+  };
+  practiceRecommendation: {
+    focus: string;
+    motion: string;
+    difficulty: Difficulty;
+    rationale: string;
+  };
+  strengths: string[];
+  improvements: string[];
+}
+
+export type DebateFeedback = DebateFeedbackV1 | DebateFeedbackV2;
 
 export interface Topic {
   id: string;

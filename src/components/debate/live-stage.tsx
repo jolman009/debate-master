@@ -94,7 +94,7 @@ function AiLiveStage({
     );
 
   return (
-    <div className="debate-card px-4 py-4">
+    <div className="border-y border-stage-border bg-stage-surface px-4 py-4">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
         {proColumn}
         <Divider />
@@ -146,7 +146,7 @@ function HumanLiveStage({
   const conColumn = viewerSide === "con" ? viewerColumn : opponentColumn;
 
   return (
-    <div className="debate-card px-4 py-4">
+    <div className="border-y border-stage-border bg-stage-surface px-4 py-4">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
         {proColumn}
         <Divider />
@@ -196,7 +196,7 @@ function Divider() {
   return (
     <div className="flex flex-col items-center gap-1 self-stretch">
       <div className="flex-1 w-px bg-stage-border" />
-      <span className="text-[10px] font-bold tracking-widest text-stage-muted">
+      <span className="text-xs font-bold text-stage-muted">
         VS
       </span>
       <div className="flex-1 w-px bg-stage-border" />
@@ -325,7 +325,7 @@ function SpeakerInfo({
       >
         {name}
       </p>
-      <p className={cn("text-[11px] font-bold tracking-wider", sideColorClass)}>
+      <p className={cn("text-xs font-bold", sideColorClass)}>
         {sideLabel}
       </p>
       <StatusPill status={status} />
@@ -344,7 +344,7 @@ function StatusPill({ status }: { status: SpeakerStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-[10px] uppercase tracking-wider w-fit",
+        "inline-flex w-fit items-center gap-1 text-xs uppercase",
         accented ? "text-stage-accent" : "text-stage-muted"
       )}
     >

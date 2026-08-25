@@ -8,6 +8,7 @@ import {
   FEEDBACK_SYSTEM_PROMPT,
   JUDGE_SYSTEM_PROMPT,
 } from "@/lib/debate/prompt-builder";
+import { normalizeFeedbackResult } from "@/lib/debate/feedback";
 import { normalizeJudgeResult } from "@/lib/debate/judge";
 import { DebateConfig, DebateTurn } from "@/lib/debate/types";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
@@ -88,21 +89,21 @@ export async function POST(
     const text =
       response.content[0].type === "text" ? response.content[0].text : "";
 
-    let feedback;
-    try {
-      feedback = JSON.parse(text);
-    } catch {
-      feedback = {
-        overallScore: 5,
-        argumentStrength: 5,
-        evidenceUsage: 5,
-        rebuttalQuality: 5,
-        rhetoricalSkill: 5,
-        summary: text,
-        strengths: ["Completed the debate"],
-        improvements: ["Could not parse structured feedback"],
-      };
-    }
+    const feedback =
+      normalizeFeedbackResult(text, turns as DebateTurn[]) ??
+      normalizeFeedbackResult(
+        JSON.stringify({
+          overallScore: 5,
+          argumentStrength: 5,
+          evidenceUsage: 5,
+          rebuttalQuality: 5,
+          rhetoricalSkill: 5,
+          summary: text,
+          strengths: ["Completed the debate"],
+          improvements: ["Could not parse structured feedback"],
+        }),
+        turns as DebateTurn[]
+      );
 
     // Save feedback to debate — ownership filter here too so a stolen
     // debate row can't have its feedback overwritten.

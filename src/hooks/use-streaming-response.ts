@@ -114,7 +114,7 @@ export function useStreamingResponse() {
 
   // Cancel any in-flight stream when the component unmounts. Without this,
   // navigating away mid-stream leaves the fetch open and the server keeps
-  // token-billing Anthropic until the response completes on its own.
+  // token-billing Gemini until the response completes on its own.
   useEffect(() => {
     return () => {
       abortRef.current?.abort();

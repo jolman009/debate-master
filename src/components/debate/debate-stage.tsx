@@ -80,7 +80,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
 
   // Auto-trigger AI turns. The `!streamError` guard stops a failed AI turn
   // from re-firing in a loop — recovery is via the manual Retry button.
-  // Human mode never calls Claude, so this stays gated to AI mode.
+  // Human mode never calls Gemini, so this stays gated to AI mode.
   useEffect(() => {
     if (!isHuman && isAiTurn && !isStreaming && debate && !streamError) {
       triggerAiTurn();
@@ -164,7 +164,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
           aria-label="Debate controls"
           className="flex items-start justify-between gap-3"
         >
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <Link
               href="/debate"
               className="mb-2 inline-flex min-h-11 items-center rounded-lg pr-3 text-sm font-medium text-stage-muted transition-colors hover:text-stage-text"
@@ -188,7 +188,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
               Motion
             </p>
             <h1
-              className="max-w-[14rem] truncate text-sm font-semibold text-stage-text sm:max-w-md"
+              className="text-sm font-semibold leading-snug text-stage-text break-words sm:text-base"
               title={config!.motion || config!.topic}
               aria-label={`Motion: ${config!.motion || config!.topic}`}
             >

@@ -1,7 +1,7 @@
 // Shared, transport-agnostic turn logic for HUMAN-mode debates.
 //
 // The AI turn flow lives in the turn route because it owns an SSE stream and a
-// Claude call. Human turns are a plain DB write, so their "check authority →
+// Gemini call. Human turns are a plain DB write, so their "check authority →
 // insert turn → advance stage" logic lives here where the future timeout route
 // (Phase C) can reuse it. Returns a discriminated result the caller maps to an
 // HTTP response — this module never touches Request/Response.

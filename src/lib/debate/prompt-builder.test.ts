@@ -76,11 +76,11 @@ describe("buildMessages", () => {
     const msgs = buildMessages([], "opening_user", "My opening");
     expect(msgs).toHaveLength(1);
     expect(msgs[0].role).toBe("user");
-    expect(msgs[0].content).toContain("[Your Opening Statement]");
-    expect(msgs[0].content).toContain("My opening");
+    expect(msgs[0].parts[0].text).toContain("[Your Opening Statement]");
+    expect(msgs[0].parts[0].text).toContain("My opening");
   });
 
-  it("maps ai turns to assistant and user turns to user", () => {
+  it("maps ai turns to model and user turns to user", () => {
     const msgs = buildMessages(
       [
         makeTurn("opening_user", "user", "U opening"),
@@ -90,11 +90,11 @@ describe("buildMessages", () => {
       "U rebuttal"
     );
     expect(msgs[0].role).toBe("user");
-    expect(msgs[1].role).toBe("assistant");
-    expect(msgs[1].content).toContain("AI opening");
+    expect(msgs[1].role).toBe("model");
+    expect(msgs[1].parts[0].text).toContain("AI opening");
   });
 
-  it("prepends a user primer when the history starts with an assistant turn", () => {
+  it("prepends a user primer when the history starts with a model turn", () => {
     const msgs = buildMessages(
       [makeTurn("opening_ai", "ai", "AI opening")],
       "opening_ai"
@@ -109,7 +109,7 @@ describe("buildMessages", () => {
     );
     const last = msgs[msgs.length - 1];
     expect(last.role).toBe("user");
-    expect(last.content).toContain("Stage instruction");
+    expect(last.parts[0].text).toContain("Stage instruction");
   });
 
   it("merges consecutive same-role messages", () => {
@@ -122,11 +122,11 @@ describe("buildMessages", () => {
     );
     // both user turns + the injected instruction collapse into one user message
     expect(msgs).toHaveLength(1);
-    expect(msgs[0].content).toContain("first");
-    expect(msgs[0].content).toContain("second");
+    expect(msgs[0].parts[0].text).toContain("first");
+    expect(msgs[0].parts[0].text).toContain("second");
   });
 
-  it("always starts with a user message (Anthropic requirement)", () => {
+  it("always starts with a user message (Gemini requirement)", () => {
     const msgs = buildMessages(
       [makeTurn("opening_ai", "ai", "AI opening")],
       "rebuttal_user_1",

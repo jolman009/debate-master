@@ -9,12 +9,12 @@ production-ready, marketable product. Effort tags: **S** = <1 day,
 ## Status snapshot (2026-05-16)
 
 **Stack:** Next.js 14.2.21 (App Router) · React 18 · TypeScript · Tailwind ·
-Anthropic Claude (streaming) · Supabase (Postgres).
+Google Gemini (streaming) · Supabase (Postgres).
 
 **Working today:**
 - Full turn-based debate engine (opening → rebuttal ×1–2 → optional
   cross-exam → closing → feedback) with a server-driven state machine.
-- Claude streaming responses over SSE, 6 personas with distinct styles.
+- Gemini streaming responses over SSE, 6 personas with distinct styles.
 - ElevenLabs TTS via a server-side proxy (`/api/tts`) with browser
   `SpeechSynthesis` fallback — **complete**.
 - Themed persona avatars, audio-reactive live stage, light/dark mode.

@@ -187,7 +187,7 @@ export function useDebate(debateId: string): UseDebateReturn {
       if (!debate) return;
       setActionError(null);
 
-      // Human mode: plain JSON POST, no SSE, no Claude. Refetch to pick up the
+      // Human mode: plain JSON POST, no SSE, no Gemini. Refetch to pick up the
       // opponent's turns and the advanced stage.
       if (debate.config?.mode === "human") {
         try {

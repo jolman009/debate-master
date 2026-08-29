@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-// Public, unauthenticated surfaces. These run without real Supabase/Anthropic
+// Public, unauthenticated surfaces. These run without real Supabase/Gemini
 // credentials — backend calls fail gracefully and the app renders logged-out.
 
 test("home page loads with nav", async ({ page }) => {

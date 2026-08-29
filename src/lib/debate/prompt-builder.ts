@@ -1,9 +1,9 @@
 import { Debate, DebateConfig, DebateStage, DebateTurn, Persona } from "./types";
 import { getStageLabel } from "./state-machine";
 
-interface AnthropicMessage {
-  role: "user" | "assistant";
-  content: string;
+export interface GeminiMessage {
+  role: "user" | "model";
+  parts: { text: string }[];
 }
 
 const STAGE_AI_INSTRUCTIONS: Partial<Record<DebateStage, string>> = {
@@ -46,24 +46,24 @@ export function buildMessages(
   turns: DebateTurn[],
   currentStage: DebateStage,
   userContent?: string
-): AnthropicMessage[] {
-  const messages: AnthropicMessage[] = [];
+): GeminiMessage[] {
+  const raw: { role: "user" | "model"; text: string }[] = [];
 
   for (const turn of turns) {
     const stageLabel = getStageLabel(turn.stage);
-    const role = turn.role === "user" ? "user" : "assistant";
-    messages.push({
+    const role = turn.role === "user" ? "user" : "model";
+    raw.push({
       role,
-      content: `[${stageLabel}]\n\n${turn.content}`,
+      text: `[${stageLabel}]\n\n${turn.content}`,
     });
   }
 
   // Add the current user message if provided
   if (userContent) {
     const stageLabel = getStageLabel(currentStage);
-    messages.push({
+    raw.push({
       role: "user",
-      content: `[${stageLabel}]\n\n${userContent}`,
+      text: `[${stageLabel}]\n\n${userContent}`,
     });
   }
 
@@ -72,27 +72,30 @@ export function buildMessages(
   if (aiInstruction && !userContent) {
     // For AI-initiated stages (like cross_exam_ai), we need a user message to prompt the AI
     const stageLabel = getStageLabel(currentStage);
-    messages.push({
+    raw.push({
       role: "user",
-      content: `[${stageLabel}]\n\n[Stage instruction: ${aiInstruction}]`,
+      text: `[${stageLabel}]\n\n[Stage instruction: ${aiInstruction}]`,
     });
   }
 
-  // Ensure messages alternate properly - Anthropic requires user first
-  if (messages.length > 0 && messages[0].role === "assistant") {
-    messages.unshift({
+  // Ensure messages alternate properly - Gemini requires conversation to start with user
+  if (raw.length > 0 && raw[0].role === "model") {
+    raw.unshift({
       role: "user",
-      content: "[The debate begins. Deliver your opening statement.]",
+      text: "[The debate begins. Deliver your opening statement.]",
     });
   }
 
   // Merge consecutive same-role messages
-  const merged: AnthropicMessage[] = [];
-  for (const msg of messages) {
+  const merged: GeminiMessage[] = [];
+  for (const msg of raw) {
     if (merged.length > 0 && merged[merged.length - 1].role === msg.role) {
-      merged[merged.length - 1].content += "\n\n" + msg.content;
+      merged[merged.length - 1].parts[0].text += "\n\n" + msg.text;
     } else {
-      merged.push({ ...msg });
+      merged.push({
+        role: msg.role,
+        parts: [{ text: msg.text }],
+      });
     }
   }
 

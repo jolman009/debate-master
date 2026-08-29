@@ -6,7 +6,7 @@ AI-powered debate platform where you sharpen your rhetorical skills against AI p
 
 - Node.js 18+
 - A [Supabase](https://supabase.com) project (free tier works)
-- An [Anthropic API key](https://console.anthropic.com)
+- A [Google Gemini API key](https://aistudio.google.com/)
 
 ## Setup
 
@@ -25,7 +25,7 @@ cp .env.local.example .env.local
 Edit `.env.local` with your credentials:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...
+GEMINI_API_KEY=AIzaSy...
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
@@ -75,7 +75,7 @@ See `.env.local.example` for the full, commented list. Summary:
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `ANTHROPIC_API_KEY` | ✅ | Claude API for debate turns and feedback |
+| `GEMINI_API_KEY` | ✅ | Google Gemini API for debate turns and feedback |
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon/publishable key |
 | `ELEVENLABS_API_KEY` | — | Premium TTS voices; falls back to browser speech if unset |
@@ -134,6 +134,6 @@ the streaming routes set `maxDuration = 60` via route segment config.
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Anthropic Claude API** (streaming responses)
+- **Google Gemini API** (streaming responses)
 - **Supabase** (PostgreSQL)
 - **Vitest** (unit tests) · **GitHub Actions** (CI)

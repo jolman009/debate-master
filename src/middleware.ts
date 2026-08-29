@@ -19,6 +19,24 @@ function persistTwaCookie(
   return response;
 }
 
+function isValidSupabaseConfig(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return false;
+  if (
+    url.includes("your_supabase_url_here") ||
+    key.includes("your_supabase_anon_key_here")
+  ) {
+    return false;
+  }
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Refreshes the Supabase auth session on every request and gates the
  * `/debate/*` routes behind authentication.
@@ -40,6 +58,18 @@ export async function middleware(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+  const isProtected = path.startsWith("/debate");
+
+  if (!isValidSupabaseConfig()) {
+    if (isProtected) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirect", path);
+      return persistTwaCookie(NextResponse.redirect(url), shouldMarkTwa);
+    }
+    return persistTwaCookie(response, shouldMarkTwa);
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,9 +96,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
-  const isProtected = path.startsWith("/debate");
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();

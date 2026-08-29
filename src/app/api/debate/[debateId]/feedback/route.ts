@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { GoogleGenAI } from "@google/genai";
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
+import { getGeminiClient, GEMINI_MODEL } from "@/lib/gemini";
 import {
   buildFeedbackPrompt,
   buildJudgePrompt,
@@ -16,6 +17,43 @@ import { reportError } from "@/lib/observability";
 
 // Allow time for the (non-streamed) feedback generation call.
 export const maxDuration = 60;
+
+async function generateContentWithFallback(
+  gemini: GoogleGenAI,
+  systemInstruction: string,
+  prompt: string,
+  maxOutputTokens: number
+): Promise<string> {
+  const candidateModels = [
+    GEMINI_MODEL,
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
+  let lastErr: unknown = null;
+  for (const model of candidateModels) {
+    try {
+      const response = await gemini.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          maxOutputTokens,
+          responseMimeType: "application/json",
+        },
+      });
+      return response.text ?? "";
+    } catch (err: unknown) {
+      lastErr = err;
+      const status = (err as { status?: number })?.status;
+      if (status === 503 || status === 404 || status === 429) {
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr || new Error("Failed to generate response");
+}
 
 export async function POST(
   request: Request,
@@ -75,19 +113,16 @@ export async function POST(
   // AI mode below — the original one-sided coach feedback, unchanged (the
   // ownership filters on the update stay, and RLS already limits this to the
   // owner since AI debates have no participant rows).
-  const anthropic = getAnthropicClient();
+  const gemini = getGeminiClient();
   const transcript = buildFeedbackPrompt(turns as DebateTurn[]);
 
   try {
-    const response = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 1000,
-      system: FEEDBACK_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: transcript }],
-    });
-
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = await generateContentWithFallback(
+      gemini,
+      FEEDBACK_SYSTEM_PROMPT,
+      transcript,
+      1000
+    );
 
     const feedback =
       normalizeFeedbackResult(text, turns as DebateTurn[]) ??
@@ -141,18 +176,15 @@ async function runHumanJudge(
   config: DebateConfig,
   turns: DebateTurn[]
 ) {
-  const anthropic = getAnthropicClient();
+  const gemini = getGeminiClient();
 
   try {
-    const response = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 2000,
-      system: JUDGE_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildJudgePrompt(turns, config) }],
-    });
-
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = await generateContentWithFallback(
+      gemini,
+      JUDGE_SYSTEM_PROMPT,
+      buildJudgePrompt(turns, config),
+      2000
+    );
 
     const judgeResult = normalizeJudgeResult(text);
     if (!judgeResult) {

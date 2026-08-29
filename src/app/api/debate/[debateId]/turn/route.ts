@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { getAnthropicClient, CLAUDE_MODEL } from "@/lib/anthropic";
+import { getGeminiClient, GEMINI_MODEL } from "@/lib/gemini";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 import { reportError } from "@/lib/observability";
 import { getPersonaBySlug } from "@/lib/debate/content";
@@ -8,11 +8,11 @@ import { getNextStage, isUserStage, isAiStage } from "@/lib/debate/state-machine
 import { submitHumanTurn } from "@/lib/debate/turn-service";
 import { Debate, DebateConfig, DebateStage, DebateTurn } from "@/lib/debate/types";
 
-// Cap user-submitted turn length before it ever reaches Claude - guards
+// Cap user-submitted turn length before it ever reaches Gemini - guards
 // against runaway token cost from oversized payloads.
 const MAX_TURN_LENGTH = 10_000;
 
-// Allow time for the streamed Claude response.
+// Allow time for the streamed Gemini response.
 export const maxDuration = 60;
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -84,7 +84,7 @@ export async function POST(
   const config = dbDebate.config as DebateConfig;
   const currentStage = dbDebate.current_stage as DebateStage;
 
-  // Human mode: no Claude call, no SSE. Turn authority + insert + advance are
+  // Human mode: no Gemini call, no SSE. Turn authority + insert + advance are
   // handled server-side, returning plain JSON.
   if (config.mode === "human") {
     let humanBody: { content?: string } = {};
@@ -126,7 +126,7 @@ export async function POST(
   }
 
   // AI mode below — the original single-request "save user turn + stream AI
-  // reply" flow, unchanged.
+  // reply" flow.
 
   // 2. Load existing turns
   const { data: existingTurns } = await supabase
@@ -258,6 +258,7 @@ export async function POST(
       headers: JSON_HEADERS,
     });
   }
+
   const debate: Debate = {
     id: params.debateId,
     config,
@@ -275,7 +276,7 @@ export async function POST(
   // be user" invariant, so don't re-do that work here.
   const messages = buildMessages(turns, stageForAi, undefined);
 
-  const anthropic = getAnthropicClient();
+  const gemini = getGeminiClient();
 
   const encoder = new TextEncoder();
   const signal = request.signal;
@@ -284,30 +285,47 @@ export async function POST(
       try {
         let fullText = "";
 
-        // Wiring `signal` into the SDK call means a client disconnect (or
-        // an unmounted React component that fires its AbortController)
-        // aborts the upstream Anthropic fetch too - we stop paying for
-        // tokens the moment nobody is listening.
-        const stream = anthropic.messages.stream(
-          {
-            model: CLAUDE_MODEL,
-            max_tokens: 1500,
-            system: systemPrompt,
-            messages,
-          },
-          { signal }
-        );
+        const candidateModels = [
+          GEMINI_MODEL,
+          "gemini-3.6-flash",
+          "gemini-3.5-flash-lite",
+        ].filter((v, i, a) => a.indexOf(v) === i);
 
-        for await (const event of stream) {
+        let stream = null;
+        let lastErr = null;
+
+        for (const model of candidateModels) {
+          try {
+            stream = await gemini.models.generateContentStream({
+              model,
+              contents: messages,
+              config: {
+                systemInstruction: systemPrompt,
+                maxOutputTokens: 1500,
+              },
+            });
+            break;
+          } catch (err: any) {
+            lastErr = err;
+            if (err?.status === 503 || err?.status === 404 || err?.status === 429) {
+              continue;
+            }
+            throw err;
+          }
+        }
+
+        if (!stream) {
+          throw lastErr || new Error("Failed to start AI stream");
+        }
+
+        for await (const chunk of stream) {
           if (signal.aborted) break;
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            fullText += event.delta.text;
+          const text = chunk.text;
+          if (text) {
+            fullText += text;
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
+                `data: ${JSON.stringify({ text })}\n\n`
               )
             );
           }

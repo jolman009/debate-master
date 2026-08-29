@@ -59,7 +59,7 @@ export async function GET(
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const userAvatarUrl = viewerProfile?.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined) ?? null;
+  const userAvatarUrl = viewerProfile?.avatar_url ?? null;
   const userDisplayName = viewerProfile?.display_name ?? (user.user_metadata?.display_name as string | undefined) ?? null;
 
   // Human mode: surface the roster (so the client can render the opponent and

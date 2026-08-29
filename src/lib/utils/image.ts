@@ -3,8 +3,8 @@
  */
 export async function compressAvatarImage(
   file: File,
-  maxDimension = 256,
-  quality = 0.85
+  maxDimension = 160,
+  quality = 0.8
 ): Promise<string> {
   if (!file.type.startsWith("image/")) {
     throw new Error("Please select an image file (JPEG, PNG, WebP, etc.).");

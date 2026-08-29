@@ -140,6 +140,10 @@ export interface Debate {
   participants?: DebateParticipant[];
   // The requesting user's side, if they are a participant. null otherwise.
   viewerSide?: Side | null;
+  userAvatarUrl?: string | null;
+  userDisplayName?: string | null;
+  opponentAvatarUrl?: string | null;
+  opponentDisplayName?: string | null;
   created_at: string;
   updated_at: string;
 }

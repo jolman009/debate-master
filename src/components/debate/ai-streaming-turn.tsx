@@ -20,7 +20,7 @@ export function AiStreamingTurn({
         <span>{stageLabel}</span>
         <span className="inline-block w-2 h-2 rounded-full bg-stage-accent animate-pulse" />
       </div>
-      <div className="max-w-[85%] rounded-lg border border-stage-border bg-stage-surface px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-stage-text">
+      <div className="max-w-[92%] sm:max-w-[85%] rounded-lg border border-stage-border bg-stage-surface px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap text-stage-text break-words">
         {text}
         <span className="inline-block w-1 h-4 bg-stage-accent animate-pulse ml-0.5 align-middle" />
       </div>

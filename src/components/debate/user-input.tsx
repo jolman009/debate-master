@@ -40,10 +40,15 @@ export function UserInput({
   }
 
   return (
-    <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-sm font-medium">
-        Your argument
-      </label>
+    <div className="space-y-1.5 sm:space-y-2">
+      <div className="flex items-center justify-between">
+        <label htmlFor={inputId} className="block text-xs sm:text-sm font-medium text-stage-text">
+          Your argument
+        </label>
+        <span id={helpId} className="text-[11px] sm:text-xs text-stage-muted">
+          {charCount}/{maxChars} chars
+        </span>
+      </div>
       <Textarea
         id={inputId}
         value={content}
@@ -55,17 +60,19 @@ export function UserInput({
         placeholder={placeholder}
         disabled={disabled}
         aria-describedby={helpId}
-        rows={5}
-        className="min-h-[120px]"
+        rows={2}
+        className="min-h-[52px] sm:min-h-[96px] max-h-[160px] text-xs sm:text-sm resize-y"
       />
       <div className="flex items-center justify-between">
-        <span id={helpId} className="text-xs text-stage-muted">
-          {charCount}/{maxChars} chars. Ctrl+Enter to submit.
+        <span className="hidden sm:inline text-xs text-stage-muted">
+          Ctrl+Enter or ⌘+Enter to submit
         </span>
+        <div className="sm:hidden" />
         <Button
           onClick={handleSubmit}
           disabled={disabled || !content.trim()}
           size="sm"
+          className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm ml-auto"
         >
           Submit
         </Button>

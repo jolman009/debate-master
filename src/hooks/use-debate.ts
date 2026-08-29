@@ -55,6 +55,10 @@ interface UseDebateReturn {
   judgeResult: JudgeResult | null;
   // The viewer's Elo change from this debate, once judged.
   ratingDelta: number | null;
+  // User profile avatar URL and updater
+  userAvatarUrl: string | null;
+  updateUserAvatar: (avatarUrl: string | null) => Promise<void>;
+  opponentAvatarUrl: string | null;
 }
 
 export function useDebate(debateId: string): UseDebateReturn {
@@ -64,6 +68,12 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [feedback, setFeedback] = useState<DebateFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("debate_user_avatar");
+    }
+    return null;
+  });
 
   const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
     useStreamingResponse();
@@ -74,6 +84,12 @@ export function useDebate(debateId: string): UseDebateReturn {
       if (!res.ok) throw new Error("Failed to fetch debate");
       const data = await res.json();
       setDebate(data);
+      if (data.userAvatarUrl !== undefined) {
+        setUserAvatarUrl(data.userAvatarUrl);
+        if (typeof window !== "undefined" && data.userAvatarUrl) {
+          localStorage.setItem("debate_user_avatar", data.userAvatarUrl);
+        }
+      }
       if (data.feedback) setFeedback(data.feedback);
     } catch (err) {
       setError((err as Error).message);
@@ -81,6 +97,26 @@ export function useDebate(debateId: string): UseDebateReturn {
       setLoading(false);
     }
   }, [debateId]);
+
+  const updateUserAvatar = useCallback(async (newAvatarUrl: string | null) => {
+    setUserAvatarUrl(newAvatarUrl);
+    if (typeof window !== "undefined") {
+      if (newAvatarUrl) {
+        localStorage.setItem("debate_user_avatar", newAvatarUrl);
+      } else {
+        localStorage.removeItem("debate_user_avatar");
+      }
+    }
+    try {
+      await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: newAvatarUrl }),
+      });
+    } catch {
+      // Ignored: optimistic UI already updated
+    }
+  }, []);
 
   useEffect(() => {
     fetchDebate();
@@ -296,5 +332,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     judgeResult: debate?.judge_result ?? null,
     ratingDelta:
       participants.find((p) => p.side === viewerSide)?.rating_delta ?? null,
+    userAvatarUrl,
+    updateUserAvatar,
+    opponentAvatarUrl: debate?.opponentAvatarUrl ?? null,
   };
 }

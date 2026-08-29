@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -166,9 +167,28 @@ function ProfileMenu({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuItems = getProfileMenuNavItems(!!email, inTwa);
+
+  useEffect(() => {
+    if (!email) return;
+    const cached = typeof window !== "undefined" ? localStorage.getItem("debate_user_avatar") : null;
+    if (cached) setAvatarUrl(cached);
+
+    fetch("/api/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.avatarUrl) {
+          setAvatarUrl(data.avatarUrl);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("debate_user_avatar", data.avatarUrl);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [email]);
 
   const initials = useMemo(() => {
     if (!email) return "?";
@@ -266,13 +286,35 @@ function ProfileMenu({
       >
         {bottom ? (
           <>
-            <Icon name="profile" className="mb-0.5 h-5 w-5" />
+            {avatarUrl ? (
+              <div className="relative mb-0.5 h-5 w-5 overflow-hidden rounded-full">
+                <Image
+                  src={avatarUrl}
+                  alt="Profile"
+                  fill
+                  sizes="20px"
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <Icon name="profile" className="mb-0.5 h-5 w-5" />
+            )}
             <span>Profile</span>
           </>
         ) : (
           <>
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stage-surface-raised text-xs font-bold text-stage-text">
-              {initials}
+            <span className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-stage-surface-raised text-xs font-bold text-stage-text">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={email || "User avatar"}
+                  fill
+                  sizes="28px"
+                  className="object-cover"
+                />
+              ) : (
+                initials
+              )}
             </span>
             <span className={cn("max-w-[10rem] truncate", compact && "sr-only")}>
               Profile
@@ -293,9 +335,24 @@ function ProfileMenu({
               : "right-0 top-[calc(100%+0.5rem)]"
           )}
         >
-          <div className="border-b border-stage-border px-2 py-2">
-            <p className="truncate text-sm font-medium text-stage-text">{email}</p>
-            <p className="text-xs text-stage-muted">Account</p>
+          <div className="flex items-center gap-2 border-b border-stage-border px-2 py-2">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-stage-surface-raised text-sm font-bold text-stage-text">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={email || "User avatar"}
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                />
+              ) : (
+                initials
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-stage-text">{email}</p>
+              <p className="text-xs text-stage-muted">Account</p>
+            </div>
           </div>
           <div className="mt-2">
             {menuItems.map((item) => {

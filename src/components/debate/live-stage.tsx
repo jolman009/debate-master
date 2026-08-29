@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Persona } from "@/lib/debate/types";
+import { compressAvatarImage } from "@/lib/utils/image";
 import { AudioBars } from "./audio-bars";
 
 type Side = "pro" | "con";
@@ -32,6 +33,9 @@ interface LiveStageProps {
   opponentName?: string;
   opponentOnline?: boolean;
   opponentTyping?: boolean;
+  userAvatarUrl?: string | null;
+  onAvatarUpload?: (avatarUrl: string | null) => Promise<void>;
+  opponentAvatarUrl?: string | null;
 }
 
 const STATUS_LABEL: Record<SpeakerStatus, string> = {
@@ -59,6 +63,8 @@ function AiLiveStage({
   isAiTurn,
   isMyTurn,
   amplitude,
+  userAvatarUrl,
+  onAvatarUpload,
 }: LiveStageProps) {
   const aiStatus: SpeakerStatus =
     isSpeaking || isStreaming ? "speaking" : isAiTurn ? "thinking" : "listening";
@@ -69,7 +75,13 @@ function AiLiveStage({
 
   const proColumn =
     userSide === "pro" ? (
-      <UserSpeaker side="pro" active={userActive} status={userStatus} />
+      <UserSpeaker
+        side="pro"
+        active={userActive}
+        status={userStatus}
+        avatarUrl={userAvatarUrl}
+        onAvatarUpload={onAvatarUpload}
+      />
     ) : (
       <PersonaSpeaker
         persona={persona}
@@ -82,7 +94,13 @@ function AiLiveStage({
 
   const conColumn =
     userSide === "con" ? (
-      <UserSpeaker side="con" active={userActive} status={userStatus} />
+      <UserSpeaker
+        side="con"
+        active={userActive}
+        status={userStatus}
+        avatarUrl={userAvatarUrl}
+        onAvatarUpload={onAvatarUpload}
+      />
     ) : (
       <PersonaSpeaker
         persona={persona}
@@ -94,8 +112,8 @@ function AiLiveStage({
     );
 
   return (
-    <div className="border-y border-stage-border bg-stage-surface px-4 py-4">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+    <div className="border-y border-stage-border bg-stage-surface px-3 py-2 sm:px-4 sm:py-3">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 md:gap-6">
         {proColumn}
         <Divider />
         {conColumn}
@@ -112,6 +130,9 @@ function HumanLiveStage({
   opponentName,
   opponentOnline,
   opponentTyping,
+  userAvatarUrl,
+  onAvatarUpload,
+  opponentAvatarUrl,
 }: LiveStageProps) {
   const viewerSide: Side = userSide;
   const opponentSide: Side = viewerSide === "pro" ? "con" : "pro";
@@ -121,6 +142,8 @@ function HumanLiveStage({
       side={viewerSide}
       active={isMyTurn}
       status={isMyTurn ? "your-turn" : "listening"}
+      avatarUrl={userAvatarUrl}
+      onAvatarUpload={onAvatarUpload}
     />
   );
 
@@ -139,6 +162,7 @@ function HumanLiveStage({
       active={!!opponentActive || !!opponentTyping}
       status={opponentStatus}
       online={!!opponentOnline}
+      avatarUrl={opponentAvatarUrl}
     />
   );
 
@@ -146,8 +170,8 @@ function HumanLiveStage({
   const conColumn = viewerSide === "con" ? viewerColumn : opponentColumn;
 
   return (
-    <div className="border-y border-stage-border bg-stage-surface px-4 py-4">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+    <div className="border-y border-stage-border bg-stage-surface px-3 py-2 sm:px-4 sm:py-3">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 md:gap-6">
         {proColumn}
         <Divider />
         {conColumn}
@@ -162,18 +186,31 @@ interface OpponentSpeakerProps {
   active: boolean;
   status: SpeakerStatus;
   online: boolean;
+  avatarUrl?: string | null;
 }
 
-function OpponentSpeaker({ side, name, active, status, online }: OpponentSpeakerProps) {
+function OpponentSpeaker({
+  side,
+  name,
+  active,
+  status,
+  online,
+  avatarUrl,
+}: OpponentSpeakerProps) {
   const colorVar = side === "pro" ? "var(--stage-pro)" : "var(--stage-con)";
   return (
     <SpeakerColumn align={side === "pro" ? "left" : "right"}>
       <div className="relative shrink-0">
-        <UserAvatarLarge active={active} colorVar={colorVar} />
+        <UserAvatarLarge
+          active={active}
+          colorVar={colorVar}
+          avatarUrl={avatarUrl}
+          editable={false}
+        />
         <span
           title={online ? "Online" : "Offline"}
           className={cn(
-            "absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-stage-bg",
+            "absolute bottom-0.5 right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2 border-stage-bg",
             online ? "bg-green-500" : "bg-stage-muted"
           )}
         />
@@ -196,7 +233,7 @@ function Divider() {
   return (
     <div className="flex flex-col items-center gap-1 self-stretch">
       <div className="flex-1 w-px bg-stage-border" />
-      <span className="text-xs font-bold text-stage-muted">
+      <span className="text-[10px] sm:text-xs font-bold text-stage-muted">
         VS
       </span>
       <div className="flex-1 w-px bg-stage-border" />
@@ -247,13 +284,27 @@ interface UserSpeakerProps {
   side: Side;
   active: boolean;
   status: SpeakerStatus;
+  avatarUrl?: string | null;
+  onAvatarUpload?: (avatarUrl: string | null) => Promise<void>;
 }
 
-function UserSpeaker({ side, active, status }: UserSpeakerProps) {
+function UserSpeaker({
+  side,
+  active,
+  status,
+  avatarUrl,
+  onAvatarUpload,
+}: UserSpeakerProps) {
   const colorVar = side === "pro" ? "var(--stage-pro)" : "var(--stage-con)";
   return (
     <SpeakerColumn align={side === "pro" ? "left" : "right"}>
-      <UserAvatarLarge active={active} colorVar={colorVar} />
+      <UserAvatarLarge
+        active={active}
+        colorVar={colorVar}
+        avatarUrl={avatarUrl}
+        onAvatarUpload={onAvatarUpload}
+        editable={!!onAvatarUpload}
+      />
       <SpeakerInfo
         align={side === "pro" ? "left" : "right"}
         name="You"
@@ -278,7 +329,7 @@ function SpeakerColumn({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 min-w-0",
+        "flex items-center gap-2 sm:gap-3 min-w-0",
         align === "right" && "flex-row-reverse"
       )}
     >
@@ -313,19 +364,19 @@ function SpeakerInfo({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 min-w-0",
+        "flex flex-col gap-0.5 sm:gap-1 min-w-0",
         align === "right" && "items-end text-right"
       )}
     >
       <p
         className={cn(
-          "text-sm font-semibold leading-tight truncate transition-opacity",
+          "text-xs sm:text-sm font-semibold leading-tight truncate transition-opacity",
           !active && "opacity-60"
         )}
       >
         {name}
       </p>
-      <p className={cn("text-xs font-bold", sideColorClass)}>
+      <p className={cn("text-[10px] sm:text-xs font-bold", sideColorClass)}>
         {sideLabel}
       </p>
       <StatusPill status={status} />
@@ -344,12 +395,12 @@ function StatusPill({ status }: { status: SpeakerStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center gap-1 text-xs uppercase",
+        "inline-flex w-fit items-center gap-1 text-[10px] sm:text-xs uppercase",
         accented ? "text-stage-accent" : "text-stage-muted"
       )}
     >
       {accented && (
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-stage-accent animate-pulse" />
+        <span className="inline-block w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-stage-accent animate-pulse" />
       )}
       {STATUS_LABEL[status]}
     </span>
@@ -405,7 +456,7 @@ function PersonaAvatarLarge({
       )}
       <div
         className={cn(
-          "relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden font-bold text-white text-2xl flex items-center justify-center transition-[transform,filter] duration-100 ease-out",
+          "relative w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full overflow-hidden font-bold text-white text-base sm:text-xl md:text-2xl flex items-center justify-center transition-[transform,filter] duration-100 ease-out",
           !active && "grayscale-[40%]"
         )}
         style={{
@@ -423,7 +474,7 @@ function PersonaAvatarLarge({
             src={activeUrl}
             alt={persona.displayName}
             fill
-            sizes="96px"
+            sizes="(max-width: 640px) 48px, 80px"
             className="object-cover"
             onError={() =>
               setFailedUrls((prev) => {
@@ -443,18 +494,77 @@ function PersonaAvatarLarge({
   );
 }
 
+interface UserAvatarLargeProps {
+  active: boolean;
+  colorVar: string;
+  avatarUrl?: string | null;
+  onAvatarUpload?: (avatarUrl: string | null) => Promise<void>;
+  editable?: boolean;
+}
+
 function UserAvatarLarge({
   active,
   colorVar,
-}: {
-  active: boolean;
-  colorVar: string;
-}) {
+  avatarUrl,
+  onAvatarUpload,
+  editable = false,
+}: UserAvatarLargeProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const showImage = !!avatarUrl && failedUrl !== avatarUrl;
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !onAvatarUpload) return;
+    setUploading(true);
+    try {
+      const dataUrl = await compressAvatarImage(file, 256, 0.85);
+      await onAvatarUpload(dataUrl);
+      setFailedUrl(null);
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }
+
+  const isInteractive = editable && !!onAvatarUpload;
+
   return (
-    <div className="relative flex items-center justify-center shrink-0">
+    <div className="relative flex items-center justify-center shrink-0 group">
+      {isInteractive && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          aria-label="Upload profile image"
+          onChange={handleFileChange}
+          className="sr-only"
+        />
+      )}
       <div
+        role={isInteractive ? "button" : undefined}
+        tabIndex={isInteractive ? 0 : undefined}
+        title={isInteractive ? "Click to change profile picture" : undefined}
+        onClick={() => {
+          if (isInteractive && !uploading) {
+            fileInputRef.current?.click();
+          }
+        }}
+        onKeyDown={(e) => {
+          if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         className={cn(
-          "relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden text-white flex items-center justify-center transition-all duration-200",
+          "relative w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full overflow-hidden text-white flex items-center justify-center transition-all duration-200",
+          isInteractive && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stage-accent",
           !active && "grayscale-[60%]"
         )}
         style={{
@@ -465,9 +575,70 @@ function UserAvatarLarge({
             : "inset 0 0 0 2px rgba(255,255,255,0.15)",
         }}
       >
-        <UserGlyph />
+        {showImage ? (
+          <Image
+            src={avatarUrl!}
+            alt="You"
+            fill
+            sizes="(max-width: 640px) 48px, 80px"
+            className="object-cover"
+            onError={() => setFailedUrl(avatarUrl!)}
+          />
+        ) : (
+          <UserGlyph />
+        )}
+
+        {/* Hover/uploading overlay */}
+        {isInteractive && (
+          <div
+            className={cn(
+              "absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
+              uploading && "opacity-100"
+            )}
+          >
+            {uploading ? (
+              <span className="inline-block w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            ) : (
+              <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white/90" />
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Small badge upload affordance */}
+      {isInteractive && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            fileInputRef.current?.click();
+          }}
+          title="Upload profile picture"
+          aria-label="Upload profile picture"
+          className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-stage-surface border border-stage-border text-stage-muted hover:text-stage-text flex items-center justify-center shadow-md transition-colors"
+        >
+          <CameraIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+        </button>
+      )}
     </div>
+  );
+}
+
+function CameraIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
   );
 }
 
@@ -476,7 +647,7 @@ function UserGlyph() {
     <svg
       viewBox="0 0 24 24"
       fill="currentColor"
-      className="w-10 h-10 opacity-90"
+      className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 opacity-90"
       aria-hidden
     >
       <circle cx="12" cy="8" r="4" />

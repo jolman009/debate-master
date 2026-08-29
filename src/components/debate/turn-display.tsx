@@ -41,7 +41,7 @@ export function TurnDisplay({
       </div>
       <div
         className={cn(
-          "max-w-[85%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+          "max-w-[92%] sm:max-w-[85%] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words",
           isUser
             ? "bg-stage-accent/20 text-stage-text border border-stage-accent/30"
             : "bg-stage-surface text-stage-text border border-stage-border"

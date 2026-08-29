@@ -47,12 +47,15 @@ export default async function LeaderboardPage({
     { max_rows: 50 }
   );
 
-  let profile: { display_name: string | null; leaderboard_opt_in: boolean } | null =
-    null;
+  let profile: {
+    display_name: string | null;
+    leaderboard_opt_in: boolean;
+    avatar_url: string | null;
+  } | null = null;
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("display_name, leaderboard_opt_in")
+      .select("display_name, leaderboard_opt_in, avatar_url")
       .eq("user_id", user.id)
       .maybeSingle();
     profile = data;
@@ -79,6 +82,7 @@ export default async function LeaderboardPage({
           <JoinLeaderboard
             initialDisplayName={profile?.display_name ?? ""}
             initialOptIn={profile?.leaderboard_opt_in ?? false}
+            initialAvatarUrl={profile?.avatar_url ?? null}
           />
         </div>
       ) : (

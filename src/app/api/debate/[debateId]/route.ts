@@ -52,6 +52,16 @@ export async function GET(
   const isOwner = debate.user_id === user.id;
   const isHuman = (debate.config as { mode?: string })?.mode === "human";
 
+  // Fetch viewer profile (avatar and display name)
+  const { data: viewerProfile } = await supabase
+    .from("profiles")
+    .select("avatar_url, display_name")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const userAvatarUrl = viewerProfile?.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined) ?? null;
+  const userDisplayName = viewerProfile?.display_name ?? (user.user_metadata?.display_name as string | undefined) ?? null;
+
   // Human mode: surface the roster (so the client can render the opponent and
   // gate the waiting room) and the viewer's own side (to resolve "my turn").
   // The invite token is only for the owner to share.
@@ -64,6 +74,9 @@ export async function GET(
   }
   let participants: RosterRow[] = [];
   let viewerSide: string | null = null;
+  let opponentAvatarUrl: string | null = null;
+  let opponentDisplayName: string | null = null;
+
   if (isHuman) {
     const { data: roster } = await supabase.rpc("get_debate_participants", {
       p_debate_id: params.debateId,
@@ -78,6 +91,17 @@ export async function GET(
       rating_delta: p.rating_delta ?? null,
     }));
     viewerSide = participants.find((p) => p.user_id === user.id)?.side ?? null;
+
+    const opponentUserId = participants.find((p) => p.user_id !== user.id)?.user_id;
+    if (opponentUserId) {
+      const { data: oppProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url, display_name")
+        .eq("user_id", opponentUserId)
+        .maybeSingle();
+      opponentAvatarUrl = oppProfile?.avatar_url ?? null;
+      opponentDisplayName = oppProfile?.display_name ?? null;
+    }
   }
 
   return NextResponse.json(
@@ -85,7 +109,16 @@ export async function GET(
       ...debate,
       invite_token: isOwner ? debate.invite_token : null,
       turns: turns || [],
-      ...(isHuman ? { participants, viewerSide } : {}),
+      userAvatarUrl,
+      userDisplayName,
+      ...(isHuman
+        ? {
+            participants,
+            viewerSide,
+            opponentAvatarUrl,
+            opponentDisplayName,
+          }
+        : {}),
     },
     { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
   );

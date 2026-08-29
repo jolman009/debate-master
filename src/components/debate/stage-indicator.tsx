@@ -35,7 +35,7 @@ export function StageIndicator({ config, currentStage }: StageIndicatorProps) {
   ];
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto pb-2">
+    <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-2">
       {groups.map((group, gi) => {
         const groupIndices = group.stages.map((s) => stages.indexOf(s));
         const isActive = groupIndices.some((i) => i === currentIdx);
@@ -49,14 +49,14 @@ export function StageIndicator({ config, currentStage }: StageIndicatorProps) {
             {gi > 0 && (
               <div
                 className={cn(
-                  "w-6 h-px transition-colors",
+                  "w-4 sm:w-6 h-px transition-colors",
                   isComplete || isActive ? "bg-stage-accent" : "bg-stage-border"
                 )}
               />
             )}
             <div
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors",
                 isActive && "bg-stage-accent text-stage-on-accent",
                 isComplete && "bg-stage-accent/20 text-stage-accent",
                 !isActive && !isComplete && "bg-stage-surface text-stage-muted"

@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient, clearStaleAuthCookies } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 type Mode = "signin" | "signup";
@@ -21,6 +21,11 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // Clear out any obsolete/bloated auth cookies or chunks on login screen
+    clearStaleAuthCookies();
+  }, []);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -32,6 +37,7 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
     }
 
     setLoading(true);
+    clearStaleAuthCookies();
     const supabase = getSupabaseClient();
 
     try {
@@ -129,19 +135,35 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
         </Button>
       </form>
 
-      <button
-        type="button"
-        onClick={() => {
-          setMode(mode === "signin" ? "signup" : "signin");
-          setError(null);
-          setNotice(null);
-        }}
-        className="mt-4 text-sm text-stage-muted transition-colors hover:text-stage-text"
-      >
-        {mode === "signin"
-          ? "Need an account? Create one"
-          : "Already have an account? Sign in"}
-      </button>
+      <div className="mt-4 flex flex-col items-center gap-2 text-center text-sm">
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === "signin" ? "signup" : "signin");
+            setError(null);
+            setNotice(null);
+          }}
+          className="text-stage-muted transition-colors hover:text-stage-text"
+        >
+          {mode === "signin"
+            ? "Need an account? Create one"
+            : "Already have an account? Sign in"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            clearStaleAuthCookies();
+            try {
+              localStorage.clear();
+              sessionStorage.clear();
+            } catch {}
+            setNotice("Session cookies cleared.");
+          }}
+          className="text-xs text-stage-muted/60 transition-colors hover:text-stage-muted hover:underline"
+        >
+          Clear stuck session / cookies
+        </button>
+      </div>
     </div>
   );
 }

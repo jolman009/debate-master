@@ -1,8 +1,23 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { TwaDetect } from "@/components/platform/twa-detect";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-ui",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-editorial",
+  display: "swap",
+  style: ["normal", "italic"],
+  adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: "Debate Master - AI-Powered Debate Platform",
@@ -45,7 +60,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="font-sans">
+      <body className={`${inter.variable} ${newsreader.variable} font-sans`}>
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>

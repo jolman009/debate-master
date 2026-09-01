@@ -64,22 +64,28 @@ test("persona form renders and live preview reflects the name", async ({
   page,
 }) => {
   await page.goto("/personas/new");
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: /create a custom persona/i })
   ).toBeVisible();
-  await page.getByPlaceholder("e.g. The Pragmatist").fill("Socrates");
+  const input = page.getByPlaceholder("e.g. The Pragmatist");
+  await input.click();
+  await input.fill("Socrates");
   // The live-preview card echoes the typed name.
   await expect(page.getByText("Socrates")).toBeVisible();
 });
 
 test("creating a persona while logged out is rejected", async ({ page }) => {
   await page.goto("/personas/new");
-  await page.getByPlaceholder("e.g. The Pragmatist").fill("Socrates");
-  await page
-    .getByPlaceholder(/Describe how this character argues/)
-    .fill(
-      "Argues by relentless questioning to expose contradictions in the opponent's reasoning."
-    );
+  await page.waitForLoadState("networkidle");
+  const nameInput = page.getByPlaceholder("e.g. The Pragmatist");
+  await nameInput.click();
+  await nameInput.fill("Socrates");
+  const worldviewInput = page.getByPlaceholder(/Describe how this character argues/);
+  await worldviewInput.click();
+  await worldviewInput.fill(
+    "Argues by relentless questioning to expose contradictions in the opponent's reasoning."
+  );
   await page.getByRole("button", { name: "Create persona" }).click();
   await expect(page.getByText(/not authenticated/i)).toBeVisible();
 });

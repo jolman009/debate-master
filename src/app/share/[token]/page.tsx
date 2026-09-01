@@ -87,12 +87,17 @@ export default async function SharedDebatePage({
             <span>{persona.displayName[0]}</span>
           )}
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-stage-text">
-            {debate.config.topic}
-          </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-stage-text">
+              {debate.config.topic}
+            </p>
+            <span className="rounded bg-stage-surface-raised px-1.5 py-0.5 text-[11px] font-medium text-stage-warning border border-stage-warning/30">
+              AI Simulation
+            </span>
+          </div>
           <p className="mt-0.5 text-xs text-stage-muted">
-            {debate.config.userSide.toUpperCase()} vs {persona.displayName}
+            {debate.config.userSide.toUpperCase()} vs {persona.displayName} · Not affiliated with or endorsed by {persona.displayName}
           </p>
         </div>
       </div>

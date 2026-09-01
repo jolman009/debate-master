@@ -108,11 +108,16 @@ export function TranscriptOverlay({
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-stage-border shrink-0">
           <div>
-            <p className="text-sm font-semibold text-stage-text">
-              Full Transcript
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-stage-text">
+                Full Transcript
+              </p>
+              <span className="rounded bg-stage-surface-raised px-1.5 py-0.5 text-[11px] font-medium text-stage-warning border border-stage-warning/30">
+                AI Simulation
+              </span>
+            </div>
             <p className="text-xs text-stage-muted">
-              {turns.length} {turns.length === 1 ? "turn" : "turns"}
+              {turns.length} {turns.length === 1 ? "turn" : "turns"} · Opponent turns are AI simulated
             </p>
           </div>
           <button

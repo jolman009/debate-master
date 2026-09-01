@@ -319,12 +319,12 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
         {streamError && (
           <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-stage-con/40 bg-stage-con/10 px-3 py-2">
             <p className="text-sm text-stage-con">{streamError}</p>
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2">
               {isAiTurn && (
                 <button
                   type="button"
                   onClick={() => triggerAiTurn()}
-                  className="text-sm font-medium text-stage-accent hover:underline"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center px-3 py-1.5 text-sm font-medium text-stage-accent hover:underline focus-visible:outline-none"
                 >
                   Retry
                 </button>
@@ -332,7 +332,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
               <button
                 type="button"
                 onClick={clearStreamError}
-                className="text-sm text-stage-muted hover:text-stage-text"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center px-3 py-1.5 text-sm text-stage-muted hover:text-stage-text focus-visible:outline-none"
               >
                 Dismiss
               </button>
@@ -385,7 +385,13 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
           />
         )}
 
-        {feedback && <FeedbackPanel feedback={feedback} />}
+        {feedback && (
+          <FeedbackPanel
+            feedback={feedback}
+            config={config}
+            persona={persona}
+          />
+        )}
 
         {(isComplete || isFeedbackStage) && (
           <div className="mt-3 flex justify-center">
@@ -413,6 +419,8 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
               onSubmit={submitTurn}
               disabled={isStreaming}
               placeholder={stageInstruction || "Enter your argument..."}
+              debateId={debate.id}
+              stage={currentStage}
               onTyping={isHuman ? broadcastTyping : undefined}
             />
           </>

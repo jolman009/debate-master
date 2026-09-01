@@ -1,13 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 interface UserInputProps {
-  onSubmit: (content: string) => void;
+  onSubmit: (content: string) => Promise<void> | void;
   disabled: boolean;
   placeholder: string;
+  debateId?: string;
+  stage?: string;
   // Human mode: fired (throttled upstream) on each keystroke to broadcast a
   // "typing" signal to the opponent.
   onTyping?: () => void;
@@ -17,19 +19,46 @@ export function UserInput({
   onSubmit,
   disabled,
   placeholder,
+  debateId,
+  stage,
   onTyping,
 }: UserInputProps) {
   const inputId = useId();
   const helpId = useId();
+  const storageKey = debateId ? `debate_draft_${debateId}_${stage || "general"}` : null;
   const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Restore draft from sessionStorage on mount or stage change
+  useEffect(() => {
+    if (!storageKey || typeof window === "undefined") return;
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        setContent(saved);
+      }
+    } catch {}
+  }, [storageKey]);
 
   const charCount = content.length;
   const maxChars = 3000;
 
-  function handleSubmit() {
-    if (!content.trim() || disabled) return;
-    onSubmit(content.trim());
-    setContent("");
+  async function handleSubmit() {
+    const trimmed = content.trim();
+    if (!trimmed || disabled || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(trimmed);
+      setContent("");
+      if (storageKey) {
+        sessionStorage.removeItem(storageKey);
+      }
+    } catch {
+      // Retain content if submission encounters an error so user never loses their draft
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -37,6 +66,21 @@ export function UserInput({
       e.preventDefault();
       handleSubmit();
     }
+  }
+
+  function handleChange(value: string) {
+    const next = value.slice(0, maxChars);
+    setContent(next);
+    if (storageKey) {
+      try {
+        if (next) {
+          sessionStorage.setItem(storageKey, next);
+        } else {
+          sessionStorage.removeItem(storageKey);
+        }
+      } catch {}
+    }
+    onTyping?.();
   }
 
   return (
@@ -52,13 +96,10 @@ export function UserInput({
       <Textarea
         id={inputId}
         value={content}
-        onChange={(e) => {
-          setContent(e.target.value.slice(0, maxChars));
-          onTyping?.();
-        }}
+        onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        disabled={disabled}
+        disabled={disabled || isSubmitting}
         aria-describedby={helpId}
         rows={2}
         className="min-h-[52px] sm:min-h-[96px] max-h-[160px] text-xs sm:text-sm resize-y"
@@ -70,13 +111,14 @@ export function UserInput({
         <div className="sm:hidden" />
         <Button
           onClick={handleSubmit}
-          disabled={disabled || !content.trim()}
+          disabled={disabled || isSubmitting || !content.trim()}
           size="sm"
           className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm ml-auto"
         >
-          Submit
+          {isSubmitting ? "Submitting..." : "Submit"}
         </Button>
       </div>
     </div>
   );
 }
+

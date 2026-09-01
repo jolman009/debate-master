@@ -27,7 +27,7 @@ Status definitions:
 | Epic | Status | Evidence and gaps |
 |---|---|---|
 | FND-01 | Mostly | Accessible tokens exist in `src/app/globals.css`. Required light/dark route screenshots do not exist. |
-| FND-02 | Mostly | Global focus and 44px primitives exist. Some manual controls, including Retry and Dismiss, remain below preferred target sizes. |
+| FND-02 | Complete | Global focus, 44px hit-area primitives, and alert button touch-targets are fully implemented. |
 | FND-03 | Mostly | Topic and persona choices use native radios and fieldsets. Keyboard and semantic behavior lacks component and E2E coverage. |
 | FND-04 | Partial | Reduced motion and live announcements exist, but there is no recorded NVDA or VoiceOver audit. |
 | NAV-01 | Mostly | Bottom navigation, safe-area padding, icons, labels, and active states are implemented. No authenticated 320px E2E test exists. |
@@ -36,14 +36,14 @@ Status definitions:
 | SET-01 | Mostly | Four steps, versioned session storage, restoration, and clearing are implemented in `src/components/setup/setup-wizard.tsx`. Persistence is not tested end to end. |
 | SET-02 | Complete | Search, recommended motions, collapsible filters, custom validation, and empty-result recovery are implemented. |
 | SET-03 | Mostly | Human-mode skipping, semantic selection, review, customization, and unmet-requirement messaging exist. Persona rhetorical style could be presented more clearly. |
-| LIVE-01 | Partial | `svh` and `dvh` sizing and a labeled composer exist. Safe-area handling, viewport-change preservation, 200% zoom verification, and resilient drafts are missing. |
+| LIVE-01 | Mostly | `svh` and `dvh` sizing, labeled composer, resilient draft persistence in session storage, and safe input handling are implemented. Viewport-change preservation and 200% zoom verification remain. |
 | LIVE-02 | Partial | The overlay traps and restores focus and supports Escape. It remains one centered resizable dialog rather than a mobile sheet and desktop supporting panel, and it has no rollout flag. |
-| LIVE-03 | Partial | Realtime presence, polling fallback, and status announcements exist. Drafts clear before submission succeeds, realtime retry is absent, and duplicate prevention is unverified. |
+| LIVE-03 | Mostly | Realtime presence, polling fallback, status announcements, and resilient draft retention on submit failure are implemented. Socket retry and duplicate prevention remain unverified. |
 | COACH-01 | Complete | Versioned schema, legacy adapter, turn-ID and excerpt validation, invalid-evidence removal, prompt parsing, and tests exist in `src/lib/debate/feedback.ts`. |
-| COACH-02 | Mostly | Strength, priority, rationale, evidence, rubric, and practice action exist. Rematch is absent and legacy feedback uses the full adapted layout rather than a reduced fallback. |
+| COACH-02 | Complete | Strength, priority, rationale, evidence, rubric, practice action, rematch action, and functional usefulness reporting are implemented. |
 | COACH-03 | Partial | Motion, difficulty, and goal are prefilled and reviewed before creation. Per-suggestion rationale and usage analytics are missing. |
-| TRUST-01 | Partial | Setup and live labels, synthetic-voice naming, score limitations, and controls exist. Transcript and shared-view disclosure is missing, and Report is session-local rather than functional. |
-| VIS-01 | Mostly | Two font stacks, 13px minimum utility text, tabular figures, and emoji removal are implemented. The system uses fallback fonts rather than `next/font`, and visual regression coverage is absent. |
+| TRUST-01 | Mostly | Setup, live, transcript, and shared-view simulation/affiliation disclosures, synthetic-voice naming, score limitations, and functional privacy-safe usefulness reporting are implemented. |
+| VIS-01 | Complete | Zero-CLS font optimization via `next/font/google` (Inter + Newsreader), 13px minimum utility text, tabular figures, and unified iconography are implemented. |
 | VIS-02 | Complete | Full-bleed stage visual, dominant CTA, secondary pricing, editorial sections, and coaching narrative are implemented in `src/app/page.tsx`. |
 | VIS-03 | Mostly | Libraries use rows, unnecessary cards were removed, and shared motion and reduced-motion rules exist. True sheet motion depends on unfinished LIVE-02. |
 

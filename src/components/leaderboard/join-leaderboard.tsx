@@ -55,6 +55,27 @@ export function JoinLeaderboard({
     }
   }
 
+  async function handleRemoveAvatar() {
+    setUploading(true);
+    setError(null);
+    try {
+      setAvatarUrl(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("debate_user_avatar");
+      }
+      await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: null }),
+      });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -134,13 +155,24 @@ export function JoinLeaderboard({
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="text-xs text-stage-accent hover:underline"
-        >
-          {avatarUrl ? "Change photo" : "Upload photo"}
-        </button>
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-xs text-stage-accent hover:underline text-left"
+          >
+            {avatarUrl ? "Change photo" : "Upload photo"}
+          </button>
+          {avatarUrl && (
+            <button
+              type="button"
+              onClick={handleRemoveAvatar}
+              className="text-xs text-stage-muted hover:text-stage-con hover:underline text-left"
+            >
+              Remove photo
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">

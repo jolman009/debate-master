@@ -19,13 +19,15 @@ import { JudgePanel } from "./judge-panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSpeech } from "@/hooks/use-speech";
+import { Tier } from "@/lib/billing/tier";
 
 interface DebateStageProps {
   debateId: string;
   persona: Persona;
+  tier?: Tier;
 }
 
-export function DebateStage({ debateId, persona }: DebateStageProps) {
+export function DebateStage({ debateId, persona, tier = "free" }: DebateStageProps) {
   const {
     debate,
     loading,
@@ -390,6 +392,7 @@ export function DebateStage({ debateId, persona }: DebateStageProps) {
             feedback={feedback}
             config={config}
             persona={persona}
+            tier={tier}
           />
         )}
 

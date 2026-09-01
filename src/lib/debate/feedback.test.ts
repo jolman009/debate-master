@@ -102,4 +102,34 @@ describe("normalizeFeedbackResult", () => {
     expect(adapted.rubric.argumentStrength.score).toBe(7);
     expect(adapted.priorityImprovement.title).toBe("Use more examples");
   });
+
+  it("recovers and parses partially truncated JSON responses", () => {
+    const truncated = `{
+      "version": 2,
+      "overallScore": 7,
+      "summary": "Solid argument development with clear structure.",
+      "strongestMoment": {
+        "title": "Clear mechanism",
+        "detail": "Good opening statement.",
+        "evidence": []
+      },
+      "priorityImprovement": {
+        "title": "Deepen warrants",
+        "detail": "Add more empirical support.",
+        "evidence": []
+      },
+      "rubric": {
+        "argumentStrength": { "score": 7, "rationale": "Strong warrants.", "evidence": [] },
+        "evidenceUsage": { "score": 6, "rationale": "Needs data.", "evidence": [] },
+        "rebuttalQuality": { "score": 7, "rationale": "Solid rebuttals.", "evidence": [] },
+        "rhetoricalSkill": { "score": 7, "rationale": "Well formatted.", "evidence": [
+          { "turnId": "turn-user-1", "excerpt": "Carbon pricing works`;
+
+    const result = normalizeFeedbackResult(truncated, turns);
+    expect(result).not.toBeNull();
+    expect(result?.version).toBe(2);
+    expect(result?.overallScore).toBe(7);
+    expect(result?.summary).toBe("Solid argument development with clear structure.");
+    expect(result?.rubric.rhetoricalSkill.score).toBe(7);
+  });
 });

@@ -16,12 +16,16 @@ const FREE_FEATURES = [
   `${FREE_DEBATE_LIMIT} debates per month`,
   "All built-in & custom personas",
   "Topic packs & leaderboard",
+  "AI Coach summary & score overview",
 ];
 
 const PREMIUM_FEATURES = [
   "Everything in Free",
   "ElevenLabs realistic voices",
   "Unlimited debates",
+  "Deep 4-dimension rubric analysis & turn citations",
+  "Downloadable Coaching Notes (.md)",
+  "Targeted practice drill generator",
 ];
 
 function Check() {

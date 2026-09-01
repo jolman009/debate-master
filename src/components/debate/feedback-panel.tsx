@@ -16,11 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getStageLabel } from "@/lib/debate/state-machine";
+import { Tier } from "@/lib/billing/tier";
 
 interface FeedbackPanelProps {
   feedback: DebateFeedback;
   config?: DebateConfig | null;
   persona?: Persona | null;
+  tier?: Tier;
 }
 
 type Usefulness = "helpful" | "not_helpful" | "reported" | null;
@@ -32,9 +34,15 @@ const RUBRIC_LABELS: Record<keyof DebateFeedbackV2["rubric"], string> = {
   rhetoricalSkill: "Rhetorical Skill",
 };
 
-export function FeedbackPanel({ feedback, config, persona }: FeedbackPanelProps) {
+export function FeedbackPanel({
+  feedback,
+  config,
+  persona,
+  tier = "free",
+}: FeedbackPanelProps) {
   const adapted = adaptFeedback(feedback);
   const [usefulness, setUsefulness] = useState<Usefulness>(null);
+  const isPremium = tier === "premium";
 
   const handleUsefulness = async (rating: "helpful" | "not_helpful" | "reported") => {
     setUsefulness(rating);
@@ -62,6 +70,7 @@ export function FeedbackPanel({ feedback, config, persona }: FeedbackPanelProps)
   )}&difficulty=${encodeURIComponent(rematchDifficulty)}`;
 
   const handleDownload = () => {
+    if (!isPremium) return;
     const md = generateFeedbackMarkdown(adapted, config, persona);
     const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -83,31 +92,66 @@ export function FeedbackPanel({ feedback, config, persona }: FeedbackPanelProps)
     <section className="motion-panel space-y-6 rounded-lg border border-stage-border bg-stage-surface p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="warning">AI-generated coaching</Badge>
-          {feedback.version !== 2 && <Badge>Legacy feedback</Badge>}
+          <Badge variant="warning">AI Coach</Badge>
+          {isPremium ? (
+            <span className="rounded bg-stage-accent/15 px-2 py-0.5 text-xs font-semibold text-stage-accent border border-stage-accent/30">
+              Pro Analysis
+            </span>
+          ) : (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1.5 text-xs text-stage-muted hover:text-stage-accent transition-colors"
+            >
+              <span>Free Overview</span>
+              <span className="rounded bg-stage-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-stage-accent">
+                Upgrade
+              </span>
+            </Link>
+          )}
+          {feedback.version !== 2 && <Badge>Legacy format</Badge>}
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={handleDownload}
-          className="inline-flex items-center gap-1.5 text-xs"
-          aria-label="Download Coaching Notes as Markdown"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4 text-stage-accent"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden
+        {isPremium ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={handleDownload}
+            className="inline-flex items-center gap-1.5 text-xs"
+            aria-label="Download Coaching Notes as Markdown"
           >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
-            <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round" />
-            <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Download notes
-        </Button>
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 text-stage-accent"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Download notes
+          </Button>
+        ) : (
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1.5 text-xs text-stage-muted hover:text-stage-accent border border-stage-border hover:border-stage-accent/40 rounded px-2.5 py-1 transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5 text-stage-accent"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Download notes (.md)
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-[auto_1fr] sm:items-center">
@@ -132,11 +176,13 @@ export function FeedbackPanel({ feedback, config, persona }: FeedbackPanelProps)
           eyebrow="Strongest moment"
           claim={adapted.strongestMoment}
           tone="pro"
+          isPremium={isPremium}
         />
         <CoachingClaimCard
           eyebrow="Priority improvement"
           claim={adapted.priorityImprovement}
           tone="warning"
+          isPremium={isPremium}
         />
       </div>
 
@@ -151,52 +197,77 @@ export function FeedbackPanel({ feedback, config, persona }: FeedbackPanelProps)
           Suggested motion: {adapted.practiceRecommendation.motion}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Link
-            href={`/debate/new?motion=${encodeURIComponent(
-              adapted.practiceRecommendation.motion
-            )}&difficulty=${encodeURIComponent(
-              adapted.practiceRecommendation.difficulty
-            )}&goal=${encodeURIComponent(adapted.practiceRecommendation.focus)}`}
-            className="btn-secondary"
-          >
-            Practice this weakness
-          </Link>
+          {isPremium ? (
+            <Link
+              href={`/debate/new?motion=${encodeURIComponent(
+                adapted.practiceRecommendation.motion
+              )}&difficulty=${encodeURIComponent(
+                adapted.practiceRecommendation.difficulty
+              )}&goal=${encodeURIComponent(adapted.practiceRecommendation.focus)}`}
+              className="btn-secondary"
+            >
+              Practice this weakness
+            </Link>
+          ) : (
+            <Link
+              href="/pricing"
+              className="btn-secondary text-xs inline-flex items-center gap-2"
+            >
+              <span>Practice drill generator</span>
+              <span className="text-[10px] uppercase font-bold text-stage-accent bg-stage-accent/15 px-1.5 py-0.5 rounded">
+                Pro
+              </span>
+            </Link>
+          )}
           {config && (
             <Link href={rematchHref} className="btn-secondary">
               Rematch
             </Link>
           )}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleDownload}
-            className="inline-flex items-center gap-1.5"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden
+          {isPremium && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1.5"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Download notes (.md)
-          </Button>
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Download notes (.md)
+            </Button>
+          )}
         </div>
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-semibold">Rubric details</h3>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold">Rubric details</h3>
+          {!isPremium && (
+            <Link
+              href="/pricing"
+              className="text-xs text-stage-accent hover:underline flex items-center gap-1"
+            >
+              Unlock deep rationale & citations →
+            </Link>
+          )}
+        </div>
         <div>
           {Object.entries(adapted.rubric).map(([key, item]) => (
             <RubricRow
               key={key}
               label={RUBRIC_LABELS[key as keyof DebateFeedbackV2["rubric"]]}
               item={item}
+              isPremium={isPremium}
             />
           ))}
         </div>
@@ -240,10 +311,12 @@ function CoachingClaimCard({
   eyebrow,
   claim,
   tone,
+  isPremium = false,
 }: {
   eyebrow: string;
   claim: FeedbackCoachingClaim;
   tone: "pro" | "warning";
+  isPremium?: boolean;
 }) {
   return (
     <article className="py-5 lg:px-5 lg:first:border-r lg:first:border-stage-border">
@@ -259,7 +332,23 @@ function CoachingClaimCard({
         {claim.title}
       </h3>
       <p className="mt-2 text-sm text-stage-muted">{claim.detail}</p>
-      <EvidenceList evidence={claim.evidence} />
+      {isPremium ? (
+        <EvidenceList evidence={claim.evidence} />
+      ) : (
+        claim.evidence && claim.evidence.length > 0 && (
+          <div className="mt-3 flex items-center justify-between gap-2 border-l-2 border-stage-accent/40 bg-stage-bg/50 px-2.5 py-1.5 text-xs text-stage-muted rounded-r">
+            <span>
+              Citing transcript in <strong>{getStageLabel(claim.evidence[0].stage)}</strong>
+            </span>
+            <Link
+              href="/pricing"
+              className="text-stage-accent hover:underline text-[11px] font-semibold whitespace-nowrap"
+            >
+              View quote (Pro) →
+            </Link>
+          </div>
+        )
+      )}
     </article>
   );
 }
@@ -267,9 +356,11 @@ function CoachingClaimCard({
 function RubricRow({
   label,
   item,
+  isPremium = false,
 }: {
   label: string;
   item: FeedbackRubricItem;
+  isPremium?: boolean;
 }) {
   return (
     <details className="border-t border-stage-border bg-stage-bg px-1 py-4 last:border-b sm:px-4">
@@ -283,7 +374,23 @@ function RubricRow({
       </summary>
       <div className="details-content">
         <p className="mt-3 text-sm text-stage-muted">{item.rationale}</p>
-        <EvidenceList evidence={item.evidence} compact />
+        {isPremium ? (
+          <EvidenceList evidence={item.evidence} compact />
+        ) : (
+          item.evidence && item.evidence.length > 0 && (
+            <div className="mt-3 rounded border border-stage-accent/25 bg-stage-accent/5 p-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
+              <span className="text-stage-text">
+                🔒 {item.evidence.length} validated transcript {item.evidence.length === 1 ? "excerpt citation" : "excerpt citations"} available on <strong>Pro Coach</strong>.
+              </span>
+              <Link
+                href="/pricing"
+                className="font-semibold text-stage-accent hover:underline whitespace-nowrap"
+              >
+                Upgrade to Pro →
+              </Link>
+            </div>
+          )
+        )}
       </div>
     </details>
   );

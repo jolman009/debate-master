@@ -47,8 +47,15 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
     <>
       <header className="relative z-40 border-b border-stage-border bg-stage-bg/95 px-2.5 sm:px-4 py-2 sm:py-3 backdrop-blur supports-[backdrop-filter]:bg-stage-bg/80">
         <nav className="mx-auto flex max-w-5xl items-center justify-between gap-2 sm:gap-4">
-          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center text-lg sm:text-xl font-semibold text-stage-text">
-            Debate<span className="text-stage-accent">Master</span>
+          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center gap-2 text-lg sm:text-xl font-semibold text-stage-text group">
+            <Image
+              src="/brand/logo-mark.svg"
+              alt="Debate Master Logo"
+              width={26}
+              height={23}
+              className="shrink-0 transition-transform group-hover:scale-105"
+            />
+            <span>Debate<span className="text-stage-accent">Master</span></span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">

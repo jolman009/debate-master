@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -76,10 +77,22 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
 
   return (
     <div className="debate-card w-full max-w-sm">
-      <h1 className="text-xl font-bold text-stage-text">
-        {mode === "signin" ? "Sign in" : "Create your account"}
-      </h1>
-      <p className="mt-1 text-sm text-stage-muted">
+      <div className="mb-4 flex items-center gap-3">
+        <Image
+          src="/brand/app-icon-dark.svg"
+          alt="Debate Master"
+          width={40}
+          height={40}
+          className="rounded-xl shadow-sm shrink-0"
+        />
+        <div>
+          <h1 className="text-xl font-bold text-stage-text">
+            {mode === "signin" ? "Sign in" : "Create your account"}
+          </h1>
+          <p className="text-xs text-stage-muted">Debate Master Arena</p>
+        </div>
+      </div>
+      <p className="mb-4 text-xs text-stage-muted">
         {mode === "signin"
           ? "Welcome back to the debate stage."
           : "Start sharpening your rhetorical skills."}

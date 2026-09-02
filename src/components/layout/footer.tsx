@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -22,9 +23,16 @@ export function Footer() {
           <div className="md:col-span-2 space-y-3">
             <Link
               href="/"
-              className="font-editorial inline-flex items-center text-xl font-semibold text-stage-text"
+              className="font-editorial inline-flex items-center gap-2 text-xl font-semibold text-stage-text group"
             >
-              Debate<span className="text-stage-accent">Master</span>
+              <Image
+                src="/brand/logo-mark.svg"
+                alt="Debate Master Logo"
+                width={28}
+                height={25}
+                className="shrink-0 transition-transform group-hover:scale-105"
+              />
+              <span>Debate<span className="text-stage-accent">Master</span></span>
             </Link>
             <p className="text-xs leading-relaxed text-stage-muted max-w-sm">
               An AI-powered sparring arena and speech coaching platform. Sharpen your rhetoric,

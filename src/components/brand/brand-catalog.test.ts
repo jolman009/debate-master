@@ -25,5 +25,7 @@ describe("Brand Tokens and Assets", () => {
     expect(BRAND_ASSETS.png.appIconDark1024).toBe("/brand/app-icon-dark-1024.png");
     expect(BRAND_ASSETS.icons.icon512).toBe("/icons/icon-512.png");
     expect(BRAND_ASSETS.icons.appleTouchIcon).toBe("/icons/apple-touch-icon.png");
+    expect(BRAND_ASSETS.icons.faviconLight).toBe("/favicon-light.png");
+    expect(BRAND_ASSETS.icons.faviconDark).toBe("/favicon-dark.png");
   });
 });

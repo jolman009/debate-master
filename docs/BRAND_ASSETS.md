@@ -48,6 +48,9 @@ This document outlines the official Debate Master logo assets parsed from the so
   - [`/brand/logo-horizontal-dark-hires.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/logo-horizontal-dark-hires.png)
   - [`/brand/logo-mark-light-hires.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/logo-mark-light-hires.png)
   - [`/brand/logo-mark-dark-hires.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/logo-mark-dark-hires.png)
+  - [`/brand/debate-master-crest.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/debate-master-crest.png) (Transparent emblem mark)
+  - [`/brand/debate-master-crest-dark.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/debate-master-crest-dark.png) (Light podiums + gold nib for dark stage surfaces)
+  - [`/brand/debate-master-crest-512.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/debate-master-crest-512.png) (512px emblem mark)
   - [`/brand/logo-vertical-dark-card.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/logo-vertical-dark-card.png)
 - **App Store & PWA Master (1024x1024)**:
   - [`/brand/app-icon-dark-1024.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/app-icon-dark-1024.png)
@@ -56,7 +59,10 @@ This document outlines the official Debate Master logo assets parsed from the so
 
 ### 3. PWA & Web Browser Icons (`/public/icons/` & `/public/`)
 
-- [`/public/favicon.ico`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon.ico)
+- [`/public/favicon.svg`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon.svg) (Adaptive vector with `@media (prefers-color-scheme: dark)`)
+- [`/public/favicon-light.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon-light.png) (Light theme logo crest for light browser tabs)
+- [`/public/favicon-dark.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon-dark.png) (Dark theme logo crest for dark browser tabs)
+- [`/public/favicon.ico`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon.ico) (Multi-resolution 16x16 & 32x32)
 - [`/public/favicon-32x32.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon-32x32.png)
 - [`/public/favicon-16x16.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/favicon-16x16.png)
 - [`/public/icons/apple-touch-icon.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/icons/apple-touch-icon.png) (180x180)

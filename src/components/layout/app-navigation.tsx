@@ -47,14 +47,25 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
     <>
       <header className="relative z-40 border-b border-stage-border bg-stage-bg/95 px-2.5 sm:px-4 py-2 sm:py-3 backdrop-blur supports-[backdrop-filter]:bg-stage-bg/80">
         <nav className="mx-auto flex max-w-5xl items-center justify-between gap-2 sm:gap-4">
-          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center gap-2 text-lg sm:text-xl font-semibold text-stage-text group">
-            <Image
-              src="/brand/logo-mark.svg"
-              alt="Debate Master Logo"
-              width={26}
-              height={23}
-              className="shrink-0 transition-transform group-hover:scale-105"
-            />
+          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center gap-2.5 text-lg sm:text-xl font-semibold text-stage-text group">
+            <div className="relative flex shrink-0 items-center justify-center">
+              <Image
+                src="/brand/debate-master-crest.png"
+                alt="Debate Master Logo"
+                width={26}
+                height={23}
+                className="h-6 w-auto object-contain dark:hidden transition-transform group-hover:scale-105"
+                priority
+              />
+              <Image
+                src="/brand/debate-master-crest-dark.png"
+                alt="Debate Master Logo"
+                width={26}
+                height={23}
+                className="hidden h-6 w-auto object-contain dark:block transition-transform group-hover:scale-105 drop-shadow-[0_0_8px_rgba(184,141,76,0.35)]"
+                priority
+              />
+            </div>
             <span>Debate<span className="text-stage-accent">Master</span></span>
           </Link>
 

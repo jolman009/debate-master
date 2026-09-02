@@ -51,11 +51,16 @@ export const BRAND_ASSETS = {
     appIconLight1024: "/brand/app-icon-light-1024.png",
     wordmarkLight: "/brand/logo-wordmark-light.png",
     wordmarkDark: "/brand/logo-wordmark-dark.png",
+    crestLight: "/brand/debate-master-crest.png",
+    crestDark: "/brand/debate-master-crest-dark.png",
+    crest512: "/brand/debate-master-crest-512.png",
   },
   // PWA & Browser Icons
   icons: {
     favicon16: "/favicon-16x16.png",
     favicon32: "/favicon-32x32.png",
+    faviconLight: "/favicon-light.png",
+    faviconDark: "/favicon-dark.png",
     faviconIco: "/favicon.ico",
     appleTouchIcon: "/icons/apple-touch-icon.png",
     icon192: "/icons/icon-192.png",

@@ -23,15 +23,24 @@ export function Footer() {
           <div className="md:col-span-2 space-y-3">
             <Link
               href="/"
-              className="font-editorial inline-flex items-center gap-2 text-xl font-semibold text-stage-text group"
+              className="font-editorial inline-flex items-center gap-2.5 text-xl font-semibold text-stage-text group"
             >
-              <Image
-                src="/brand/logo-mark.svg"
-                alt="Debate Master Logo"
-                width={28}
-                height={25}
-                className="shrink-0 transition-transform group-hover:scale-105"
-              />
+              <div className="relative flex shrink-0 items-center justify-center">
+                <Image
+                  src="/brand/debate-master-crest.png"
+                  alt="Debate Master Logo"
+                  width={28}
+                  height={25}
+                  className="h-6 w-auto object-contain dark:hidden transition-transform group-hover:scale-105"
+                />
+                <Image
+                  src="/brand/debate-master-crest-dark.png"
+                  alt="Debate Master Logo"
+                  width={28}
+                  height={25}
+                  className="hidden h-6 w-auto object-contain dark:block transition-transform group-hover:scale-105 drop-shadow-[0_0_8px_rgba(184,141,76,0.35)]"
+                />
+              </div>
               <span>Debate<span className="text-stage-accent">Master</span></span>
             </Link>
             <p className="text-xs leading-relaxed text-stage-muted max-w-sm">

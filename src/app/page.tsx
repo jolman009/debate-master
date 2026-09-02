@@ -44,29 +44,70 @@ export default function Home() {
         />
 
         <div className="mx-auto w-full max-w-6xl px-4 pb-14 pt-24 sm:px-8 sm:pb-20 lg:px-10">
-          <div className="max-w-xl">
-            <p className="motion-hero-kicker border-l-2 border-stage-accent pl-3 text-sm font-semibold uppercase text-white/80">
-              Structured debate practice
-            </p>
-            <h1 className="motion-hero-title font-editorial mt-5 text-5xl font-semibold leading-[1.02] text-white sm:text-7xl">
-              Debate Master
-            </h1>
-            <p className="motion-hero-copy mt-5 max-w-lg text-lg leading-7 text-white/80 sm:text-xl sm:leading-8">
-              Build sharper arguments under pressure, then see exactly where
-              your case held and where it gave way.
-            </p>
-            <div className="motion-hero-actions mt-8 flex flex-wrap items-center gap-5">
-              <Link href="/debate/new" className="btn-primary px-7 py-3 text-base">
-                Start a debate
-              </Link>
-              {!inTwa && (
-                <Link
-                  href="/pricing"
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-stage-accent"
-                >
-                  View plans
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
+            <div className="max-w-xl">
+              <div className="mb-5 flex items-center gap-3.5">
+                <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-black/60 shadow-xl backdrop-blur-md transition-transform hover:scale-105">
+                  <Image
+                    src="/brand/debate-master-crest-dark.png"
+                    alt="Debate Master Emblem"
+                    width={40}
+                    height={36}
+                    className="drop-shadow-[0_0_12px_rgba(184,141,76,0.4)]"
+                    priority
+                  />
+                </div>
+                <div className="border-l-2 border-stage-accent pl-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
+                    Debate Master
+                  </p>
+                  <p className="text-xs text-white/60">Structured debate practice</p>
+                </div>
+              </div>
+
+              <h1 className="motion-hero-title font-editorial text-5xl font-semibold leading-[1.02] text-white sm:text-7xl">
+                Debate Master
+              </h1>
+              <p className="motion-hero-copy mt-5 max-w-lg text-lg leading-7 text-white/80 sm:text-xl sm:leading-8">
+                Build sharper arguments under pressure, then see exactly where
+                your case held and where it gave way.
+              </p>
+              <div className="motion-hero-actions mt-8 flex flex-wrap items-center gap-5">
+                <Link href="/debate/new" className="btn-primary px-7 py-3 text-base">
+                  Start a debate
                 </Link>
-              )}
+                {!inTwa && (
+                  <Link
+                    href="/pricing"
+                    className="inline-flex min-h-11 items-center text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 transition-colors hover:decoration-stage-accent"
+                  >
+                    View plans
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop Hero Showcase Medallion */}
+            <div className="hidden lg:flex items-center justify-center">
+              <div className="group relative flex flex-col items-center rounded-3xl border border-white/10 bg-black/45 p-8 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-stage-accent/30 hover:bg-black/55">
+                <div className="absolute -inset-1 rounded-3xl bg-gradient-to-b from-stage-accent/20 to-transparent opacity-40 blur-xl transition-opacity group-hover:opacity-75" />
+                <Image
+                  src="/brand/debate-master-crest-dark.png"
+                  alt="Debate Master Logo"
+                  width={210}
+                  height={189}
+                  className="relative drop-shadow-[0_4px_24px_rgba(184,141,76,0.35)] transition-transform duration-300 group-hover:scale-105"
+                  priority
+                />
+                <div className="relative mt-5 text-center">
+                  <p className="font-editorial text-xl font-semibold tracking-wide text-white">
+                    Debate<span className="text-stage-accent">Master</span>
+                  </p>
+                  <p className="mt-0.5 text-[11px] uppercase tracking-widest text-white/60">
+                    The AI Sparring Arena
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -180,16 +221,34 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-stage-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-7 px-4 py-16 sm:px-8 sm:py-20 md:flex-row md:items-end md:justify-between lg:px-10">
-          <div>
-            <h2 className="font-editorial text-4xl font-semibold leading-tight text-stage-text">
-              Take the lectern.
-            </h2>
-            <p className="mt-3 max-w-xl text-base leading-6 text-stage-muted">
-              Start with {FREE_DEBATE_LIMIT} debates each month. Choose a motion
-              and begin in under a minute.
-            </p>
+      <section className="border-t border-stage-border bg-stage-surface/30">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-7 px-4 py-16 sm:px-8 sm:py-20 md:flex-row md:items-center md:justify-between lg:px-10">
+          <div className="flex items-center gap-5 sm:gap-6">
+            <div className="relative hidden shrink-0 rounded-2xl border border-stage-border bg-stage-bg p-3 shadow-sm sm:flex">
+              <Image
+                src="/brand/debate-master-crest.png"
+                alt="Debate Master Logo"
+                width={54}
+                height={48}
+                className="dark:hidden"
+              />
+              <Image
+                src="/brand/debate-master-crest-dark.png"
+                alt="Debate Master Logo"
+                width={54}
+                height={48}
+                className="hidden dark:block drop-shadow-[0_0_12px_rgba(184,141,76,0.3)]"
+              />
+            </div>
+            <div>
+              <h2 className="font-editorial text-4xl font-semibold leading-tight text-stage-text">
+                Take the lectern.
+              </h2>
+              <p className="mt-3 max-w-xl text-base leading-6 text-stage-muted">
+                Start with {FREE_DEBATE_LIMIT} debates each month. Choose a motion
+                and begin in under a minute.
+              </p>
+            </div>
           </div>
           <Link href="/debate/new" className="btn-primary shrink-0 px-7 py-3 text-base">
             Start a debate

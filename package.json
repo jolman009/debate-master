@@ -26,6 +26,8 @@
     "stripe": "^17.7.0"
   },
   "devDependencies": {
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@playwright/test": "^1.61.1",
     "@types/node": "^20.17.0",
     "@types/react": "^18.3.12",

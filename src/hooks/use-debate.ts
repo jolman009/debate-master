@@ -21,6 +21,7 @@ import {
 import { useStreamingResponse } from "./use-streaming-response";
 import { useRealtimeDebate } from "./use-realtime-debate";
 import type { DebateRowPatch } from "@/lib/supabase/realtime";
+import { trackEvent } from "@/lib/analytics";
 
 interface UseDebateReturn {
   debate: Debate | null;
@@ -51,6 +52,7 @@ interface UseDebateReturn {
   onlineSides: Side[];
   opponentTyping: boolean;
   broadcastTyping: () => void;
+  reconnectRealtime: () => void;
   // The two-sided judge verdict (Phase D). Human mode only.
   judgeResult: JudgeResult | null;
   // The viewer's Elo change from this debate, once judged.
@@ -163,7 +165,15 @@ export function useDebate(debateId: string): UseDebateReturn {
   const handleTurnInsert = useCallback((turn: DebateTurn) => {
     setDebate((prev) => {
       if (!prev) return prev;
-      if (prev.turns.some((t) => t.id === turn.id)) return prev;
+      if (
+        prev.turns.some(
+          (t) =>
+            t.id === turn.id ||
+            (t.stage === turn.stage && t.role === turn.role && t.content === turn.content)
+        )
+      ) {
+        return prev;
+      }
       return { ...prev, turns: [...prev.turns, turn] };
     });
   }, []);
@@ -196,6 +206,7 @@ export function useDebate(debateId: string): UseDebateReturn {
     onlineSides,
     typingSide,
     broadcastTyping,
+    reconnect,
   } = useRealtimeDebate({
     debateId,
     enabled: !!isHuman,
@@ -223,6 +234,12 @@ export function useDebate(debateId: string): UseDebateReturn {
       if (!debate) return;
       setActionError(null);
 
+      trackEvent("turn_submitted", {
+        debateId,
+        stage: currentStage,
+        role: isHuman ? viewerSide ?? undefined : "user",
+      });
+
       // Human mode: plain JSON POST, no SSE, no Gemini. Refetch to pick up the
       // opponent's turns and the advanced stage.
       if (debate.config?.mode === "human") {
@@ -249,7 +266,7 @@ export function useDebate(debateId: string): UseDebateReturn {
       await fetchDebate();
       applyNextStage(result?.nextStage);
     },
-    [debate, debateId, startStream, fetchDebate, applyNextStage]
+    [debate, debateId, startStream, fetchDebate, applyNextStage, currentStage, isHuman, viewerSide]
   );
 
   const triggerAiTurn = useCallback(async () => {
@@ -329,6 +346,7 @@ export function useDebate(debateId: string): UseDebateReturn {
     onlineSides,
     opponentTyping,
     broadcastTyping,
+    reconnectRealtime: reconnect,
     judgeResult: debate?.judge_result ?? null,
     ratingDelta:
       participants.find((p) => p.side === viewerSide)?.rating_delta ?? null,

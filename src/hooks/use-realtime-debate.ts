@@ -20,6 +20,7 @@ interface UseRealtimeDebateReturn {
   // The opponent's side while they are typing, else null.
   typingSide: Side | null;
   broadcastTyping: () => void;
+  reconnect: () => void;
 }
 
 const TYPING_CLEAR_MS = 3000;
@@ -36,6 +37,7 @@ export function useRealtimeDebate({
   const [connected, setConnected] = useState(false);
   const [onlineSides, setOnlineSides] = useState<Side[]>([]);
   const [typingSide, setTypingSide] = useState<Side | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   // Keep the latest callbacks without forcing a resubscribe on every render.
   const cbs = useRef({ onTurnInsert, onDebateUpdate });
@@ -44,6 +46,10 @@ export function useRealtimeDebate({
   const typingTimer = useRef<ReturnType<typeof setTimeout>>();
   const broadcastRef = useRef<() => void>(() => {});
   const lastBroadcast = useRef(0);
+
+  const reconnect = useCallback(() => {
+    setRetryTrigger((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     if (!enabled || !debateId || !viewerId) return;
@@ -80,7 +86,7 @@ export function useRealtimeDebate({
       setTypingSide(null);
       broadcastRef.current = () => {};
     };
-  }, [enabled, debateId, viewerId, viewerSide]);
+  }, [enabled, debateId, viewerId, viewerSide, retryTrigger]);
 
   // Throttle outbound typing so a fast typist emits at most one event / 1.5s.
   const broadcastTyping = useCallback(() => {
@@ -90,5 +96,5 @@ export function useRealtimeDebate({
     broadcastRef.current();
   }, []);
 
-  return { connected, onlineSides, typingSide, broadcastTyping };
+  return { connected, onlineSides, typingSide, broadcastTyping, reconnect };
 }

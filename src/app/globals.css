@@ -116,6 +116,14 @@
     animation: dialog-arrive 240ms ease-out both;
   }
 
+  .motion-sheet {
+    animation: sheet-arrive 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .motion-side-panel {
+    animation: side-panel-arrive 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
   .motion-status {
     animation: status-arrive 200ms ease-out both;
   }
@@ -210,6 +218,28 @@
   }
 }
 
+@keyframes sheet-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes side-panel-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes details-arrive {
   from {
     opacity: 0;
@@ -256,6 +286,8 @@
   .motion-panel,
   .motion-overlay,
   .motion-dialog,
+  .motion-sheet,
+  .motion-side-panel,
   .motion-status,
   .stage-depth,
   details[open] .details-content {

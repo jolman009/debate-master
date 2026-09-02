@@ -16,6 +16,7 @@ import {
   DebateConfig,
   DebateMode,
 } from "@/lib/debate/types";
+import { trackEvent } from "@/lib/analytics";
 
 interface SetupWizardProps {
   personas: Persona[];
@@ -197,7 +198,10 @@ export function SetupWizard({
     setStepMessage(
       `Step ${currentIndex + 1} of ${visibleSteps.length}: ${visibleStep.label}.`
     );
-  }, [currentIndex, visibleSteps]);
+    if (hydrated) {
+      trackEvent("setup_step_viewed", { step, mode });
+    }
+  }, [currentIndex, visibleSteps, hydrated, step, mode]);
 
   async function handleStart() {
     if (!canStart) return;
@@ -235,6 +239,13 @@ export function SetupWizard({
 
       sessionStorage.removeItem(STORAGE_KEY);
       const { debateId } = await res.json();
+      trackEvent("setup_completed", {
+        mode,
+        topic: selectedTopic?.title || customMotion,
+        personaId: selectedPersona ?? undefined,
+        difficulty,
+      });
+      trackEvent("debate_started", { debateId, mode });
       router.push(`/debate/${debateId}`);
     } catch (err) {
       console.error("Failed to create debate:", err);
@@ -285,9 +296,11 @@ export function SetupWizard({
           Work through the format, motion, opponent, and review choices in order.
         </p>
         {initialCoachingGoal && (
-          <p className="mt-3 rounded-lg border border-stage-warning/30 bg-stage-warning/10 px-3 py-2 text-sm text-stage-muted">
-            Practice focus: {initialCoachingGoal}
-          </p>
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-stage-warning/40 bg-stage-warning/10 p-3 text-xs sm:text-sm text-stage-text">
+            <span className="font-semibold text-stage-warning">Targeted Drill Focus:</span>
+            <span>{initialCoachingGoal}</span>
+            <span className="ml-auto text-[11px] text-stage-muted">Calibrated to {difficulty}</span>
+          </div>
         )}
       </div>
 

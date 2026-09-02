@@ -43,7 +43,7 @@ export default function Home() {
           className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.78)_36%,rgba(5,6,10,0.12)_72%),linear-gradient(0deg,rgba(5,6,10,0.8)_0%,transparent_48%)]"
         />
 
-        <div className="mx-auto w-full max-w-6xl px-5 pb-14 pt-24 sm:px-8 sm:pb-20 lg:px-10">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-14 pt-24 sm:px-8 sm:pb-20 lg:px-10">
           <div className="max-w-xl">
             <p className="motion-hero-kicker border-l-2 border-stage-accent pl-3 text-sm font-semibold uppercase text-white/80">
               Structured debate practice
@@ -72,7 +72,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr] lg:px-10">
+      <section className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.8fr_1.2fr] lg:px-10">
         <div className="max-w-md">
           <p className="text-sm font-semibold uppercase text-stage-accent">
             The format
@@ -109,7 +109,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-stage-border bg-stage-surface">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:items-center lg:px-10">
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:items-center lg:px-10">
           <div>
             <p className="text-sm font-semibold uppercase text-stage-accent">
               Evidence-based coaching
@@ -146,7 +146,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
+      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-8 sm:py-28 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
             <p className="text-sm font-semibold uppercase text-stage-accent">
@@ -181,7 +181,7 @@ export default function Home() {
       </section>
 
       <section className="border-t border-stage-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-7 px-5 py-16 sm:px-8 sm:py-20 md:flex-row md:items-end md:justify-between lg:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-7 px-4 py-16 sm:px-8 sm:py-20 md:flex-row md:items-end md:justify-between lg:px-10">
           <div>
             <h2 className="font-editorial text-4xl font-semibold leading-tight text-stage-text">
               Take the lectern.

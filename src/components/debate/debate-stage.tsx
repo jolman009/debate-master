@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSpeech } from "@/hooks/use-speech";
 import { Tier } from "@/lib/billing/tier";
+import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 interface DebateStageProps {
   debateId: string;
@@ -55,6 +57,7 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
     onlineSides,
     opponentTyping,
     broadcastTyping,
+    reconnectRealtime,
     judgeResult,
     ratingDelta,
     userAvatarUrl,
@@ -197,7 +200,25 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
                 <Badge className="text-[10px] sm:text-xs py-0.5 px-2">Human debate</Badge>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-1" aria-label="Debate tools">
+            <div className="flex shrink-0 items-center gap-1.5" aria-label="Debate tools">
+              {!isHuman && isSupported && (
+                <span
+                  className="hidden sm:inline-flex items-center gap-1 text-[11px] text-stage-muted border border-stage-border/60 bg-stage-surface/50 rounded px-2 py-1"
+                  title="Voice synthesized via Web Speech API"
+                >
+                  <span
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      isSpeaking
+                        ? "bg-stage-accent animate-pulse"
+                        : isMuted
+                        ? "bg-stage-muted"
+                        : "bg-stage-pro"
+                    )}
+                  />
+                  <span>{isMuted ? "Synthetic Voice (Muted)" : "Synthetic Voice"}</span>
+                </span>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -248,6 +269,23 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
             </h1>
           </div>
         </header>
+
+        {/* Realtime reconnect banner */}
+        {isHuman && !realtimeConnected && (
+          <div role="status" className="motion-status flex items-center justify-between gap-3 rounded-lg border border-stage-warning/40 bg-stage-warning/10 px-3 py-2 text-xs text-stage-warning">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-stage-warning animate-ping" />
+              Realtime connection interrupted. Reconnecting...
+            </span>
+            <button
+              type="button"
+              onClick={reconnectRealtime}
+              className="font-semibold underline hover:text-stage-text focus-visible:outline-none"
+            >
+              Retry Now
+            </button>
+          </div>
+        )}
 
         <LiveStage
           persona={persona!}

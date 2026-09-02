@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getStageLabel } from "@/lib/debate/state-machine";
 import { Tier } from "@/lib/billing/tier";
+import { trackEvent } from "@/lib/analytics";
 
 interface FeedbackPanelProps {
   feedback: DebateFeedback;
@@ -46,6 +47,18 @@ export function FeedbackPanel({
 
   const handleUsefulness = async (rating: "helpful" | "not_helpful" | "reported") => {
     setUsefulness(rating);
+    if (rating === "reported") {
+      trackEvent("feedback_reported", {
+        score: adapted.overallScore,
+        version: feedback.version ?? 1,
+      });
+    } else {
+      trackEvent("feedback_usefulness_rated", {
+        usefulness: rating,
+        score: adapted.overallScore,
+        version: feedback.version ?? 1,
+      });
+    }
     try {
       await fetch("/api/feedback/usefulness", {
         method: "POST",
@@ -186,17 +199,56 @@ export function FeedbackPanel({
         />
       </div>
 
-      <div className="border-y border-stage-border bg-stage-bg py-4 sm:px-4">
-        <p className="text-sm font-semibold text-stage-text">
-          Practice this weakness
-        </p>
-        <p className="mt-1 text-sm text-stage-muted">
-          {adapted.practiceRecommendation.focus}
-        </p>
-        <p className="mt-2 text-xs text-stage-muted">
-          Suggested motion: {adapted.practiceRecommendation.motion}
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="border-y border-stage-border bg-stage-bg py-5 px-3 sm:px-5 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-stage-text">
+            Targeted Practice Drill
+          </p>
+          <span className="rounded bg-stage-surface-raised px-2 py-0.5 text-[11px] font-medium text-stage-accent border border-stage-border">
+            AI Drill Generator
+          </span>
+        </div>
+
+        {/* Independent field rationales */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+          <div className="rounded-lg border border-stage-border/80 bg-stage-surface p-3 space-y-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-stage-warning">
+              Focus Weakness
+            </span>
+            <p className="text-xs font-semibold text-stage-text">
+              {adapted.practiceRecommendation.focus}
+            </p>
+            <p className="text-[11px] text-stage-muted">
+              Targeted based on your priority improvement area and rubric scoring.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-stage-border/80 bg-stage-surface p-3 space-y-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-stage-accent">
+              Suggested Motion
+            </span>
+            <p className="text-xs font-semibold text-stage-text line-clamp-2">
+              {adapted.practiceRecommendation.motion}
+            </p>
+            <p className="text-[11px] text-stage-muted">
+              Chosen to provide clear opportunities to exercise this specific argument dynamic.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-stage-border/80 bg-stage-surface p-3 space-y-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-stage-pro">
+              Difficulty Tier
+            </span>
+            <p className="text-xs font-semibold text-stage-text capitalize">
+              {adapted.practiceRecommendation.difficulty}
+            </p>
+            <p className="text-[11px] text-stage-muted">
+              Calibrated to match your {adapted.overallScore}/10 estimated performance level.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 pt-1">
           {isPremium ? (
             <Link
               href={`/debate/new?motion=${encodeURIComponent(
@@ -204,9 +256,16 @@ export function FeedbackPanel({
               )}&difficulty=${encodeURIComponent(
                 adapted.practiceRecommendation.difficulty
               )}&goal=${encodeURIComponent(adapted.practiceRecommendation.focus)}`}
-              className="btn-secondary"
+              onClick={() =>
+                trackEvent("practice_started", {
+                  focus: adapted.practiceRecommendation.focus,
+                  motion: adapted.practiceRecommendation.motion,
+                  difficulty: adapted.practiceRecommendation.difficulty,
+                })
+              }
+              className="btn-primary text-xs"
             >
-              Practice this weakness
+              Start Targeted Practice Drill
             </Link>
           ) : (
             <Link
@@ -220,7 +279,16 @@ export function FeedbackPanel({
             </Link>
           )}
           {config && (
-            <Link href={rematchHref} className="btn-secondary">
+            <Link
+              href={rematchHref}
+              onClick={() =>
+                trackEvent("debate_rematch", {
+                  motion: rematchMotion,
+                  personaId: rematchPersona,
+                })
+              }
+              className="btn-secondary text-xs"
+            >
               Rematch
             </Link>
           )}
@@ -229,7 +297,7 @@ export function FeedbackPanel({
               type="button"
               variant="secondary"
               onClick={handleDownload}
-              className="inline-flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 text-xs"
             >
               <svg
                 viewBox="0 0 24 24"

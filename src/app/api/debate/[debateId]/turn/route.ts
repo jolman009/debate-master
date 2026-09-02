@@ -1,5 +1,9 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { getGeminiClient, GEMINI_MODEL } from "@/lib/gemini";
+import {
+  getGeminiClient,
+  GEMINI_FALLBACK_MODELS,
+  isRetryableGeminiError,
+} from "@/lib/gemini";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 import { reportError } from "@/lib/observability";
 import { getPersonaBySlug } from "@/lib/debate/content";
@@ -285,11 +289,7 @@ export async function POST(
       try {
         let fullText = "";
 
-        const candidateModels = [
-          GEMINI_MODEL,
-          "gemini-3.6-flash",
-          "gemini-3.5-flash-lite",
-        ].filter((v, i, a) => a.indexOf(v) === i);
+        const candidateModels = GEMINI_FALLBACK_MODELS;
 
         let stream = null;
         let lastErr = null;
@@ -301,13 +301,16 @@ export async function POST(
               contents: messages,
               config: {
                 systemInstruction: systemPrompt,
-                maxOutputTokens: 1500,
+                maxOutputTokens: 2000,
+                thinkingConfig: {
+                  thinkingBudget: 0,
+                },
               },
             });
             break;
-          } catch (err: any) {
+          } catch (err: unknown) {
             lastErr = err;
-            if (err?.status === 503 || err?.status === 404 || err?.status === 429) {
+            if (isRetryableGeminiError(err)) {
               continue;
             }
             throw err;

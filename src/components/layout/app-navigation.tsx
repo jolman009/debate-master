@@ -45,9 +45,9 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
 
   return (
     <>
-      <header className="border-b border-stage-border bg-stage-bg/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-stage-bg/80">
-        <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4">
-          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center text-xl font-semibold text-stage-text">
+      <header className="relative z-40 border-b border-stage-border bg-stage-bg/95 px-2.5 sm:px-4 py-2 sm:py-3 backdrop-blur supports-[backdrop-filter]:bg-stage-bg/80">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between gap-2 sm:gap-4">
+          <Link href={signedIn ? "/debate" : "/"} className="font-editorial inline-flex min-h-11 items-center text-lg sm:text-xl font-semibold text-stage-text">
             Debate<span className="text-stage-accent">Master</span>
           </Link>
 
@@ -61,12 +61,12 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
             <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} />
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-1 sm:gap-2 md:hidden">
             {!signedIn && (
               <Link
                 href="/leaderboard"
                 className={cn(
-                  "min-h-11 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "min-h-11 inline-flex items-center rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors",
                   pathname.startsWith("/leaderboard")
                     ? "bg-stage-surface text-stage-text"
                     : "text-stage-muted hover:text-stage-text"

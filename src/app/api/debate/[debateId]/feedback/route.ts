@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenAI } from "@google/genai";
 import { createServerClient } from "@/lib/supabase/server";
-import { getGeminiClient, GEMINI_MODEL } from "@/lib/gemini";
+import {
+  getGeminiClient,
+  GEMINI_FALLBACK_MODELS,
+  isRetryableGeminiError,
+} from "@/lib/gemini";
 import {
   buildFeedbackPrompt,
   buildJudgePrompt,
@@ -24,11 +28,7 @@ async function generateContentWithFallback(
   prompt: string,
   maxOutputTokens: number
 ): Promise<string> {
-  const candidateModels = [
-    GEMINI_MODEL,
-    "gemini-3.6-flash",
-    "gemini-3.5-flash-lite",
-  ].filter((v, i, a) => a.indexOf(v) === i);
+  const candidateModels = GEMINI_FALLBACK_MODELS;
 
   let lastErr: unknown = null;
   for (const model of candidateModels) {
@@ -40,13 +40,15 @@ async function generateContentWithFallback(
           systemInstruction,
           maxOutputTokens,
           responseMimeType: "application/json",
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
         },
       });
       return response.text ?? "";
     } catch (err: unknown) {
       lastErr = err;
-      const status = (err as { status?: number })?.status;
-      if (status === 503 || status === 404 || status === 429) {
+      if (isRetryableGeminiError(err)) {
         continue;
       }
       throw err;

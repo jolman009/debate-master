@@ -369,10 +369,27 @@ function ProfileMenu({
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-stage-text">{email}</p>
-              <p className="text-xs text-stage-muted">Account</p>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="text-xs text-stage-accent hover:underline inline-flex items-center gap-1"
+              >
+                <span>Account Controls</span>
+                <span>→</span>
+              </Link>
             </div>
           </div>
           <div className="mt-2">
+            <Link
+              href="/profile"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "flex min-h-11 items-center rounded-md px-2 text-sm hover:bg-stage-bg hover:text-stage-text",
+                pathname.startsWith("/profile") ? "bg-stage-bg text-stage-text font-medium" : "text-stage-muted"
+              )}
+            >
+              Account & Data Settings
+            </Link>
             {menuItems.map((item) => {
               const active = navItemActive(pathname, item);
               return (
@@ -390,6 +407,13 @@ function ProfileMenu({
                 </Link>
               );
             })}
+            <Link
+              href="/feedback"
+              onClick={() => setOpen(false)}
+              className="flex min-h-11 items-center rounded-md px-2 text-sm text-stage-muted hover:bg-stage-bg hover:text-stage-text"
+            >
+              Feedback & Support
+            </Link>
           </div>
           <div className="flex min-h-11 items-center justify-between rounded-md px-2">
             <span className="text-sm text-stage-muted">Theme</span>

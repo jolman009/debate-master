@@ -97,6 +97,11 @@ export function Footer() {
                   Terms of Service
                 </Link>
               </li>
+              <li>
+                <Link href="/feedback" className="hover:text-stage-accent transition-colors">
+                  Feedback & Support
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -104,6 +109,10 @@ export function Footer() {
         <div className="mt-8 pt-6 border-t border-stage-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stage-muted">
           <p>© {new Date().getFullYear()} Debate Master. All rights reserved.</p>
           <div className="flex items-center gap-4">
+            <Link href="/feedback" className="hover:underline">
+              Feedback
+            </Link>
+            <span>·</span>
             <Link href="/privacy" className="hover:underline">
               Privacy
             </Link>

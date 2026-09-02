@@ -27,3 +27,14 @@ export function isTwaReferrer(referrer: string | null | undefined): boolean {
   if (!referrer) return false;
   return referrer.trim().toLowerCase().startsWith(TWA_REFERRER_PREFIX);
 }
+
+/**
+ * Client-side check: returns true if running in an Android TWA session.
+ */
+export function isTwaClient(): boolean {
+  if (typeof document === "undefined") return false;
+  return (
+    document.cookie.includes(`${TWA_COOKIE}=1`) ||
+    isTwaReferrer(document.referrer)
+  );
+}

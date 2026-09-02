@@ -9,7 +9,7 @@ import { Redis } from "@upstash/redis";
  * Set both vars to activate enforcement.
  */
 
-type Bucket = "ai" | "tts";
+type Bucket = "ai" | "tts" | "feedback";
 
 type Limiters = Record<Bucket, Ratelimit>;
 
@@ -41,6 +41,13 @@ function getLimiters(): Limiters | null {
       redis,
       limiter: Ratelimit.slidingWindow(60, "1 m"),
       prefix: "rl:tts",
+      analytics: false,
+    }),
+    // General user feedback submissions: 5 per 10 mins per IP/user
+    feedback: new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "10 m"),
+      prefix: "rl:feedback",
       analytics: false,
     }),
   };

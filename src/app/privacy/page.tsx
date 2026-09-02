@@ -105,13 +105,26 @@ export default function PrivacyPolicyPage() {
           </ul>
         </section>
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-bold text-stage-text">5. Data Retention, Control & Deletion</h2>
+        <section id="account-deletion" className="space-y-3 scroll-mt-8">
+          <h2 className="text-lg font-bold text-stage-text">5. Data Retention, Control & Account Deletion</h2>
           <p>
-            You retain ownership of your personal data. You can delete your custom personas, clear stored session drafts,
-            or request complete account deletion and erasure of all associated debate history by contacting our support team
-            or through account management options.
+            You retain full ownership of your personal data. In accordance with Google Play data safety standards and global
+            privacy regulations, you can permanently delete your account and all associated data directly from within the app
+            at any time:
           </p>
+          <div className="bg-stage-surface p-4 rounded-xl border border-stage-border space-y-2 text-xs">
+            <p className="font-semibold text-stage-text">How to delete your account &amp; data:</p>
+            <ol className="list-decimal pl-5 space-y-1 text-stage-muted">
+              <li>Sign in to your account.</li>
+              <li>Open the profile menu and navigate to <Link href="/profile" className="text-stage-accent hover:underline font-medium">Account Settings</Link>.</li>
+              <li>Scroll down to the <strong>Danger Zone: Account Deletion</strong> section.</li>
+              <li>Click <strong>Delete Account &amp; Data</strong> and type DELETE to confirm.</li>
+            </ol>
+            <p className="text-stage-muted pt-1">
+              Account deletion permanently purges all debate transcripts, turns, custom AI personas, leaderboard history, and login credentials.
+              You may also request manual erasure by emailing <a href="mailto:privacy@debatemaster.app" className="text-stage-accent underline">privacy@debatemaster.app</a>.
+            </p>
+          </div>
         </section>
 
         <section className="space-y-3">

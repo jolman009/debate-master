@@ -23,12 +23,21 @@ const ROUNDS = [
   },
 ];
 
-export default function Home() {
+export default function Home({
+  searchParams,
+}: {
+  searchParams?: { account_deleted?: string };
+}) {
   const personas = getAllPersonas();
   const inTwa = isTwa();
 
   return (
     <div className="overflow-hidden">
+      {searchParams?.account_deleted === "1" && (
+        <div className="bg-stage-surface border-b border-stage-border py-3 px-4 text-center text-xs sm:text-sm font-medium text-stage-text">
+          ✓ Your account, debates, and personal data have been permanently deleted.
+        </div>
+      )}
       <section className="hero-stage relative isolate flex min-h-[31rem] items-end overflow-hidden bg-[#08090d] text-white sm:min-h-[34rem] lg:min-h-[38rem]">
         <Image
           src="/images/debate-stage-hero.png"

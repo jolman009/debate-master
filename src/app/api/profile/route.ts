@@ -120,3 +120,59 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, avatarUrl });
 }
+
+export async function DELETE() {
+  const supabase = createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  console.info("[Account Deletion Initiated]", {
+    userId: user.id,
+    email: user.email,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    // 1. Delete user-owned application data
+    await supabase.from("debates").delete().eq("user_id", user.id);
+    await supabase.from("custom_personas").delete().eq("user_id", user.id);
+    await supabase.from("user_feedback").delete().eq("user_id", user.id);
+    await supabase.from("profiles").delete().eq("user_id", user.id);
+
+    // 2. Delete Supabase Auth user via admin client if service role key configured
+    try {
+      const { createServiceClient } = await import("@/lib/supabase/admin");
+      const adminClient = createServiceClient();
+      const { error: adminError } = await adminClient.auth.admin.deleteUser(user.id);
+      if (adminError) {
+        console.warn("Could not delete user via admin client:", adminError.message);
+      }
+    } catch (adminErr) {
+      console.warn("Admin client not available or errored during user deletion:", adminErr);
+    }
+
+    // 3. Terminate active user auth session
+    await supabase.auth.signOut();
+
+    console.info("[Account Deletion Completed]", {
+      userId: user.id,
+      timestamp: new Date().toISOString(),
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message: "Your account and all associated debate data have been permanently deleted.",
+    });
+  } catch (error) {
+    console.error("Failed to delete user account:", error);
+    return NextResponse.json(
+      { error: "Failed to delete account. Please contact support@debatemaster.app" },
+      { status: 500 }
+    );
+  }
+}

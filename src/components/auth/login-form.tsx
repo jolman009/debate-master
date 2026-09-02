@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabaseClient, clearStaleAuthCookies } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -164,6 +165,18 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
           Clear stuck session / cookies
         </button>
       </div>
+
+      <p className="mt-6 text-center text-[11px] text-stage-muted border-t border-stage-border/60 pt-4">
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className="text-stage-text underline hover:text-stage-accent">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-stage-text underline hover:text-stage-accent">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </div>
   );
 }

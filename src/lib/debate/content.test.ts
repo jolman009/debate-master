@@ -121,7 +121,7 @@ describe("getPersonas", () => {
       chainResolving({
         data: [
           {
-            slug: "destiny",
+            slug: "the-consequentialist",
             display_name: "IMPOSTER",
             tagline: null,
             ideology: null,
@@ -138,7 +138,7 @@ describe("getPersonas", () => {
     );
     const personas = await getPersonas();
     expect(personas).toHaveLength(builtInCount);
-    expect(personas.find((p) => p.id === "destiny")?.displayName).toBe("Destiny");
+    expect(personas.find((p) => p.id === "the-consequentialist")?.displayName).toBe("The Consequentialist");
   });
 
   it("falls back to built-ins only on error", async () => {

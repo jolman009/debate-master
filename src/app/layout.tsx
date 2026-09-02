@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { TwaDetect } from "@/components/platform/twa-detect";
 
@@ -64,6 +65,7 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>
+          <Footer />
         </div>
         <ServiceWorkerRegister />
         <TwaDetect />

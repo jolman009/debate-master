@@ -123,8 +123,7 @@ payments happen on the web, not in-app), screenshots, feature graphic.
   callbacks open *inside* the app instead of bouncing to a browser.
 - **Custom domain:** a `*.vercel.app` subdomain works for asset links, but a
   branded domain reads better in the store and in the (brief) launch splash.
-- **Persona filenames** use real people's names (`ben-shapiro.png`). App stores
-  have a formal IP-complaint process; worth renaming before a public launch.
+- **Original persona assets:** All built-in AI debaters use original intellectual archetypes and custom illustration assets (`consequentialist.png`, `logician.png`, etc.), ensuring full compliance with app store right-of-publicity and trademark guidelines.
 - **Realtime/WebSockets, Supabase cookie auth, and browser TTS** all work in a
   TWA — it's Chrome. Nothing extra needed.
 - **Testing the gating locally:**

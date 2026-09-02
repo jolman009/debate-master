@@ -60,6 +60,18 @@ test("leaderboard page renders", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("privacy policy and terms of service render publicly without login", async ({ page }) => {
+  await page.goto("/privacy");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Privacy Policy" })
+  ).toBeVisible();
+
+  await page.goto("/terms");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Terms of Service" })
+  ).toBeVisible();
+});
+
 test("persona form renders and live preview reflects the name", async ({
   page,
 }) => {

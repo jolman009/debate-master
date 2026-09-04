@@ -106,10 +106,38 @@ Then install the app from the internal track. **No URL bar = verified.** A URL
 bar means the asset-link check failed — re-check the domain, package name, and
 fingerprints.
 
-### 6. Store listing
-Needs: privacy policy URL, content rating questionnaire, Data Safety form
-(declare: account/email via Supabase auth, user-generated debate content;
-payments happen on the web, not in-app), screenshots, feature graphic.
+### 6. Store Listing & Metadata Copy
+
+Play Console requires concise copy and visual assets:
+
+- **App Name** (max 30 chars): `Debate Master: AI Rhetoric`
+- **Short Description** (max 80 chars): `Sharpen your rhetoric and critical thinking in structured, turn-based AI debates.`
+- **Full Description** (Markdown/text format):
+  ```text
+  Step into the intellectual arena with Debate Master. 
+
+  Sharpen your critical thinking, argumentation, and public speaking skills against specialized AI personas in formal, turn-based debate sparring matches.
+
+  KEY FEATURES:
+  • Structured Match Formats: Progress through opening statements, direct rebuttals, cross-examination, and closing summaries.
+  • Diverse AI Personas: Spar against distinct philosophical and rhetorical minds, from strict logicians to persuasive pragmatists.
+  • Objective AI Rubric Scoring: Receive impartial, multi-dimensional feedback evaluating evidence, logic, clarity, and rebuttal effectiveness.
+  • Custom Persona Studio: Design custom intellectual sparring partners with custom argumentative styles and philosophies.
+  • Global Community Leaderboard: Climb the ranks and track your win rate, argument scores, and debating streaks.
+  • Audio & Speech Mode: Engage via browser/neural voice readouts for authentic spoken delivery.
+
+  Debate Master is free to download and use. Master the art of argument today.
+  ```
+
+- **Visual Assets**:
+  - **App Icon**: `public/brand/app-icon-dark-1024.png` (1024x1024 PNG)
+  - **Feature Graphic**: `public/brand/google-play-feature-graphic-1024x500.png` (1024x500 PNG)
+- **Policy & Support Links**:
+  - **Privacy Policy URL**: `https://<your-domain>/privacy`
+  - **Account Deletion URL**: `https://<your-domain>/privacy#account-deletion` (Direct in-app route: `/profile`)
+  - **Support / Feedback URL**: `https://<your-domain>/feedback`
+  - **Categories**: Education, Productivity
+  - **Content Rating**: Everyone / Teen (no unmoderated UGC, debate motion filtering)
 
 ---
 

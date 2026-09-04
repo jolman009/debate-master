@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Debate Master",
     short_name: "Debate Master",
     description:
-      "Sharpen your debate skills against AI personas in structured, turn-based debates.",
+      "Sharpen your debate, rhetoric, and critical reasoning skills against AI sparring personas in structured, turn-based debates.",
     // Launch into the dashboard, not the marketing landing page — someone
     // tapping the installed icon wants their debates. (Signed-out users are
     // redirected to /login by middleware, which returns them here after auth.)
@@ -14,8 +14,10 @@ export default function manifest(): MetadataRoute.Manifest {
     // auth callbacks open inside the app rather than kicking out to a browser.
     scope: "/",
     display: "standalone",
-    background_color: "#0a0a1a",
-    theme_color: "#6366f1",
+    orientation: "portrait",
+    background_color: "#08090D",
+    theme_color: "#B88D4C",
+    categories: ["education", "productivity", "news"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -24,6 +26,22 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "New Debate",
+        short_name: "Debate",
+        description: "Start a new structured debate match",
+        url: "/debate/new",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
+      },
+      {
+        name: "Leaderboard",
+        short_name: "Ranks",
+        description: "View global debater standings and win rates",
+        url: "/leaderboard",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
       },
     ],
   };

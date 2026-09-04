@@ -56,6 +56,8 @@ This document outlines the official Debate Master logo assets parsed from the so
   - [`/brand/app-icon-dark-1024.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/app-icon-dark-1024.png)
   - [`/brand/app-icon-gold-1024.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/app-icon-gold-1024.png)
   - [`/brand/app-icon-light-1024.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/app-icon-light-1024.png)
+- **Google Play Store Assets**:
+  - [`/brand/google-play-feature-graphic-1024x500.png`](file:///Users/joelguzman/Vibe-Code/debate_master/public/brand/google-play-feature-graphic-1024x500.png) (1024x500 Feature Graphic required for Play Store listing)
 
 ### 3. PWA & Web Browser Icons (`/public/icons/` & `/public/`)
 

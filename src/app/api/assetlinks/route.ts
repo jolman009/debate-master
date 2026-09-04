@@ -31,10 +31,12 @@ interface AssetLink {
 }
 
 export async function GET() {
-  const packageName = process.env.ANDROID_PACKAGE_NAME?.trim();
+  const rawPackage = process.env.ANDROID_PACKAGE_NAME ?? "";
+  const packageName = rawPackage.replace(/[[\]"'\s]/g, "").trim();
+
   const fingerprints = (process.env.ANDROID_CERT_FINGERPRINTS ?? "")
     .split(",")
-    .map((f) => f.trim())
+    .map((f) => f.replace(/[[\]"'\s]/g, "").trim())
     .filter(Boolean);
 
   // Not configured yet: behave as if the file doesn't exist, rather than

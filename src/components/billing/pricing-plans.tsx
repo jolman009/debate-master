@@ -4,8 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { UpgradeButton } from "./upgrade-button";
 import { ManageButton } from "./manage-button";
+import { PlayUpgradeButton } from "./play-upgrade-button";
+import { isDigitalGoodsSupported } from "@/lib/billing/play-billing";
 import { FREE_DEBATE_LIMIT } from "@/lib/billing/tier";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 interface PricingPlansProps {
   isPremium: boolean;
@@ -50,6 +53,11 @@ export function PricingPlans({
 }: PricingPlansProps) {
   const [interval, setInterval] = useState<"month" | "year">("month");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [hasDigitalGoods, setHasDigitalGoods] = useState(false);
+
+  useEffect(() => {
+    setHasDigitalGoods(isDigitalGoodsSupported());
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq((prev) => (prev === index ? null : index));
@@ -57,8 +65,8 @@ export function PricingPlans({
 
   return (
     <div className="mt-8 space-y-12">
-      {/* Billing Interval Toggle (hidden inside TWA where checkout is informational) */}
-      {!inTwa && (
+      {/* Billing Interval Toggle (shown on web, or in TWA when Digital Goods API is supported) */}
+      {(!inTwa || hasDigitalGoods) && (
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="inline-flex items-center rounded-full border border-stage-border bg-stage-surface p-1 shadow-sm">
             <button
@@ -230,6 +238,17 @@ export function PricingPlans({
                 <div className="rounded-lg bg-stage-accent/15 py-2.5 text-center text-sm font-semibold text-stage-accent border border-stage-accent/30">
                   You&apos;re on Premium ✓
                 </div>
+              ) : hasDigitalGoods ? (
+                !hasUser ? (
+                  <Link
+                    href="/login?redirect=/pricing"
+                    className="btn-primary block w-full text-center py-2.5 text-sm font-semibold"
+                  >
+                    Sign in to upgrade
+                  </Link>
+                ) : (
+                  <PlayUpgradeButton interval={interval} />
+                )
               ) : (
                 <div className="rounded-lg bg-stage-surface-raised py-2.5 text-center text-xs text-stage-muted border border-stage-border">
                   Available through web subscription
@@ -272,7 +291,11 @@ export function PricingPlans({
         </div>
         <div className="rounded-lg bg-stage-surface/50 p-3 border border-stage-border/40">
           <p className="text-xs font-semibold text-stage-text">Secure Payments</p>
-          <p className="text-[11px] text-stage-muted mt-0.5">Encrypted 256-bit Stripe checkout</p>
+          <p className="text-[11px] text-stage-muted mt-0.5">
+            {inTwa && hasDigitalGoods
+              ? "Processed securely via Google Play"
+              : "Encrypted 256-bit Stripe checkout"}
+          </p>
         </div>
       </div>
 

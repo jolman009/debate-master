@@ -70,27 +70,25 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [feedback, setFeedback] = useState<DebateFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("debate_user_avatar");
-    }
-    return null;
-  });
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
 
   const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
     useStreamingResponse();
 
   const fetchDebate = useCallback(async () => {
     try {
+      // Clear legacy unscoped cache
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("debate_user_avatar");
+        } catch {}
+      }
       const res = await fetch(`/api/debate/${debateId}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch debate");
       const data = await res.json();
       setDebate(data);
       if (data.userAvatarUrl !== undefined) {
-        setUserAvatarUrl(data.userAvatarUrl);
-        if (typeof window !== "undefined" && data.userAvatarUrl) {
-          localStorage.setItem("debate_user_avatar", data.userAvatarUrl);
-        }
+        setUserAvatarUrl(data.userAvatarUrl ?? null);
       }
       if (data.feedback) setFeedback(data.feedback);
     } catch (err) {
@@ -102,13 +100,6 @@ export function useDebate(debateId: string): UseDebateReturn {
 
   const updateUserAvatar = useCallback(async (newAvatarUrl: string | null) => {
     setUserAvatarUrl(newAvatarUrl);
-    if (typeof window !== "undefined") {
-      if (newAvatarUrl) {
-        localStorage.setItem("debate_user_avatar", newAvatarUrl);
-      } else {
-        localStorage.removeItem("debate_user_avatar");
-      }
-    }
     try {
       await fetch("/api/profile", {
         method: "POST",

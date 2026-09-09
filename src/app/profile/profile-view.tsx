@@ -89,8 +89,13 @@ export function ProfileView({ user, counts, inTwa }: ProfileViewProps) {
 
       // Clear local storage and session items
       if (typeof window !== "undefined") {
-        localStorage.removeItem("debate_user_avatar");
-        localStorage.removeItem("debate_active_persona");
+        try {
+          localStorage.removeItem("debate_user_avatar");
+          if (user.email) {
+            localStorage.removeItem(`debate_avatar_${user.email.trim().toLowerCase()}`);
+          }
+          localStorage.removeItem("debate_active_persona");
+        } catch {}
       }
 
       // Redirect home with deleted flag

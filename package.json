@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "build:twa": "node scripts/build-twa.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",

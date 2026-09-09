@@ -17,6 +17,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AppNavigationProps {
   email: string | null;
+  initialAvatarUrl?: string | null;
   inTwa: boolean;
 }
 
@@ -29,7 +30,7 @@ const BOTTOM_ICONS: Record<string, IconName> = {
   "/leaderboard": "leaderboard",
 };
 
-export function AppNavigation({ email, inTwa }: AppNavigationProps) {
+export function AppNavigation({ email, initialAvatarUrl, inTwa }: AppNavigationProps) {
   const pathname = usePathname();
   const signedIn = !!email;
   const isLiveDebateRoute =
@@ -76,7 +77,12 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
-            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} />
+            <ProfileMenu
+              email={email}
+              initialAvatarUrl={initialAvatarUrl}
+              inTwa={inTwa}
+              pathname={pathname}
+            />
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 md:hidden">
@@ -93,7 +99,13 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
                 Leaderboard
               </Link>
             )}
-            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} compact />
+            <ProfileMenu
+              email={email}
+              initialAvatarUrl={initialAvatarUrl}
+              inTwa={inTwa}
+              pathname={pathname}
+              compact
+            />
           </div>
         </nav>
       </header>
@@ -113,7 +125,13 @@ export function AppNavigation({ email, inTwa }: AppNavigationProps) {
                 icon={BOTTOM_ICONS[item.href] ?? "practice"}
               />
             ))}
-            <ProfileMenu email={email} inTwa={inTwa} pathname={pathname} bottom />
+            <ProfileMenu
+              email={email}
+              initialAvatarUrl={initialAvatarUrl}
+              inTwa={inTwa}
+              pathname={pathname}
+              bottom
+            />
           </div>
         </nav>
       )}
@@ -171,12 +189,14 @@ function BottomNavLink({
 
 function ProfileMenu({
   email,
+  initialAvatarUrl,
   inTwa,
   pathname,
   compact = false,
   bottom = false,
 }: {
   email: string | null;
+  initialAvatarUrl?: string | null;
   inTwa: boolean;
   pathname: string;
   compact?: boolean;
@@ -185,28 +205,59 @@ function ProfileMenu({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => initialAvatarUrl ?? null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuItems = getProfileMenuNavItems(!!email, inTwa);
 
+  const storageKey = email ? `debate_avatar_${email.trim().toLowerCase()}` : null;
+
   useEffect(() => {
-    if (!email) return;
-    const cached = typeof window !== "undefined" ? localStorage.getItem("debate_user_avatar") : null;
-    if (cached) setAvatarUrl(cached);
+    // Purge legacy unscoped cache so old profile icons never leak across accounts
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("debate_user_avatar");
+      } catch {}
+    }
+
+    if (!email) {
+      setAvatarUrl(null);
+      return;
+    }
+
+    if (initialAvatarUrl !== undefined) {
+      setAvatarUrl(initialAvatarUrl);
+      if (storageKey && typeof window !== "undefined") {
+        if (initialAvatarUrl) {
+          localStorage.setItem(storageKey, initialAvatarUrl);
+        } else {
+          localStorage.removeItem(storageKey);
+        }
+      }
+    } else if (storageKey && typeof window !== "undefined") {
+      const cached = localStorage.getItem(storageKey);
+      setAvatarUrl(cached || null);
+    }
 
     fetch("/api/profile")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.avatarUrl) {
-          setAvatarUrl(data.avatarUrl);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("debate_user_avatar", data.avatarUrl);
+        if (data) {
+          if (data.avatarUrl) {
+            setAvatarUrl(data.avatarUrl);
+            if (storageKey && typeof window !== "undefined") {
+              localStorage.setItem(storageKey, data.avatarUrl);
+            }
+          } else {
+            setAvatarUrl(null);
+            if (storageKey && typeof window !== "undefined") {
+              localStorage.removeItem(storageKey);
+            }
           }
         }
       })
       .catch(() => {});
-  }, [email]);
+  }, [email, initialAvatarUrl, storageKey]);
 
   const initials = useMemo(() => {
     if (!email) return "?";
@@ -270,6 +321,13 @@ function ProfileMenu({
 
   async function signOut() {
     setLoading(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("debate_user_avatar");
+        if (storageKey) localStorage.removeItem(storageKey);
+      } catch {}
+    }
+    setAvatarUrl(null);
     await getSupabaseClient().auth.signOut();
     setOpen(false);
     router.push("/");

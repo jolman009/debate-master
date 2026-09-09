@@ -40,7 +40,9 @@ export function JoinLeaderboard({
       const dataUrl = await compressAvatarImage(file, 256, 0.85);
       setAvatarUrl(dataUrl);
       if (typeof window !== "undefined") {
-        localStorage.setItem("debate_user_avatar", dataUrl);
+        try {
+          localStorage.removeItem("debate_user_avatar");
+        } catch {}
       }
       await fetch("/api/profile", {
         method: "POST",
@@ -61,7 +63,9 @@ export function JoinLeaderboard({
     try {
       setAvatarUrl(null);
       if (typeof window !== "undefined") {
-        localStorage.removeItem("debate_user_avatar");
+        try {
+          localStorage.removeItem("debate_user_avatar");
+        } catch {}
       }
       await fetch("/api/profile", {
         method: "POST",

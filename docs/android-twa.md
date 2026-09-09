@@ -9,90 +9,94 @@ Bubblewrap run + two env vars.
 
 ---
 
-## ⚠️ Read first: Play billing policy
+## 💳 In-App Subscriptions & Play Billing
 
-Google Play requires apps distributed on Play to sell in-app digital goods
-through **Play Billing**, and forbids steering users to an outside payment
-method. Debate Master sells Premium via **Stripe**.
+Debate Master integrates **Google Play Billing** for users on Android via the **W3C Digital Goods API** (`window.getDigitalGoodsService`), while retaining **Stripe** on the web.
 
-**Our posture: the Play app is free-to-use and sells nothing.** Every purchase
-and steering surface is hidden when running inside the TWA:
-
-| Surface | On the web | In the Play app |
-|---|---|---|
-| Header "Pricing" nav | shown | hidden |
-| Landing "See Pricing" / "View plans" | shown | hidden |
-| `/pricing` upgrade + billing-portal buttons | shown | hidden (info only) |
-| Setup wizard "View plans →" (free cap hit) | shown | hidden |
-| Premium perks for existing subscribers | work | **work** |
-
-Honouring a subscription bought on the web is allowed; *selling* or *pointing
-at the web checkout* is not. That's the line this implementation walks.
-
-**Verify current policy before you publish.** This area (anti-steering,
-user-choice billing, the Epic v. Google remedies) has been in flux. If you later
-want to sell inside the app, the path is the Digital Goods API + Play Billing —
-effectively a second billing integration alongside Stripe (Play Console
-products, purchase flow, and Real-Time Developer Notifications → webhook →
-`profiles.subscription_status`), plus Google's cut.
-
-### How detection works
-
-Only a Play-installed TWA supplies an `android-app://` referrer on launch.
-
-1. `middleware.ts` reads the launch `Referer`, and latches `dm_twa=1` onto **the
-   request** (so the first paint is already correct) and onto the response (so
-   later navigations stay correct).
-2. Server components call `isTwa()` (`src/lib/platform/twa-server.ts`).
-3. `TwaDetect` (root layout) is a client backstop that sets the cookie from
-   `document.referrer` if the header was ever missing.
-
-**Do not gate on `display-mode: standalone`.** An installed PWA on the open web
-is standalone too, but is *not* distributed through Play and *must* keep its
-upgrade path — gating on it would silently cost real revenue.
+### How it works:
+1. **On the Web**: Users upgrade via Stripe Checkout at standard card processing rates.
+2. **In the Play App (TWA)**: The app detects the Android TWA shell and uses the Digital Goods API to present native **"Subscribe with Google Play"** buttons. All Stripe checkout / steering links are hidden to comply with Google Play Policy.
+3. **Unified Supabase Perks**: Both billing providers sync to the user's Supabase `profiles.subscription_status` (`active`) and period end date. A subscription purchased anywhere grants full Premium Pro benefits (ElevenLabs neural voices, 4D rubric coaching, unlimited debates) across all platforms.
 
 ---
 
-## Setup
+## Setup & Release Workflow
 
-### 1. Create the Play app
-Play Console → **Create app**. Note the package name you intend to use, e.g.
-`app.debatemaster.twa` (immutable once published — choose carefully).
+### 1. Build the Billing-Enabled App Bundle (AAB)
 
-### 2. Generate + build the TWA
+Run the automated build script:
 
 ```bash
-npm install -g @bubblewrap/cli
-bubblewrap init --manifest https://<your-domain>/manifest.webmanifest
-# accept the defaults; set the package name to match step 1
-bubblewrap build          # produces app-release-bundle.aab + signing key
+npm run build:twa
 ```
 
-Bubblewrap reads `start_url`, `scope`, icons, and colours straight from
-`src/app/manifest.ts` — no duplication.
+This compiles the Android project inside `twa/`, injecting:
+- `<uses-permission android:name="com.android.vending.BILLING" />`
+- `com.google.androidbrowserhelper:billing`
+- Upload signing key (`twa/android.keystore`)
 
-> Keep the generated keystore + password safe and out of git. Losing the upload
-> key is recoverable via Play support; losing it *and* not using Play App
-> Signing is not.
+**Outputs:**
+- **`twa/app-release-bundle.aab`**: The signed Android App Bundle to upload to Google Play Console.
+- **`twa/app-release-signed.apk`**: Direct installable APK for local testing on a physical device or emulator.
 
-### 3. Upload + collect fingerprints
-Upload the `.aab` to an internal testing track. Then Play Console → **Setup →
-App integrity** gives you two SHA-256 fingerprints:
+> ⚠️ **Important:** Keep `twa/android.keystore` safe. It is excluded from git by default.
 
-- the **Play App Signing** certificate (what real users get — Google re-signs), and
-- your **upload** certificate (what you build locally).
+### 2. Upload to Google Play to Unlock Subscriptions
 
-### 4. Set the env vars (Vercel → Settings → Environment Variables)
+1. Open **Google Play Console** → Select your app (**Debate Master**).
+2. Go to **Testing → Internal testing** (or Closed testing).
+3. Click **Create new release** and upload `twa/app-release-bundle.aab`.
+4. Save and roll out the release to internal testers.
+5. **Result:** Because the AAB contains the `com.android.vending.BILLING` permission, Google Play Console will immediately unlock the **Monetize → Products → Subscriptions** section!
+
+### 3. Create Subscription Products in Play Console
+
+In Google Play Console → **Monetize with Play → Products → Subscriptions**:
+1. Create product:
+   - **Product ID**: `premium_monthly`
+   - **Base Plan ID**: `monthly`
+   - **Type**: Auto-renewing
+   - **Price**: $9.99 / month (or equivalent in local currencies)
+2. (Optional) Create annual product:
+   - **Product ID**: `premium_yearly`
+   - **Base Plan ID**: `annual`
+   - **Price**: $69.99 / year (save 40%)
+
+### 4. Configure Server Verification (Google Cloud Service Account)
+
+To verify purchases and prevent fraudulent or refunded subscriptions from staying active:
+
+1. In **Google Cloud Console** (for your Play Console project):
+   - Go to **IAM & Admin → Service Accounts** → Create Service Account.
+   - Grant role: **Google Play Developer Admin** or **Service Account User**.
+   - Create and download a JSON key.
+2. In **Google Play Console** → **Users and permissions** → Invite the service account email and grant permissions:
+   - *View app information and download bulk reports*
+   - *Manage orders and subscriptions*
+3. In **Vercel** (or `.env.local`):
+   - Set `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY` to the full JSON string of the downloaded service account key (or set `GOOGLE_PLAY_CLIENT_EMAIL` and `GOOGLE_PLAY_PRIVATE_KEY`).
+
+### 5. Set Real-Time Developer Notifications (RTDN via Pub/Sub)
+
+1. In Google Cloud Console, create a Cloud Pub/Sub Topic: `play-subs-notifications`.
+2. In Google Play Console → **Monetization setup** → Paste topic name: `projects/<your-gcp-project>/topics/play-subs-notifications`.
+3. In Pub/Sub, create a **Push Subscription** targeting:
+   `https://<your-domain>/api/webhooks/google-play`
+
+### 6. Collect Certificate Fingerprints & Set Env Vars
+
+Play Console → **Setup → App integrity** gives you two SHA-256 fingerprints:
+- The **Play App Signing** certificate (assigned by Google upon first upload).
+- Your **Upload** certificate (`70:32:20:E8:1B:35:0E:37:2A:1C:24:44:29:0D:F1:71:2C:2A:C6:D0:14:2D:DC:54:00:B0:75:06:93:E4:E5:DA`).
+
+In **Vercel → Settings → Environment Variables**:
 
 ```
 ANDROID_PACKAGE_NAME      = app.debatemaster.twa
-ANDROID_CERT_FINGERPRINTS = <play-signing-sha256>,<upload-sha256>
+ANDROID_CERT_FINGERPRINTS = <play-signing-sha256>,70:32:20:E8:1B:35:0E:37:2A:1C:24:44:29:0D:F1:71:2C:2A:C6:D0:14:2D:DC:54:00:B0:75:06:93:E4:E5:DA
 ```
 
-Redeploy. **List both fingerprints** — shipping only one is the classic reason
-verification passes in local testing and fails in production (or vice versa).
-
-### 5. Verify the asset links
+Redeploy. Then verify asset links:
 
 ```bash
 curl https://<your-domain>/.well-known/assetlinks.json

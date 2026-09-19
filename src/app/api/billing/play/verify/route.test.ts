@@ -65,6 +65,29 @@ describe("POST /api/billing/play/verify", () => {
     expect(res.status).toBe(400);
   });
 
+  it("fails closed when Play verification is unconfigured", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    mockIsConfigured.mockReturnValue(false);
+    const response = await POST(new Request("http://localhost/api/billing/play/verify", {
+      method: "POST", body: JSON.stringify({ sku: "premium_monthly", purchaseToken: "unverified" }),
+    }));
+    expect(response.status).toBe(503);
+    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockVerifyAndAck).not.toHaveBeenCalled();
+  });
+
+  it("does not claim activation when entitlement storage fails", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    mockIsConfigured.mockReturnValue(true);
+    mockVerifyAndAck.mockResolvedValue({ valid: true, active: true, periodEnd: "2026-10-09T00:00:00Z" });
+    mockUpsert.mockResolvedValue({ error: new Error("Storage unavailable") });
+    const response = await POST(new Request("http://localhost/api/billing/play/verify", {
+      method: "POST", body: JSON.stringify({ sku: "premium_monthly", purchaseToken: "verified-token" }),
+    }));
+    expect(response.status).toBe(500);
+    expect((await response.json()).success).toBeUndefined();
+  });
+
   it("activates subscription and updates profile when verification succeeds", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
     mockIsConfigured.mockReturnValue(true);

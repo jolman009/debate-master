@@ -13,10 +13,12 @@ import {
   FEEDBACK_SYSTEM_PROMPT,
   JUDGE_SYSTEM_PROMPT,
 } from "@/lib/debate/prompt-builder";
-import { normalizeFeedbackResult } from "@/lib/debate/feedback";
-import { normalizeJudgeResult } from "@/lib/debate/judge";
+import { isMeasuredScore, normalizeFeedbackResult } from "@/lib/debate/feedback";
+import { extractJson, normalizeJudgeResult } from "@/lib/debate/judge";
 import { DebateConfig, DebateTurn } from "@/lib/debate/types";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { measurementEnabled } from "@/lib/measurement-flags";
+import { RUBRIC_VERSION, PROMPT_VERSION, RUBRIC_ANCHORS } from "@/lib/debate/rubric";
 import { reportError } from "@/lib/observability";
 
 // Allow time for the (non-streamed) feedback generation call.
@@ -27,7 +29,7 @@ async function generateContentWithFallback(
   systemInstruction: string,
   prompt: string,
   maxOutputTokens: number
-): Promise<string> {
+): Promise<{ text: string; model: string; inputTokens: number | null; outputTokens: number | null }> {
   const candidateModels = GEMINI_FALLBACK_MODELS;
 
   let lastErr: unknown = null;
@@ -45,7 +47,7 @@ async function generateContentWithFallback(
           },
         },
       });
-      return response.text ?? "";
+      return { text: response.text ?? "", model, inputTokens: response.usageMetadata?.promptTokenCount ?? null, outputTokens: response.usageMetadata?.candidatesTokenCount ?? null };
     } catch (err: unknown) {
       lastErr = err;
       if (isRetryableGeminiError(err)) {
@@ -112,67 +114,57 @@ export async function POST(
     return runHumanJudge(supabase, params.debateId, config, turns as DebateTurn[]);
   }
 
-  // AI mode below — the original one-sided coach feedback, unchanged (the
-  // ownership filters on the update stay, and RLS already limits this to the
-  // owner since AI debates have no participant rows).
+  // AI coaching is owner-scoped and first-write-wins.
+  if (debate.feedback) return NextResponse.json({ feedback: debate.feedback });
+  if (!measurementEnabled(user.id)) return NextResponse.json({ error: "Coaching is temporarily unavailable" }, { status: 503 });
+  if (debate.current_stage !== "feedback" && debate.current_stage !== "complete") {
+    return NextResponse.json({ error: "Finish the debate before requesting coaching" }, { status: 409 });
+  }
   const gemini = getGeminiClient();
+  const started = Date.now();
   const transcript = buildFeedbackPrompt(turns as DebateTurn[]);
 
   try {
     const text = await generateContentWithFallback(
       gemini,
-      FEEDBACK_SYSTEM_PROMPT,
+      FEEDBACK_SYSTEM_PROMPT + "\n" + RUBRIC_ANCHORS,
       transcript,
       4000
     );
 
-    const feedback =
-      normalizeFeedbackResult(text, turns as DebateTurn[]) ??
-      normalizeFeedbackResult(
-        JSON.stringify({
-          version: 2,
-          overallScore: 6,
-          summary:
-            "You completed all debate stages with clear foundational arguments. Focus on deepening evidence and strengthening your counter-arguments in the next session.",
-          strongestMoment: {
-            title: "Engaged in full turn-based debate",
-            detail: "Completed all rounds against the opponent.",
-            evidence: [],
-          },
-          priorityImprovement: {
-            title: "Deepen warrant and evidence support",
-            detail: "Incorporate empirical examples and structured warrants.",
-            evidence: [],
-          },
-          rubric: {
-            argumentStrength: { score: 6, rationale: "Core arguments were delivered clearly.", evidence: [] },
-            evidenceUsage: { score: 5, rationale: "Consider adding statistics or comparative examples.", evidence: [] },
-            rebuttalQuality: { score: 6, rationale: "Addressed opposing claims directly.", evidence: [] },
-            rhetoricalSkill: { score: 6, rationale: "Maintained a structured debate posture.", evidence: [] },
-          },
-          practiceRecommendation: {
-            focus: "Deepen warrant and evidence support",
-            motion: config.topic || "Choose a motion that lets you practice this weakness.",
-            difficulty: config.difficulty || "intermediate",
-            rationale: "Build stronger warrants and empirical citations.",
-          },
-          strengths: ["Completed all debate stages"],
-          improvements: ["Deepen warrant and evidence support"],
-        }),
-        turns as DebateTurn[]
-      );
+    const feedback = normalizeFeedbackResult(text.text, turns as DebateTurn[]);
+    if (!feedback) {
+      await supabase.from("debates").update({ assessment_status: "invalid" }).eq("id", params.debateId).eq("user_id", user.id).is("feedback", null);
+      reportError(new Error("Invalid coaching evaluation"), { route: "debate/feedback", debateId: params.debateId });
+      return NextResponse.json({ error: "The coach returned invalid scores. Please retry." }, { status: 502 });
+    }
+    feedback.assessment = {
+      status: "valid", rubricVersion: RUBRIC_VERSION, promptVersion: PROMPT_VERSION,
+      model: text.model, sessionFormat: `ai:${config.rebuttalCycles}:${config.crossExamEnabled}`,
+      difficulty: config.difficulty, evaluatedAt: new Date().toISOString(),
+      latencyMs: Date.now() - started, inputTokens: text.inputTokens, outputTokens: text.outputTokens,
+    };
 
     // Save feedback to debate — ownership filter here too so a stolen
     // debate row can't have its feedback overwritten.
-    await supabase
+    const { data: saved, error: saveError } = await supabase
       .from("debates")
       .update({
         feedback,
+        assessment_status: "valid",
         current_stage: "complete",
         updated_at: new Date().toISOString(),
       })
       .eq("id", params.debateId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("feedback", null)
+      .select("id");
+    if (saveError) throw saveError;
+    if (!saved?.length) {
+      const { data: existing } = await supabase.from("debates").select("feedback").eq("id", params.debateId).single();
+      if (!existing?.feedback) throw new Error("Feedback was not saved");
+      return NextResponse.json({ feedback: existing.feedback });
+    }
 
     return NextResponse.json({ feedback });
   } catch (err) {
@@ -199,16 +191,21 @@ async function runHumanJudge(
   turns: DebateTurn[]
 ) {
   const gemini = getGeminiClient();
+  const started = Date.now();
 
   try {
     const text = await generateContentWithFallback(
       gemini,
-      JUDGE_SYSTEM_PROMPT,
+      JUDGE_SYSTEM_PROMPT + "\n" + RUBRIC_ANCHORS,
       buildJudgePrompt(turns, config),
       2000
     );
 
-    const judgeResult = normalizeJudgeResult(text);
+    const rawJudge = extractJson(text.text) as Record<string, Record<string, unknown>> | null;
+    const hasMeasuredScores = ["pro", "con"].every(side =>
+      ["score", "argumentStrength", "evidenceUsage", "rebuttalQuality", "rhetoricalSkill"].every(key =>
+        isMeasuredScore(rawJudge?.[side]?.[key])));
+    const judgeResult = hasMeasuredScores ? normalizeJudgeResult(text.text) : null;
     if (!judgeResult) {
       reportError(new Error("Judge returned an unusable verdict"), {
         route: "debate/feedback",
@@ -220,6 +217,13 @@ async function runHumanJudge(
         { status: 502 }
       );
     }
+
+    judgeResult.assessment = {
+      status: "valid", rubricVersion: RUBRIC_VERSION, promptVersion: "judge-anchors-1",
+      model: text.model, sessionFormat: `human:${config.rebuttalCycles}:${config.crossExamEnabled}`,
+      difficulty: config.difficulty, evaluatedAt: new Date().toISOString(),
+      latencyMs: Date.now() - started, inputTokens: text.inputTokens, outputTokens: text.outputTokens,
+    };
 
     const { data, error } = await supabase.rpc("apply_judge_result", {
       p_debate_id: debateId,

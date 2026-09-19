@@ -4,7 +4,7 @@
 // strict-but-forgiving: we repair the things that don't change the outcome
 // (out-of-range scores, missing prose, missing arrays) and REFUSE outright
 // (return null) when the response isn't a usable verdict at all. The AI-mode
-// feedback route can safely fall back to a placeholder; a ranked result cannot.
+// feedback route now rejects missing scores, as does the ranked route before normalization.
 
 import { JudgeResult, JudgeSideScore, Side } from "./types";
 

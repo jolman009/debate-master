@@ -17,7 +17,7 @@ test("home page loads with nav", async ({ page }) => {
       name: "An empty debate chamber with two illuminated lecterns",
     })
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Leaderboard" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Leaderboard" })).toBeVisible();
 
   const nextSectionTop = await page.locator("main section").nth(1).evaluate(
     (element) => element.getBoundingClientRect().top

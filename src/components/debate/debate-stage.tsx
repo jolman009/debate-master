@@ -427,6 +427,7 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
 
         {feedback && (
           <FeedbackPanel
+            sessionId={debate.id}
             feedback={feedback}
             config={config}
             persona={persona}

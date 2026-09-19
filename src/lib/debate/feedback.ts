@@ -164,24 +164,17 @@ export function normalizeFeedbackResult(
 
   const data = raw as Record<string, unknown>;
   if (data.version !== 2) {
-    return adaptFeedback({
-      overallScore: clampScore(data.overallScore),
-      argumentStrength: clampScore(data.argumentStrength),
-      evidenceUsage: clampScore(data.evidenceUsage),
-      rebuttalQuality: clampScore(data.rebuttalQuality),
-      rhetoricalSkill: clampScore(data.rhetoricalSkill),
-      summary: stringOr(data.summary, text),
-      strengths: stringArray(data.strengths, ["Completed the debate"]),
-      improvements: stringArray(data.improvements, [
-        "Could not parse structured coaching",
-      ]),
-    });
+    return null; // Unversioned model output is not a current assessment.
   }
 
   const rubricRaw =
     data.rubric && typeof data.rubric === "object" && !Array.isArray(data.rubric)
       ? (data.rubric as Record<string, unknown>)
       : {};
+  // Never coerce, clamp, or substitute a measured score.
+  const scores = [data.overallScore, ...RUBRIC_KEYS.map(key =>
+    (rubricRaw[key] as Record<string, unknown> | undefined)?.score)];
+  if (!scores.every(isMeasuredScore)) return null;
   const legacyScores = data as Record<RubricKey, unknown>;
   const rubric = RUBRIC_KEYS.reduce((acc, key) => {
     acc[key] = normalizeRubricItem(
@@ -239,4 +232,14 @@ export function normalizeFeedbackResult(
     strengths,
     improvements,
   };
+}
+
+export function isMeasuredScore(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 10;
+}
+
+export function isValidAssessment(feedback: DebateFeedbackV2): boolean {
+  return feedback.assessment?.status === "valid" &&
+    isMeasuredScore(feedback.overallScore) &&
+    RUBRIC_KEYS.every(key => isMeasuredScore(feedback.rubric[key].score));
 }

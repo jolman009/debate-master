@@ -241,7 +241,7 @@ export function SetupWizard({
       const { debateId } = await res.json();
       trackEvent("setup_completed", {
         mode,
-        topic: selectedTopic?.title || customMotion,
+        topicId: selectedTopic?.id,
         personaId: selectedPersona ?? undefined,
         difficulty,
       });

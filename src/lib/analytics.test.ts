@@ -6,22 +6,20 @@ describe("analytics", () => {
     const listener = vi.fn();
     const unsubscribe = addAnalyticsListener(listener);
 
-    trackEvent("practice_started", {
-      focus: "Rebuttal structuring",
-      motion: "This House would ban targeted ads",
+    trackEvent("practice_clicked", {
+      sessionId: "session-1",
       difficulty: "intermediate",
     });
 
-    expect(listener).toHaveBeenCalledWith("practice_started", {
-      focus: "Rebuttal structuring",
-      motion: "This House would ban targeted ads",
+    expect(listener).toHaveBeenCalledWith("practice_clicked", {
+      sessionId: "session-1",
       difficulty: "intermediate",
     });
 
     unsubscribe();
 
     trackEvent("debate_rematch", {
-      motion: "This House would ban targeted ads",
+      sessionId: "session-1",
       personaId: "the-academic",
     });
 

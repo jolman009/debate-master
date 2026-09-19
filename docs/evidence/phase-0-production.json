@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-09-19T10:57:24.799Z",
+  "target": "https://debate-master-psi.vercel.app",
+  "scope": "Deployed HTTP auth boundary and real AI rate limit; nonexistent debate prevents inference",
+  "checks": [
+    {
+      "name": "Measurement endpoint rejects anonymous callers",
+      "passed": false,
+      "status": 404
+    },
+    {
+      "name": "Authenticated feedback path reaches owned debate lookup",
+      "passed": true,
+      "firstStatus": 404
+    },
+    {
+      "name": "AI limiter returns 429 with Retry-After within 21 calls",
+      "passed": true,
+      "statuses": [
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        429
+      ],
+      "retryAfter": 22
+    }
+  ],
+  "cleanup": true,
+  "passed": false
+}

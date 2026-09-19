@@ -9,7 +9,7 @@ export type AnalyticsEventName =
   | "setup_completed"
   | "setup_abandoned"
   | "practice_suggested"
-  | "practice_started"
+  | "practice_clicked"
   | "feedback_usefulness_rated"
   | "feedback_reported"
   | "debate_started"
@@ -20,13 +20,13 @@ export interface AnalyticsEventPayload {
   setup_step_viewed: { step: string; mode?: string };
   setup_completed: {
     mode: string;
-    topic: string;
+    topicId?: string;
     personaId?: string;
     difficulty?: string;
   };
   setup_abandoned: { lastStep: string; mode?: string };
-  practice_suggested: { focus: string; motion: string; difficulty: string };
-  practice_started: { focus: string; motion: string; difficulty: string };
+  practice_suggested: { sessionId?: string; difficulty: string };
+  practice_clicked: { sessionId?: string; difficulty: string };
   feedback_usefulness_rated: {
     usefulness: "helpful" | "not_helpful";
     score: number | null;
@@ -38,7 +38,7 @@ export interface AnalyticsEventPayload {
   };
   debate_started: { debateId: string; mode: string };
   turn_submitted: { debateId: string; stage: string; role?: string };
-  debate_rematch: { motion: string; personaId?: string };
+  debate_rematch: { sessionId?: string; personaId?: string };
 }
 
 export type EventCallback = <E extends AnalyticsEventName>(

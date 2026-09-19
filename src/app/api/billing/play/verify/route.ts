@@ -36,30 +36,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // If service account is not yet configured in local environment, allow graceful handling
+  // Missing verification credentials must never create a paid entitlement.
   if (!isGooglePlayConfigured()) {
-    console.warn(
-      "[PlayBilling] GOOGLE_PLAY_SERVICE_ACCOUNT_KEY not set. Activating subscription for testing."
+    return Response.json(
+      { error: "Google Play verification is not configured." },
+      { status: 503 }
     );
-    const admin = createServiceClient();
-    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-    await admin.from("profiles").upsert(
-      {
-        user_id: user.id,
-        subscription_status: "active",
-        subscription_current_period_end: periodEnd,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-    return Response.json({
-      success: true,
-      active: true,
-      periodEnd,
-      testMode: true,
-    });
   }
 
   try {
@@ -80,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     const admin = createServiceClient();
-    await admin.from("profiles").upsert(
+    const { error: saveError } = await admin.from("profiles").upsert(
       {
         user_id: user.id,
         subscription_status: "active",
@@ -89,6 +71,8 @@ export async function POST(req: Request) {
       },
       { onConflict: "user_id" }
     );
+
+    if (saveError) throw saveError;
 
     return Response.json({
       success: true,

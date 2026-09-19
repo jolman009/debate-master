@@ -19,6 +19,7 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(initialError);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -120,17 +121,49 @@ export function LoginForm({ redirectTo, initialError }: LoginFormProps) {
           >
             Password
           </label>
-          <input
-            id="password"
-            type="password"
-            required
-            autoComplete={
-              mode === "signin" ? "current-password" : "new-password"
-            }
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 min-h-11 w-full rounded-lg border border-stage-border bg-stage-surface px-3 py-2 text-sm text-stage-text outline-none focus:border-stage-accent"
-          />
+          <div className="relative mt-1">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              required
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="min-h-11 w-full rounded-lg border border-stage-border bg-stage-surface py-2 pl-3 pr-11 text-sm text-stage-text outline-none focus:border-stage-accent"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-stage-muted transition-colors hover:text-stage-text"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+              >
+                {showPassword ? (
+                  <>
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path d="M9.9 4.2A10.7 10.7 0 0 1 12 4c5 0 8.5 4 9.5 6a16 16 0 0 1-3.1 3.7" />
+                    <path d="M6.2 6.2C4.3 7.4 3.1 9 2.5 10c1 2 4.5 6 9.5 6 1 0 2-.2 2.9-.5" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {error && <p role="alert" className="text-sm text-stage-con">{error}</p>}

@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-09-19T11:51:27.174Z",
+  "target": "https://debate-master-psi.vercel.app",
+  "scope": "One synthetic scripted debate through deployed APIs with real model inference, then authenticated browser coaching inspection. Not human calibration or a population latency baseline.",
+  "checks": [
+    {
+      "name": "Deployed debate creation succeeds",
+      "passed": true
+    },
+    {
+      "name": "Unplayed debate cannot generate coaching",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "name": "Real AI streamed turn 1 completes",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Real AI streamed turn 2 completes",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Real AI streamed turn 3 completes",
+      "passed": false,
+      "status": 200
+    }
+  ],
+  "requests": [
+    {
+      "action": "/api/billing/checkout",
+      "status": 401,
+      "latencyMs": 925
+    },
+    {
+      "action": "/api/debate",
+      "status": 200,
+      "latencyMs": 1476
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 400,
+      "latencyMs": 663
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 4347
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 4455
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 3722
+    }
+  ],
+  "cleanup": true,
+  "passed": false,
+  "billingAvailability": {
+    "anonymousCheckoutStatus": 401,
+    "disabled": false
+  },
+  "failure": "Streamed turn 3 failed; stopped to avoid duplicate inference"
+}

@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-09-19T10:54:06.336Z",
+  "target": "brbojvglxluvaigoxdji.supabase.co",
+  "scope": "Live Supabase API using disposable authenticated identities; not a deployed-app or AI quality test",
+  "checks": [
+    {
+      "name": "Insert emits one owned start event",
+      "passed": true
+    },
+    {
+      "name": "No coaching view before feedback",
+      "passed": true
+    },
+    {
+      "name": "Exactly one of each lifecycle event after concurrent retries",
+      "passed": true
+    },
+    {
+      "name": "Events have IDs, database timestamps, ownership, and no free text",
+      "passed": true
+    },
+    {
+      "name": "Other user cannot read session events",
+      "passed": true
+    },
+    {
+      "name": "Other user cannot record coaching view",
+      "passed": true
+    },
+    {
+      "name": "Anonymous cannot record coaching view",
+      "passed": true
+    },
+    {
+      "name": "Anonymous cannot read events",
+      "passed": true
+    },
+    {
+      "name": "Owner cannot insert fabricated analytics events",
+      "passed": true
+    },
+    {
+      "name": "Owner cannot alter analytics timestamps",
+      "passed": true
+    },
+    {
+      "name": "Owner cannot delete analytics events",
+      "passed": true
+    },
+    {
+      "name": "Session deletion cascades to lifecycle events",
+      "passed": true
+    }
+  ],
+  "cleanup": [
+    {
+      "kind": "fixture debate",
+      "passed": true
+    },
+    {
+      "kind": "fixture identity",
+      "passed": true
+    },
+    {
+      "kind": "fixture identity",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

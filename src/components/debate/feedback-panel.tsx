@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   DebateConfig,
@@ -21,6 +21,7 @@ import { trackEvent } from "@/lib/analytics";
 
 interface FeedbackPanelProps {
   feedback: DebateFeedback;
+  sessionId?: string;
   config?: DebateConfig | null;
   persona?: Persona | null;
   tier?: Tier;
@@ -37,10 +38,25 @@ const RUBRIC_LABELS: Record<keyof DebateFeedbackV2["rubric"], string> = {
 
 export function FeedbackPanel({
   feedback,
+  sessionId,
   config,
   persona,
   tier = "free",
 }: FeedbackPanelProps) {
+  useEffect(() => {
+    if (!sessionId) return;
+    const controller = new AbortController();
+    async function record() {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await fetch("/api/measurement", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId }), signal: controller.signal });
+          if (response.ok || response.status < 500) return;
+        } catch { if (controller.signal.aborted) return; }
+      }
+    }
+    void record();
+    return () => controller.abort();
+  }, [sessionId]);
   const adapted = adaptFeedback(feedback);
   const [usefulness, setUsefulness] = useState<Usefulness>(null);
   const isPremium = tier === "premium";
@@ -172,7 +188,7 @@ export function FeedbackPanel({
           <span className="tabular-nums text-4xl font-bold text-stage-accent">
             {adapted.overallScore}
           </span>
-          <span className="text-xs text-stage-muted">/10 estimate</span>
+          <span className="text-xs text-stage-muted">/10 {adapted.assessment?.status === "valid" ? "estimate" : "legacy estimate"}</span>
         </div>
         <div>
           <h2 className="font-editorial text-3xl font-semibold">Coaching Notes</h2>
@@ -243,7 +259,7 @@ export function FeedbackPanel({
               {adapted.practiceRecommendation.difficulty}
             </p>
             <p className="text-[11px] text-stage-muted">
-              Calibrated to match your {adapted.overallScore}/10 estimated performance level.
+              Suggested from this coaching estimate; independent calibration is pending.
             </p>
           </div>
         </div>
@@ -257,9 +273,8 @@ export function FeedbackPanel({
                 adapted.practiceRecommendation.difficulty
               )}&goal=${encodeURIComponent(adapted.practiceRecommendation.focus)}`}
               onClick={() =>
-                trackEvent("practice_started", {
-                  focus: adapted.practiceRecommendation.focus,
-                  motion: adapted.practiceRecommendation.motion,
+                trackEvent("practice_clicked", {
+                  sessionId,
                   difficulty: adapted.practiceRecommendation.difficulty,
                 })
               }
@@ -283,7 +298,7 @@ export function FeedbackPanel({
               href={rematchHref}
               onClick={() =>
                 trackEvent("debate_rematch", {
-                  motion: rematchMotion,
+                  sessionId,
                   personaId: rematchPersona,
                 })
               }

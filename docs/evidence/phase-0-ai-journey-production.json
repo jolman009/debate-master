@@ -1,0 +1,148 @@
+{
+  "checkedAt": "2026-09-19T11:53:49.371Z",
+  "target": "https://debate-master-psi.vercel.app",
+  "scope": "One synthetic scripted debate through deployed APIs with real model inference, then authenticated browser coaching inspection. Not human calibration or a population latency baseline.",
+  "checks": [
+    {
+      "name": "Deployed debate creation succeeds",
+      "passed": true
+    },
+    {
+      "name": "Unplayed debate cannot generate coaching",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "name": "Real AI streamed turn 1 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 24,
+      "textFrames": 23,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "rebuttal_user_1"
+    },
+    {
+      "name": "Real AI streamed turn 2 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 27,
+      "textFrames": 26,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "closing_user"
+    },
+    {
+      "name": "Real AI streamed turn 3 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 17,
+      "textFrames": 16,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "feedback"
+    },
+    {
+      "name": "Real coaching evaluation succeeds",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "All six transcript turns persisted",
+      "passed": true
+    },
+    {
+      "name": "Rubric/model/prompt/format/difficulty provenance persisted",
+      "passed": false
+    },
+    {
+      "name": "Evaluation records token counts and latency",
+      "passed": false
+    },
+    {
+      "name": "Every generated transcript reference resolves exactly",
+      "passed": true,
+      "referenceCount": 6
+    },
+    {
+      "name": "Authenticated browser displays coaching",
+      "passed": true
+    },
+    {
+      "name": "Displayed transcript excerpts resolve to generated references",
+      "passed": false,
+      "displayedReferenceCount": 0
+    },
+    {
+      "name": "Browser posts coaching-view events successfully",
+      "passed": false
+    },
+    {
+      "name": "Exactly one lifecycle event per action after browser reload",
+      "passed": false
+    },
+    {
+      "name": "Invalid Play purchase cannot grant entitlement",
+      "passed": false,
+      "status": 200,
+      "testMode": true
+    }
+  ],
+  "requests": [
+    {
+      "action": "/api/billing/checkout",
+      "status": 401,
+      "latencyMs": 416
+    },
+    {
+      "action": "/api/debate",
+      "status": 200,
+      "latencyMs": 1104
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 400,
+      "latencyMs": 632
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 4510
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 5082
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 3336
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 200,
+      "latencyMs": 5810
+    },
+    {
+      "action": "/api/billing/play/verify",
+      "status": 200,
+      "latencyMs": 455
+    }
+  ],
+  "cleanup": true,
+  "passed": false,
+  "billingAvailability": {
+    "anonymousCheckoutStatus": 401,
+    "disabled": false
+  },
+  "assessment": null,
+  "retrySkipped": "Deployed feedback has no provenance; retry might trigger unnecessary inference",
+  "browserMeasurementStatuses": [],
+  "lifecycleCounts": {
+    "debate_started": 1,
+    "debate_completed": 1,
+    "coaching_generated": 1,
+    "coaching_viewed": 0
+  }
+}

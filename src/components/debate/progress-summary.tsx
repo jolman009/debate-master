@@ -1,5 +1,5 @@
 import { DebateFeedback } from "@/lib/debate/types";
-import { adaptFeedback } from "@/lib/debate/feedback";
+import { adaptFeedback, isValidAssessment } from "@/lib/debate/feedback";
 import { DebateSummary } from "./debate-card";
 
 type NumericDimension =
@@ -27,10 +27,18 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
   const scored = debates
     .map((d) => d.feedback)
     .filter((f): f is DebateFeedback => f != null)
-    .map(adaptFeedback);
+    .map(adaptFeedback)
+    .filter(isValidAssessment);
 
   if (scored.length === 0) return null;
 
+  const latest = scored[0].assessment!;
+  const comparable = scored.filter(f => {
+    const a = f.assessment!;
+    return a.rubricVersion === latest.rubricVersion && a.promptVersion === latest.promptVersion &&
+      a.model === latest.model && a.sessionFormat === latest.sessionFormat && a.difficulty === latest.difficulty;
+  });
+  scored.splice(0, scored.length, ...comparable);
   const overall = scored.map((f) => f.overallScore);
   const average = avg(overall);
   const best = Math.max(...overall);
@@ -39,11 +47,11 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
   return (
     <section className="mb-8 border-y border-stage-border py-5">
       <h2 className="text-sm font-semibold uppercase text-stage-muted">
-        Your Progress
+        Your Progress (comparable assessments)
       </h2>
 
       <div className="mt-3 grid grid-cols-3 gap-4">
-        <Stat label="Completed" value={String(scored.length)} />
+        <Stat label="Valid assessments" value={String(scored.length)} />
         <Stat label="Avg score" value={average.toFixed(1)} suffix="/10" />
         <Stat label="Best" value={String(best)} suffix="/10" />
       </div>
@@ -62,7 +70,7 @@ export function ProgressSummary({ debates }: { debates: DebateSummary[] }) {
             {delta > 0 ? "▲ +" : delta < 0 ? "▼ " : "■ "}
             {delta !== 0 ? delta : "No change"}
           </span>{" "}
-          {delta !== 0 && "since your first debate"}
+          {delta !== 0 && "since your first comparable assessment"}
         </p>
       )}
 

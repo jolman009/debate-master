@@ -117,6 +117,7 @@ export interface JudgeSideScore {
 
 /** The two-sided verdict for a human-vs-human debate. */
 export interface JudgeResult {
+  assessment?: EvaluationProvenance;
   pro: JudgeSideScore;
   con: JudgeSideScore;
   winner: Side | "draw";
@@ -179,7 +180,21 @@ export interface FeedbackRubricItem {
   evidence: FeedbackEvidenceReference[];
 }
 
+export interface EvaluationProvenance {
+  status: "valid" | "missing" | "invalid" | "fallback" | "legacy";
+  rubricVersion: string;
+  promptVersion: string;
+  model: string;
+  sessionFormat: string;
+  difficulty: Difficulty;
+  evaluatedAt: string;
+  latencyMs: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+}
+
 export interface DebateFeedbackV2 {
+  assessment?: EvaluationProvenance;
   version: 2;
   overallScore: number;
   summary: string;

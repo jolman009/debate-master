@@ -1,0 +1,167 @@
+{
+  "checkedAt": "2026-09-19T11:55:40.122Z",
+  "target": "http://localhost:3211",
+  "scope": "One synthetic scripted debate through the specified app origin with real model inference, then authenticated browser coaching inspection. Local origins are not deployment evidence. Not human calibration or a population latency baseline.",
+  "checks": [
+    {
+      "name": "Deployed debate creation succeeds",
+      "passed": true
+    },
+    {
+      "name": "Unplayed debate cannot generate coaching",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "name": "Real AI streamed turn 1 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 21,
+      "textFrames": 20,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "rebuttal_user_1"
+    },
+    {
+      "name": "Real AI streamed turn 2 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 31,
+      "textFrames": 30,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "closing_user"
+    },
+    {
+      "name": "Real AI streamed turn 3 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 18,
+      "textFrames": 17,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "feedback"
+    },
+    {
+      "name": "Real coaching evaluation succeeds",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "All six transcript turns persisted",
+      "passed": true
+    },
+    {
+      "name": "Rubric/model/prompt/format/difficulty provenance persisted",
+      "passed": true
+    },
+    {
+      "name": "Evaluation records token counts and latency",
+      "passed": true
+    },
+    {
+      "name": "Every generated transcript reference resolves exactly",
+      "passed": true,
+      "referenceCount": 6
+    },
+    {
+      "name": "Feedback retry returns the persisted evaluation unchanged",
+      "passed": false
+    },
+    {
+      "name": "Authenticated browser displays coaching",
+      "passed": false
+    },
+    {
+      "name": "Displayed transcript excerpts resolve to generated references",
+      "passed": false,
+      "displayedReferenceCount": 0
+    },
+    {
+      "name": "Browser posts coaching-view events successfully",
+      "passed": false
+    },
+    {
+      "name": "Exactly one lifecycle event per action after browser reload",
+      "passed": false
+    },
+    {
+      "name": "Invalid Play purchase cannot grant entitlement",
+      "passed": true,
+      "status": 404,
+      "testMode": false
+    }
+  ],
+  "requests": [
+    {
+      "action": "/api/billing/checkout",
+      "status": 503,
+      "latencyMs": 2389
+    },
+    {
+      "action": "/api/debate",
+      "status": 200,
+      "latencyMs": 1546
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 400,
+      "latencyMs": 3486
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 37582
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 17966
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 13017
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 200,
+      "latencyMs": 11211
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 200,
+      "latencyMs": 880
+    },
+    {
+      "action": "/api/billing/play/verify",
+      "status": 404,
+      "latencyMs": 375
+    }
+  ],
+  "cleanup": true,
+  "passed": false,
+  "billingAvailability": {
+    "anonymousCheckoutStatus": 503,
+    "disabled": true
+  },
+  "assessment": {
+    "status": "valid",
+    "rubricVersion": "debate-anchors-1",
+    "promptVersion": "coach-3",
+    "model": "gemini-3.5-flash",
+    "sessionFormat": "ai:1:false",
+    "difficulty": "beginner",
+    "evaluatedAt": "2026-09-19T11:57:09.137Z",
+    "latencyMs": 10022,
+    "inputTokens": 3094,
+    "outputTokens": 1163
+  },
+  "browserMeasurementStatuses": [],
+  "lifecycleCounts": {
+    "debate_started": 1,
+    "debate_completed": 1,
+    "coaching_generated": 1,
+    "coaching_viewed": 0
+  }
+}

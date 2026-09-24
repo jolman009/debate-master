@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-09-20T02:43:28.242Z",
+  "project": "literatipro/debate-master",
+  "scope": "Synthetic SDK transport and existing Sentry read permissions, separate from deployed route instrumentation and human alert acknowledgment",
+  "checks": [
+    {
+      "name": "Sentry ingest accepts the synthetic event",
+      "passed": true,
+      "statusCodes": [
+        200
+      ]
+    },
+    {
+      "name": "Stored event is retrievable from Sentry",
+      "passed": false,
+      "status": 403
+    },
+    {
+      "name": "Existing active notification rules can be verified",
+      "passed": false,
+      "status": 403,
+      "activeRuleCount": 0
+    }
+  ],
+  "passed": false,
+  "eventId": "4ee1c09f73004a77819914cbd54194c1",
+  "alertOwnership": {
+    "metadataStatus": 403,
+    "assignedTeamCount": null,
+    "humanAcknowledgment": "not verified"
+  }
+}

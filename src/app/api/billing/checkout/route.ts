@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/admin";
 import { getStripe, isBillingEnabled } from "@/lib/stripe";
 import { reportError } from "@/lib/observability";
 
@@ -15,8 +16,9 @@ export async function POST(req: Request) {
   const supabase = createServerClient();
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
-  if (!user) {
+  if (authError || !user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
@@ -24,20 +26,25 @@ export async function POST(req: Request) {
     const stripe = getStripe();
 
     // Reuse the user's Stripe customer if they have one; else create + store it.
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("stripe_customer_id")
       .eq("user_id", user.id)
       .maybeSingle();
+    if (profileError) throw profileError;
 
     let customerId = profile?.stripe_customer_id as string | undefined;
     if (!customerId) {
+      // Migration 016 reserves billing fields for trusted server writes.
+      // Resolve this client before creating a customer so missing server
+      // configuration cannot leave an orphaned Stripe customer.
+      const admin = createServiceClient();
       const customer = await stripe.customers.create({
         email: user.email ?? undefined,
         metadata: { userId: user.id },
       });
       customerId = customer.id;
-      await supabase.from("profiles").upsert(
+      const { error: saveError } = await admin.from("profiles").upsert(
         {
           user_id: user.id,
           stripe_customer_id: customerId,
@@ -45,6 +52,7 @@ export async function POST(req: Request) {
         },
         { onConflict: "user_id" }
       );
+      if (saveError) throw saveError;
     }
 
     const base = appUrl(req);

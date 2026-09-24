@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { chromium } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import { writeFileSync } from 'node:fs';
 nextEnv.loadEnvConfig(process.cwd());
 const target = new URL(process.argv[2]);
@@ -37,7 +38,7 @@ try {
   report.billingAvailability = { anonymousCheckoutStatus: billing.status, disabled: billing.status === 503 && billing.data?.error === 'Billing is not enabled.' };
   const created = await post('/api/debate', config);
   const id = created.data?.debateId;
-  check('Deployed debate creation succeeds', created.status === 200 && id);
+  check('Target app debate creation succeeds', created.status === 200 && id);
   if (!id) throw new Error(`Cannot create debate: HTTP ${created.status}`);
   const before = await post(`/api/debate/${id}/feedback`);
   check('Unplayed debate cannot generate coaching', before.status === 400 || before.status === 409, { status: before.status });
@@ -70,8 +71,13 @@ try {
   // Only retry current provenance-aware endpoint; an older endpoint may regenerate.
   if (assessment) {
     const retry = await post(`/api/debate/${id}/feedback`);
-    check('Feedback retry returns the persisted evaluation unchanged', retry.status === 200 && JSON.stringify(retry.data.feedback) === JSON.stringify(feedback));
+    check('Feedback retry returns the persisted evaluation unchanged', retry.status === 200 && isDeepStrictEqual(retry.data.feedback, feedback));
   } else report.retrySkipped = 'Deployed feedback has no provenance; retry might trigger unnecessary inference';
+  // A temporary entitlement on this synthetic identity exposes paid evidence UI.
+  // It is not a Stripe/Play purchase and is removed before the negative billing test.
+  const oldProfile = must(await admin.from('profiles').select('subscription_status,subscription_current_period_end').eq('user_id', userId).maybeSingle(), 'Read fixture tier');
+  must(await admin.from('profiles').upsert({ user_id: userId, subscription_status: 'active', subscription_current_period_end: new Date(Date.now() + 3600000).toISOString() }, { onConflict: 'user_id' }), 'Set synthetic display entitlement');
+  report.browserEntitlement = 'Temporary premium fixture for transcript display; not payment verification';
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   await context.addCookies([...cookies].map(([name, value]) => ({ name, value, domain: target.hostname, path: '/', secure: target.protocol === 'https:', sameSite: 'Lax' })));
@@ -79,6 +85,9 @@ try {
   const measurementRequests = [];
   page.on('response', r => { if (new URL(r.url()).pathname === '/api/measurement') measurementRequests.push(r.status()); });
   await page.goto(new URL(`/debate/${id}`, target.origin).href, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.getByRole('heading', { name: 'Coaching Notes', exact: true }).waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+  report.browserPath = new URL(page.url()).pathname;
+  report.browserTitle = await page.title();
   check('Authenticated browser displays coaching', await page.getByRole('heading', { name: 'Coaching Notes', exact: true }).isVisible());
   const displayed = await page.locator('blockquote').allTextContents();
   check('Displayed transcript excerpts resolve to generated references', displayed.length > 0 && displayed.every(text => refs.some(ref => text.includes(ref.excerpt))), { displayedReferenceCount: displayed.length });
@@ -88,9 +97,10 @@ try {
   const events = must(await db.from('lifecycle_events').select('event_name').eq('session_id', id), 'Read lifecycle');
   report.lifecycleCounts = Object.fromEntries(['debate_started', 'debate_completed', 'coaching_generated', 'coaching_viewed'].map(name => [name, events.filter(event => event.event_name === name).length]));
   check('Exactly one lifecycle event per action after browser reload', Object.values(report.lifecycleCounts).every(count => count === 1));
+  must(await admin.from('profiles').update({ subscription_status: oldProfile?.subscription_status ?? null, subscription_current_period_end: oldProfile?.subscription_current_period_end ?? null }).eq('user_id', userId), 'Restore fixture tier');
   // Negative entitlement check on this disposable account only. No real token.
   const play = await post('/api/billing/play/verify', { sku: 'phase0-invalid-sku', purchaseToken: 'phase0-invalid-token' });
-  check('Invalid Play purchase cannot grant entitlement', play.status >= 400 && play.data?.active !== true, { status: play.status, testMode: play.data?.testMode ?? false });
+  check('Invalid Play purchase cannot grant entitlement', [400, 503].includes(play.status) && typeof play.data?.error === 'string' && play.data?.active !== true, { status: play.status, testMode: play.data?.testMode ?? false });
   report.passed = report.checks.every(c => c.passed);
 } catch (error) {
   report.failure = error.message;

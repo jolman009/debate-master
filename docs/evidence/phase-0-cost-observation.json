@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-20T02:45:51.143Z",
+  "model": "gemini-3.5-flash",
+  "sampleCount": 1,
+  "source": "https://ai.google.dev/gemini-api/docs/pricing",
+  "priceCheckedDate": "2026-09-20",
+  "pricingBasis": "Standard paid-tier text input and output list prices; actual project tier and invoice not verified",
+  "inputUsdPerMillion": 1.5,
+  "outputUsdPerMillion": 9,
+  "observedInputTokens": 2768,
+  "observedOutputTokens": 1204,
+  "observedTokenSubtotalUsd": 0.014988,
+  "serverEvaluationLatencyMs": 14380,
+  "httpEvaluationLatencyMs": 15893,
+  "limitations": [
+    "Only one successful coaching call; not a full debate or improvement-loop cost.",
+    "Thinking tokens, failed attempts, model retries and debate-turn token counts are not included in the current stored usage.",
+    "No provider invoice reconciliation, population failure rate or statistically useful p95 baseline."
+  ]
+}

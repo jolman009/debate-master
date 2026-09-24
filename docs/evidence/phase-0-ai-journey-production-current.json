@@ -1,0 +1,173 @@
+{
+  "checkedAt": "2026-09-20T02:45:09.490Z",
+  "target": "https://debate-master-psi.vercel.app",
+  "scope": "One synthetic scripted debate through the specified app origin with real model inference, then authenticated browser coaching inspection. Local origins are not deployment evidence. Not human calibration or a population latency baseline.",
+  "checks": [
+    {
+      "name": "Target app debate creation succeeds",
+      "passed": true
+    },
+    {
+      "name": "Unplayed debate cannot generate coaching",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "name": "Real AI streamed turn 1 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 18,
+      "textFrames": 17,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "rebuttal_user_1"
+    },
+    {
+      "name": "Real AI streamed turn 2 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 25,
+      "textFrames": 24,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "closing_user"
+    },
+    {
+      "name": "Real AI streamed turn 3 completes",
+      "passed": true,
+      "status": 200,
+      "frameCount": 13,
+      "textFrames": 12,
+      "doneFrames": 1,
+      "streamErrors": [],
+      "persistedStage": "feedback"
+    },
+    {
+      "name": "Real coaching evaluation succeeds",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "All six transcript turns persisted",
+      "passed": true
+    },
+    {
+      "name": "Rubric/model/prompt/format/difficulty provenance persisted",
+      "passed": true
+    },
+    {
+      "name": "Evaluation records token counts and latency",
+      "passed": true
+    },
+    {
+      "name": "Every generated transcript reference resolves exactly",
+      "passed": true,
+      "referenceCount": 6
+    },
+    {
+      "name": "Feedback retry returns the persisted evaluation unchanged",
+      "passed": true
+    },
+    {
+      "name": "Authenticated browser displays coaching",
+      "passed": true
+    },
+    {
+      "name": "Displayed transcript excerpts resolve to generated references",
+      "passed": true,
+      "displayedReferenceCount": 6
+    },
+    {
+      "name": "Browser posts coaching-view events successfully",
+      "passed": true
+    },
+    {
+      "name": "Exactly one lifecycle event per action after browser reload",
+      "passed": true
+    },
+    {
+      "name": "Invalid Play purchase cannot grant entitlement",
+      "passed": true,
+      "status": 503,
+      "testMode": false
+    }
+  ],
+  "requests": [
+    {
+      "action": "/api/billing/checkout",
+      "status": 401,
+      "latencyMs": 1206
+    },
+    {
+      "action": "/api/debate",
+      "status": 200,
+      "latencyMs": 1339
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 400,
+      "latencyMs": 1198
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 10910
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 5064
+    },
+    {
+      "action": "/api/debate/:session/turn",
+      "status": 200,
+      "latencyMs": 4728
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 200,
+      "latencyMs": 15893
+    },
+    {
+      "action": "/api/debate/:session/feedback",
+      "status": 200,
+      "latencyMs": 1759
+    },
+    {
+      "action": "/api/billing/play/verify",
+      "status": 503,
+      "latencyMs": 398
+    }
+  ],
+  "cleanup": true,
+  "passed": true,
+  "billingAvailability": {
+    "anonymousCheckoutStatus": 401,
+    "disabled": false
+  },
+  "assessment": {
+    "status": "valid",
+    "rubricVersion": "debate-anchors-1",
+    "promptVersion": "coach-3",
+    "model": "gemini-3.5-flash",
+    "sessionFormat": "ai:1:false",
+    "difficulty": "beginner",
+    "evaluatedAt": "2026-09-20T02:45:51.143Z",
+    "latencyMs": 14380,
+    "inputTokens": 2768,
+    "outputTokens": 1204
+  },
+  "browserEntitlement": "Temporary premium fixture for transcript display; not payment verification",
+  "browserPath": "/debate/ada23d0f-cea8-4a67-8ec1-6c341dde5ce9",
+  "browserTitle": "Debate Master - AI-Powered Debate Platform",
+  "browserMeasurementStatuses": [
+    204,
+    204
+  ],
+  "lifecycleCounts": {
+    "debate_started": 1,
+    "debate_completed": 1,
+    "coaching_generated": 1,
+    "coaching_viewed": 1
+  }
+}

@@ -1,6 +1,8 @@
 # Phase 0: deploy and verify Sentry
 
-The staging test page previously returned 404 because the Sentry scaffolding was absent from the staging branch. This change packages the example page, API route, browser/server/edge initialization and Next.js configuration for Preview deployment. The earlier hydration error at `localhost:3000/sentry-example-page` proves local capture only. Deployed capture and alert acknowledgment remain to be checked.
+Deployment update (September 23, 2026): Sentry commit `090f6d5` was pushed to `origin/staging` from an isolated checkout. Clean dependency installation, production build, lint and TypeScript checking passed; the build includes both Sentry test routes. Vercel reported success: “Deployment has completed” for https://vercel.com/joel-guzmans-projects-f8aa100e/debate-master/FZYVVu6rXqjKoKLkEmriaGjxm4zD . The main working tree and unrelated changes were preserved. Deployed capture and alert acknowledgment remain pending.
+
+The user reported a 404 at the staging `/sentry-example-page` URL. Local inspection found the page, API route and initialization files untracked in Git. They are not part of the current local commit (`d3c444a`). Remote deployment contents have not been inspected. The earlier hydration error at `localhost:3000/sentry-example-page` proves local capture only.
 
 ## Include the setup in the staging deployment
 

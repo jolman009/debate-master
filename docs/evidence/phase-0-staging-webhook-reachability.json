@@ -1,0 +1,23 @@
+{
+  "checked_on": "2026-09-20",
+  "environment": "staging",
+  "endpoint": "https://debate-master-git-staging-joel-guzmans-projects-f8aa100e.vercel.app/api/webhooks/stripe",
+  "deployment_status": "user_reported_checkout_and_webhook_fixes_deployed",
+  "request": {
+    "method": "POST",
+    "body": {},
+    "stripe_signature_present": false,
+    "vercel_bypass_present": false
+  },
+  "response": {
+    "http_status": 401,
+    "message": "Protected deployment",
+    "vercel_auth_enabled": true
+  },
+  "conclusion": "The plain endpoint URL is blocked by Vercel authentication. This request did not exercise application signature verification. Stripe needs an authorized protection bypass in its configured destination URL.",
+  "limitations": [
+    "The endpoint URL saved in Stripe was not inspected and may already include a bypass parameter.",
+    "No signed Stripe delivery, provider retrieval, payment or database mutation was performed.",
+    "Deployment contents were reported by the user, not independently verified."
+  ]
+}

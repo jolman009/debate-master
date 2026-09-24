@@ -1,0 +1,20 @@
+{
+  "evidence_source": "user_supplied_stripe_dashboard_delivery_details",
+  "environment": "staging",
+  "event_id": "evt_1UHnypRJWoFRw7ov2P7I5CX0",
+  "event_type": "product.created",
+  "event_created_at": "2026-09-20T16:52:45Z",
+  "delivery_status": "Delivered",
+  "api_version": "2026-06-24.dahlia",
+  "http_status": 200,
+  "response": { "received": true },
+  "checkpoint": "signed_webhook_delivery_passed",
+  "interpretation": "The user-reported delivery reached the staging handler and passed signature verification, based on the reviewed handler's behavior. product.created is acknowledged without processing a subscription.",
+  "not_verified": [
+    "Subscription retrieval through the pinned Stripe API version",
+    "Checkout customer mapping and subscription entitlement updates",
+    "billing_subscriptions and billing_events integration",
+    "Event replay, concurrency, ordering, renewal or cancellation reconciliation",
+    "Removal of the temporary product.created event selection"
+  ]
+}

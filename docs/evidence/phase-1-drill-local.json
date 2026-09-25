@@ -1,0 +1,27 @@
+{
+  "scope": "Local implementation verification; not a hosted or real-model assessment",
+  "unitAndApiTests": { "passed": true, "tests": 222, "files": 31 },
+  "postGuardChangeTargetedTests": { "passed": true, "tests": 28, "files": 3 },
+  "productionBuild": { "passed": true, "includesTypecheckAndLint": true },
+  "sql": {
+    "passed": true,
+    "runtime": "Isolated PGlite PostgreSQL",
+    "suites": ["supabase/tests/linked_learning_sessions.sql", "supabase/tests/drill_runtime.sql"],
+    "limitation": "Prerequisite schema and simulated Supabase roles; not the full hosted migration chain or multi-connection concurrency"
+  },
+  "browser": {
+    "passed": true,
+    "tests": 6,
+    "projects": ["desktop", "compact"],
+    "families": ["counterargument", "warrant", "repair"],
+    "checks": ["draft saved and resumed after reload", "focused feedback and revision", "linked reassessment", "completion persists on reload", "no horizontal overflow", "no page errors", "saved evaluation retry in counterargument family"],
+    "limitation": "Learning APIs and telemetry mocked; service workers blocked; no hosted authentication or real model inference"
+  },
+  "migration018Hosted": "applied to staging, user-confirmed; hosted runtime checks pending",
+  "hostedRuntimeConcurrency": "pending",
+  "curriculumApproval": "pending",
+  "humanCalibration": "pending",
+  "realServiceJourney": "pending",
+  "learnerPilot": "pending",
+  "productionDeployment": "not performed"
+}

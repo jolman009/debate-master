@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { getStageLabel } from "@/lib/debate/state-machine";
 import { Tier } from "@/lib/billing/tier";
 import { trackEvent } from "@/lib/analytics";
+import { PracticeEntry } from "@/components/learning/practice-entry";
 
 interface FeedbackPanelProps {
   feedback: DebateFeedback;
@@ -265,6 +266,7 @@ export function FeedbackPanel({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 pt-1">
+          <PracticeEntry sessionId={sessionId}>
           {isPremium ? (
             <Link
               href={`/debate/new?motion=${encodeURIComponent(
@@ -293,6 +295,7 @@ export function FeedbackPanel({
               </span>
             </Link>
           )}
+          </PracticeEntry>
           {config && (
             <Link
               href={rematchHref}

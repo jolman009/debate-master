@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseTargetedAssessment } from "./assessment";
 import { learningEnabled, approvedTemplateVersions } from "./flags";
 import { recommendDrill } from "./recommendation";
-import { DRILL_TEMPLATES } from "./drill-templates";
+import { DIFFICULTY_INSTRUCTIONS, DRILL_TEMPLATES } from "./drill-templates";
 import type { DebateFeedbackV2, DebateTurn } from "@/lib/debate/types";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -39,7 +39,7 @@ describe("evidence-based drill routing", () => {
     return { version: 2, overallScore: 5, assessment: { status: "valid" }, rubric: Object.fromEntries(
       ["argumentStrength", "evidenceUsage", "rebuttalQuality", "rhetoricalSkill"].map(k => [k, {
         score: k === "rebuttalQuality" ? 3 : 5,
-        evidence: [{ turnId: "learner", excerpt: k === "evidenceUsage" ? "My evidence." : "My claim." }],
+        evidence: [{ turnId: "learner", excerpt: k === "evidenceUsage" ? "My evidence." : "My claim." }, ...(k === "rebuttalQuality" ? [{ turnId: "opponent", excerpt: "But students need a quiet place." }] : [])],
       }])) } as DebateFeedbackV2;
   }
   const all = Object.values(DRILL_TEMPLATES).map(t => t.version);
@@ -65,7 +65,31 @@ describe("evidence-based drill routing", () => {
     expect(recommendDrill(f, turns, "beginner", [all[0]], "m")).toBeNull();
     expect(recommendDrill(feedback(), turns.slice(1), "beginner", [all[0]], "m")).toBeNull();
   });
-  it("makes absent verification explicit for claim repair", () => {
-    expect(recommendDrill(feedback(), turns, "beginner", [DRILL_TEMPLATES.repair.version], "m")?.exercise.context).toContain("No independently verified source");
+  it("does not select an uncited preceding argument", () => {
+    const f = feedback(); f.rubric.rebuttalQuality.evidence = f.rubric.rebuttalQuality.evidence.slice(0, 1);
+    expect(recommendDrill(f, turns, "beginner", [DRILL_TEMPLATES.counterargument.version], "m")).toBeNull();
+  });
+  it("rejects a fabricated opposing quotation", () => {
+    const f = feedback(); f.rubric.rebuttalQuality.evidence[1].excerpt = "Unrelated invented argument";
+    expect(recommendDrill(f, turns, "beginner", [DRILL_TEMPLATES.counterargument.version], "m")).toBeNull();
+  });
+  it("uses an explicitly separate bounded repair task with a distinct reassessment", () => {
+    const r = recommendDrill(feedback(), turns, "advanced", [DRILL_TEMPLATES.repair.version], "m")!;
+    expect(r.exercise.context).toContain("not evidence about your original debate");
+    expect(r.exercise.context).toContain("12 to 8 minutes");
+    expect(r.exercise.context).toContain("were not measured");
+    expect(r.reassessment.context).toContain("recycling bins");
+    expect(r.exercise.instructions).toContain("withdraw");
+    expect(r.exercise.instructions).toContain("merely adding");
+  });
+  it.each(["counterargument", "warrant", "repair"] as const)("uses family-specific difficulty guidance for %s", family => {
+    const r = recommendDrill(feedback(), turns, "advanced", [DRILL_TEMPLATES[family].version], "m")!;
+    expect(r.exercise.instructions).toContain(DIFFICULTY_INSTRUCTIONS[family].advanced);
+    expect(r.reassessment.instructions).toContain(DIFFICULTY_INSTRUCTIONS[family].advanced);
+    expect(r.exercise.templateVersion).toMatch(/-v2$/);
+  });
+  it("allows rejecting unsupported inference in the warrant task", () => {
+    expect(DRILL_TEMPLATES.warrant.instructions).toContain("does not support");
+    expect(DRILL_TEMPLATES.counterargument.instructions).toContain("concede a valid point");
   });
 });

@@ -4,7 +4,7 @@ const { generate, report } = vi.hoisted(() => ({ generate: vi.fn(), report: vi.f
 vi.mock("@/lib/gemini", () => ({ GEMINI_MODEL: "test-model", getGeminiClient: () => ({ models: { generateContent: generate } }) }));
 vi.mock("@/lib/observability", () => ({ reportError: report }));
 import { submitResponse } from "./service";
-const exercise = { templateVersion: "counterargument-response-v1", model: "test-model", competency: "rebuttalQuality", kind: "drill", promptVersion: "targeted-coach-1", rubricVersion: "debate-anchors-1", difficulty: "beginner" };
+const exercise = { templateVersion: "counterargument-response-v2", model: "test-model", competency: "rebuttalQuality", kind: "drill", promptVersion: "targeted-coach-2", rubricVersion: "debate-anchors-1", difficulty: "beginner" };
 const input = { requestId: "request", content: "My answer", kind: "initial" as const, revision: 0 };
 const valid = { status: "valid", score: 7, rationale: "Answers the objection", strength: "Clear reply", correction: "Weigh the cases", retryInstruction: "Explain the tradeoff", excerpts: ["My answer"] };
 function database(claimed = true) {

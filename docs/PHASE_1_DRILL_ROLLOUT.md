@@ -6,7 +6,11 @@ counterargument response (`rebuttalQuality`), claim-to-evidence warrant
 Curriculum approval and human calibration are not claimed by code completion.
 
 Staging update: the user confirmed migration 018 was applied successfully.
-Hosted runtime SQL, concurrency and real-service journey results remain pending.
+Hosted runtime concurrency passed on September 25, 2026 at 10:59:37 UTC against
+`twtsdothnlfvbczzpdaj.supabase.co`: all 26 assertions and all four cleanup checks
+passed. The generated report was inspected and retained as
+[staging runtime evidence](evidence/phase-1-staging-drill-runtime.json).
+Hosted runtime SQL and real-service journey results remain pending confirmation.
 
 ## Implemented behavior
 
@@ -88,20 +92,43 @@ The existing accepted rubric and full-debate feedback normalizer are unchanged.
 For each template/version, record reviewer, date, accepted difficulty guidance,
 example responses, reassessment suitability and any changes required. Review:
 
-- Counterargument: selected preceding opposing text may contain several claims;
-  instructions must help learners identify its strongest actual reason, without
-  claiming an automated strongest-argument extraction has been validated.
+- Counterargument: v2 requires exact learner and earlier opposing excerpts cited
+  in the same rebuttal coaching item. Chronological proximity alone is no longer
+  accepted. This is a conservative coaching-supported link, not independent
+  semantic verification; review whether the paired excerpts actually engage.
+  Fair concessions are explicitly allowed.
 - Warrant: both excerpts must be genuine learner text. Their relevance can be
   weak; explaining why they fail to connect is a legitimate answer. Transcript
   assertions are not independently verified sources.
-- Repair: the original exercise deliberately provides no independent support.
-  A conditional claim plus a clear evidence gap can be successful; invented
-  supporting data must not be rewarded.
+- Repair: v2 supplies a separate fictional bus-service claim and bounded waiting-
+  time evidence card. The source transcript identifies the weakness; the card is
+  explicitly not evidence about that original debate. Narrowing, qualification
+  or withdrawal must be justified by the evidence, not just adding "might".
 - Beginner/intermediate/advanced instructions: check that they elicit enough
   evidence for the accepted dimension anchors without requiring a full debate.
-- Parallel reassessments: the first versions use fixed library scenarios. They
+- Parallel reassessments: v2 uses silence in a library for counterargument,
+  library visits versus learning for warrants, and recycling versus total waste
+  for claim repair. Difficulty guidance is specific to each family. These
   are practice reassessments, not reserved unseen-topic transfer tests. Repeated
   exposure must not be described as evidence of transfer.
+
+### October 2 template revision
+
+All three revised templates use version `v2`; targeted evaluation uses
+`targeted-coach-2`. Warrant instructions now explicitly allow explaining that
+evidence fails to support a claim. The evaluator likewise recognizes concessions,
+unsupported inferences, and evidence-based claim withdrawal.
+
+New approval IDs (after actual review): `counterargument-response-v2`,
+`claim-evidence-warrant-v2`, `unsupported-claim-repair-v2`. V1 approval does not
+authorize v2. Saved snapshots are unchanged; the existing prompt-version guard
+pauses evaluation of v1 snapshots rather than silently applying the new prompt.
+They remain readable. No migration or rollout-setting change is required by
+the code revision itself. No environment setting was changed.
+
+Revision validation: 34 targeted learning/API tests, TypeScript checking and
+lint passed. The earlier browser/build evidence below describes the original
+implementation, not a new browser or deployed-model evaluation of v2.
 
 The plan proposes 54 held-out response examples with two independent coaches,
 adjudication, and per-family agreement review. No such ratings are populated or
@@ -125,8 +152,8 @@ blocked external browser requests and a mocked same-origin telemetry tunnel.
 They do not establish hosted authentication,
 real model output quality or provider billing correctness.
 
-Migration 018 application is user-confirmed on staging. Hosted runtime SQL and
-concurrency checks, real-service journeys,
+Migration 018 application is user-confirmed on staging and hosted runtime
+concurrency passed. Hosted runtime SQL checks, real-service journeys,
 curriculum approval, coach calibration, and the 20–30 learner pilot remain release
 checkpoints. Stripe reconciliation remains deferred; Google Play reconciliation
 must be verified before paid rollout. No production deployment is claimed.

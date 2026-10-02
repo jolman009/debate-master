@@ -13,7 +13,7 @@ for (const family of Object.keys(DRILL_TEMPLATES) as DrillFamily[]) {
     const exercise = { family, templateVersion: t.version, title: t.title, competency: t.competency,
       difficulty: "beginner" as const, instructions: t.instructions, context: "Synthetic practice context.",
       references: [{ turnId: "source", role: "user" as const, excerpt: "An original learner claim." }],
-      checks: t.checks, rubricVersion: "debate-anchors-1", promptVersion: "targeted-coach-1", model: "fixture", kind: "drill" as const };
+      checks: t.checks, rubricVersion: "debate-anchors-1", promptVersion: "targeted-coach-2", model: "fixture", kind: "drill" as const };
     const view: CycleView = {
       cycle: { id: cycleId, user_id: "owner", origin_debate_id: "debate", cited_turn_id: "source", target_competency: t.competency, request_id: "request", created_at: "2026-09-25" },
       sessions: [{ session_id: "drill", loop_id: cycleId, exercise, state: "ready", draft: "", draft_revision: 0 }],

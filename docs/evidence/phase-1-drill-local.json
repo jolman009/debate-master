@@ -17,8 +17,8 @@
     "checks": ["draft saved and resumed after reload", "focused feedback and revision", "linked reassessment", "completion persists on reload", "no horizontal overflow", "no page errors", "saved evaluation retry in counterargument family"],
     "limitation": "Learning APIs and telemetry mocked; service workers blocked; no hosted authentication or real model inference"
   },
-  "migration018Hosted": "applied to staging, user-confirmed; hosted runtime checks pending",
-  "hostedRuntimeConcurrency": "pending",
+  "migration018Hosted": "applied to staging, user-confirmed; hosted SQL suite pending confirmation",
+  "hostedRuntimeConcurrency": "passed; inspected report retained in phase-1-staging-drill-runtime.json",
   "curriculumApproval": "pending",
   "humanCalibration": "pending",
   "realServiceJourney": "pending",

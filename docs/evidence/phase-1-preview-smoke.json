@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-02",
+  "environment": "Vercel Preview",
+  "url": "https://debate-master-9tvzvzy5o-joel-guzmans-projects-f8aa100e.vercel.app/",
+  "status": "partial",
+  "method": "Live Chrome UI, no mocked responses",
+  "passed": [
+    "Homepage renders",
+    "Start a debate redirects to login with /debate/new return destination",
+    "Pricing renders free and premium plans",
+    "Annual pricing toggle updates displayed pricing",
+    "Sign in to upgrade redirects to login with /pricing return destination",
+    "Anonymous GET /api/learning/cycles displays Sign in to practice error",
+    "Authenticated pricing identifies current Free plan and offers upgrade",
+    "Authenticated learning GET returns available:false",
+    "AI debate setup and session creation succeed",
+    "Human debate setup creates invite and waiting-for-opponent screen"
+  ],
+  "limitations": [
+    "Learning off-mode GET verified; authenticated write rejection and owned saved-cycle reads remain untested",
+    "Human second participant join and turns not tested",
+    "Free pricing UI checked; paid entitlement/checkout not tested",
+    "Real drill assessment not tested; debate completed with recovery findings recorded in aiCompletion",
+    "No rollout or billing settings changed"
+  ],
+  "commit": "6f5d542",
+  "deploymentVerified": "Vercel deployment list independently inspected: Ready, staging, supplied Preview URL",
+  "failures": [
+    {
+      "check": "AI opening response and explicit retry",
+      "result": "Both failed; user opening remains displayed",
+      "runtimeLog": "Could not load the default credentials.",
+      "route": "debate/turn",
+      "stage": "opening_ai",
+      "observedLogTime": "2026-10-02T08:05:02.637Z",
+      "diagnosis": "Google authentication configuration failure; inspect Preview GEMINI_API_KEY and provider mode. Exact environment misconfiguration not yet verified.",
+      "resolution": "Resolved on new Preview for AI generation; fresh rebuttal succeeded and persisted"
+    }
+  ],
+  "fixtures": {
+    "aiDebateId": "9b009696-f1fb-4a10-ba13-b461b10e5ce9",
+    "humanDebateId": "69ff5e9c-f699-4b91-b887-a08a5d9b2bf8",
+    "cleanup": "Retained for investigation; invite not sent"
+  },
+  "retest": {
+    "date": "2026-10-02",
+    "url": "https://debate-master-8bvsqrt9v-joel-guzmans-projects-f8aa100e.vercel.app/",
+    "commit": "6f5d542",
+    "configuration": "User confirmed adding GEMINI_API_KEY and redeploying; Ready deployment independently observed",
+    "passed": [
+      "Saved debate resumed with AI opening present",
+      "Fresh user rebuttal submitted and real AI rebuttal generated",
+      "User and AI rebuttals persist after reload",
+      "Signed-in learning GET still returns available:false"
+    ],
+    "remaining": "AI completion and feedback persistence now verified; see aiCompletion for recovery findings"
+  },
+  "aiCompletion": {
+    "date": "2026-10-02",
+    "deployment": "8bvsqrt9v",
+    "passed": true,
+    "checks": [
+      "Submitted cross-examination answers and closing",
+      "Reached feedback and generated coaching",
+      "Reload preserved learner and opponent closing statements",
+      "Reload preserved coaching summary, strongest moment and priority improvement",
+      "Reload preserved overall 5 and dimension scores evidence 4, rebuttal 4, rhetorical 6, argument 5",
+      "Get Feedback generation button absent after reload"
+    ],
+    "limitations": "Functional completion/persistence passed with recovery; not a clean reliability pass or assessment-quality calibration",
+    "openFindings": [
+      "Cross-examination stream failed after partial output; built-in retry used",
+      "Duplicate cross-examination entries and mislabelled partial AI text observed in live UI; database duplication not independently established",
+      "Content required for user turn appeared on transition to closing",
+      "AI response failed banner appeared while feedback stage was available; completed closing persisted after reload"
+    ]
+  },
+  "localStreamingRemediation": {
+    "date": "2026-10-02",
+    "status": "implemented locally; not deployed",
+    "changes": [
+      "Lock AI action through stream and authoritative refresh",
+      "Clear transient text before stage changes",
+      "Capture stream stage for correct label",
+      "Reject SSE EOF without done; stop automatic retry on interruption"
+    ],
+    "verification": {
+      "baseline": "Both new regression tests fail against prior hooks",
+      "fullUnitApiTests": 230,
+      "targetedHookAndSseTests": 10,
+      "productionBuild": "passed, including typecheck and 31 static pages"
+    },
+    "remaining": [
+      "Fresh Preview smoke test after deployment",
+      "Server atomic AI turn persistence/idempotency across clients",
+      "Provider interruption diagnosis"
+    ]
+  }
+}

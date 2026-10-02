@@ -2,6 +2,7 @@
   "scope": "Local implementation verification; not a hosted or real-model assessment",
   "unitAndApiTests": { "passed": true, "tests": 222, "files": 31 },
   "postGuardChangeTargetedTests": { "passed": true, "tests": 28, "files": 3 },
+  "v2ProductionBuild": { "passed": true, "date": "2026-10-02", "command": "npm run build", "exitCode": 0, "includesTypecheckAndLint": true, "staticPagesGenerated": 31, "warnings": "Non-blocking webpack cache serialization performance warnings", "scope": "Local working tree including pending Sentry changes; not a deployment or browser/real-model verification" },
   "productionBuild": { "passed": true, "includesTypecheckAndLint": true },
   "sql": {
     "passed": true,
@@ -9,6 +10,7 @@
     "suites": ["supabase/tests/linked_learning_sessions.sql", "supabase/tests/drill_runtime.sql"],
     "limitation": "Prerequisite schema and simulated Supabase roles; not the full hosted migration chain or multi-connection concurrency"
   },
+  "v2Browser": {"passed": true, "date": "2026-10-02", "command": "npx playwright test e2e/learning.spec.ts --project=desktop --project=compact", "exitCode": 0, "tests": 6, "duration": "1.4m", "projects": ["desktop", "compact"], "viewports": ["1440x900", "360x800"], "families": ["counterargument", "warrant", "repair"], "scope": "Local production build with v2 templates and targeted-coach-2; learning APIs and telemetry mocked; no hosted authentication or real inference", "initialAttempt": "Sandbox blocked server port 3210 with EPERM; permitted retry passed"},
   "browser": {
     "passed": true,
     "tests": 6,
@@ -17,11 +19,14 @@
     "checks": ["draft saved and resumed after reload", "focused feedback and revision", "linked reassessment", "completion persists on reload", "no horizontal overflow", "no page errors", "saved evaluation retry in counterargument family"],
     "limitation": "Learning APIs and telemetry mocked; service workers blocked; no hosted authentication or real model inference"
   },
-  "migration018Hosted": "applied to staging, user-confirmed; hosted SQL suite pending confirmation",
+  "migration018Hosted": "applied to staging, user-confirmed",
+  "hostedRuntimeSql": "passed in full without SQL errors on staging, user-confirmed 2026-10-02; blank expect_error helper result expected; raw SQL output not independently inspected",
   "hostedRuntimeConcurrency": "passed; inspected report retained in phase-1-staging-drill-runtime.json",
   "curriculumApproval": "pending",
   "humanCalibration": "pending",
   "realServiceJourney": "pending",
   "learnerPilot": "pending",
+  "vercelPreviewDeployment": "6f5d542 deployed, user-confirmed 2026-10-02; deployment URL and live behavior not independently inspected",
+  "previewRolloutConfiguration": "LEARNING_ROLLOUT=off and LEARNING_PAID_ENABLED=false created for Preview and staging Preview redeployed, user-confirmed 2026-10-02; live behavior and template approval configuration not independently verified",
   "productionDeployment": "not performed"
 }

@@ -19,6 +19,7 @@ export function useStreamingResponse() {
       debateId: string,
       content?: string
     ): Promise<StreamResult | null> => {
+      if (abortRef.current) return null;
       setIsStreaming(true);
       setStreamedText("");
       setStreamError(null);
@@ -75,8 +76,7 @@ export function useStreamingResponse() {
 
           for (const parsed of messages) {
             if (parsed.error) {
-              setStreamError(parsed.error);
-              continue;
+              throw new Error(parsed.error);
             }
 
             if (parsed.done) {
@@ -91,7 +91,7 @@ export function useStreamingResponse() {
           }
         }
 
-        setIsStreaming(false);
+        if (!result?.done) throw new Error("The response was interrupted. Please retry.");
         return result;
       } catch (err) {
         if ((err as Error).name === "AbortError") {
@@ -101,8 +101,10 @@ export function useStreamingResponse() {
             (err as Error).message || "Something went wrong. Please try again."
           );
         }
-        setIsStreaming(false);
         return null;
+      } finally {
+        abortRef.current = null;
+        setIsStreaming(false);
       }
     },
     []

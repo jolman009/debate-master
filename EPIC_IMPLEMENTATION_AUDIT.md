@@ -1,144 +1,104 @@
-# Phase 1-5 Epic Implementation Audit
+# Phase 1–5 Epic Implementation Audit
 
-**Audit date:** 2026-08-24  
-**Source:** `High-level implementation overview.md`  
-**Scope:** Current working tree, including uncommitted changes
+**Updated:** October 2, 2026
 
-## Executive summary
+**Source:** [High-level implementation overview](High-level%20implementation%20overview.md)
 
-The 20 epics across Phases 1-5 are approximately **71% implemented** under a strict acceptance-criteria reading. Core UI implementation is further along than automated and manual verification.
+**Scope:** Source inspection and recorded verification evidence; no new live deployment or accessibility audit was run for this update.
 
-| Phase | Estimate | Assessment |
-|---|---:|---|
-| Phase 1 | 66% | Foundations exist, but audits and screen-reader validation are incomplete. |
-| Phase 2 | 92% | Navigation architecture is the strongest phase. |
-| Phase 3 | 62% | Setup is strong; the live workspace remains substantially incomplete. |
-| Phase 4 | 64% | Feedback contract is strong; coaching actions and transparency are partial. |
-| Phase 5 | 83% | Landing and visual identity are strong; some system-level polish remains. |
+## Summary
+
+The August 24 audit is superseded by this review. Its approximately 71% completion estimate is retired: it had no reproducible weighting, and its narrative contradicted several status rows. Track the acceptance gaps below instead of treating implementation percentages as release readiness.
+
+The original 20 UI epics are substantially implemented in code. Remaining work centers on acceptance verification, a genuinely supporting desktop transcript panel, consistent typography/control sizing, durable feedback reporting, and pilot validation.
+
+**Two different phase systems exist.** This file's Phase 1 means *foundations and accessibility*. The newer [growth implementation plan](docs/GROWTH_IMPLEMENTATION_PLAN.md) calls the learning cycle *Phase 1*. Its drill runtime extends COACH-03 but does not close unrelated UI/accessibility epics.
+
+| Original UI phase | Current assessment |
+|---|---|
+| 1 — Foundations/accessibility | Tokens, focus primitives, native choices and announcements exist. Contrast evidence, complete target-size coverage and screen-reader validation remain open. |
+| 2 — Navigation | Shared routing, mobile navigation and immersive layouts exist. Authenticated 320px and focus behavior need browser verification. |
+| 3 — Debate flows | Wizard persistence, draft retention, retry controls and adaptive transcript presentation exist. Desktop composer access and authenticated recovery/human-debate tests remain open. |
+| 4 — Coaching/trust | Evidence-aware feedback is implemented and has recorded production evidence. Practice has advanced to a linked drill runtime. Legacy presentation, durable reporting and drill release gates remain open. |
+| 5 — Visual identity | Optimized fonts, landing narrative, row layouts and motion presets exist. Small text and visual/contrast baselines need follow-up. |
+
+## Status definitions
+
+- **Implemented:** Code meets the scoped functional contract and relevant verification is recorded. This does not imply every deployment or educational claim is validated.
+- **Mostly:** Core behavior exists, with remaining acceptance or verification gaps.
+- **Partial:** A material acceptance requirement is missing or the current behavior does not fully satisfy it.
 
 ## Epic assessment
 
-Status definitions:
-
-- **Complete:** The implementation clearly meets the epic's acceptance criteria.
-- **Mostly:** The primary behavior is implemented, with limited acceptance or verification gaps.
-- **Partial:** Material acceptance criteria or end-to-end behavior remain missing.
-
-| Epic | Status | Evidence and gaps |
+| Epic | Status | Current evidence and remaining gap |
 |---|---|---|
-| FND-01 | Mostly | Accessible tokens exist in `src/app/globals.css`. Required light/dark route screenshots do not exist. |
-| FND-02 | Complete | Global focus, 44px hit-area primitives, and alert button touch-targets are fully implemented. |
-| FND-03 | Mostly | Topic and persona choices use native radios and fieldsets. Keyboard and semantic behavior lacks component and E2E coverage. |
-| FND-04 | Partial | Reduced motion and live announcements exist, but there is no recorded NVDA or VoiceOver audit. |
-| NAV-01 | Mostly | Bottom navigation, safe-area padding, icons, labels, and active states are implemented. No authenticated 320px E2E test exists. |
-| NAV-02 | Complete | Shared model, active states, focus trap and restoration, Escape, and outside-click behavior are implemented in `src/components/layout/app-navigation.tsx`. |
-| NAV-03 | Complete | Live routes remove global navigation and expose motion, transcript, audio, and back controls. |
-| SET-01 | Mostly | Four steps, versioned session storage, restoration, and clearing are implemented in `src/components/setup/setup-wizard.tsx`. Persistence is not tested end to end. |
-| SET-02 | Complete | Search, recommended motions, collapsible filters, custom validation, and empty-result recovery are implemented. |
-| SET-03 | Mostly | Human-mode skipping, semantic selection, review, customization, and unmet-requirement messaging exist. Persona rhetorical style could be presented more clearly. |
-| LIVE-01 | Mostly | `svh` and `dvh` sizing, labeled composer, resilient draft persistence in session storage, and safe input handling are implemented. Viewport-change preservation and 200% zoom verification remain. |
-| LIVE-02 | Partial | The overlay traps and restores focus and supports Escape. It remains one centered resizable dialog rather than a mobile sheet and desktop supporting panel, and it has no rollout flag. |
-| LIVE-03 | Mostly | Realtime presence, polling fallback, status announcements, and resilient draft retention on submit failure are implemented. Socket retry and duplicate prevention remain unverified. |
-| COACH-01 | Complete | Versioned schema, legacy adapter, turn-ID and excerpt validation, invalid-evidence removal, prompt parsing, and tests exist in `src/lib/debate/feedback.ts`. |
-| COACH-02 | Complete | Strength, priority, rationale, evidence, rubric, practice action, rematch action, and functional usefulness reporting are implemented. |
-| COACH-03 | Partial | Motion, difficulty, and goal are prefilled and reviewed before creation. Per-suggestion rationale and usage analytics are missing. |
-| TRUST-01 | Mostly | Setup, live, transcript, and shared-view simulation/affiliation disclosures, synthetic-voice naming, score limitations, and functional privacy-safe usefulness reporting are implemented. |
-| VIS-01 | Complete | Zero-CLS font optimization via `next/font/google` (Inter + Newsreader), 13px minimum utility text, tabular figures, and unified iconography are implemented. |
-| VIS-02 | Complete | Full-bleed stage visual, dominant CTA, secondary pricing, editorial sections, and coaching narrative are implemented in `src/app/page.tsx`. |
-| VIS-03 | Mostly | Libraries use rows, unnecessary cards were removed, and shared motion and reduced-motion rules exist. True sheet motion depends on unfinished LIVE-02. |
+| FND-01 — Tokens/contrast | Mostly | `src/app/globals.css` defines light/dark semantic colors. No complete retained contrast matrix and required light/dark route baselines were found in the reviewed evidence. Token presence is not a contrast pass. |
+| FND-02 — Focus/targets | Mostly | Global focus-visible rules and shared button/input primitives exist. The old Complete rating overstated route-wide compliance: manual controls still need computed hit-area and disabled-state checks. |
+| FND-03 — Semantic choices | Mostly | Native radio/fieldset selection exists in setup. Authenticated keyboard selection, helper/error associations and screen-reader operation remain to be verified. |
+| FND-04 — Motion/announcements | Partial | Reduced-motion CSS and state-level announcements exist. Required NVDA or VoiceOver validation is not documented. |
+| NAV-01 — Compact navigation | Mostly | Shared navigation model, bottom navigation and safe-area inset exist. The 320px test exercises the public home page, not authenticated bottom navigation. |
+| NAV-02 — Desktop/profile | Mostly | `app-navigation.tsx` implements menu focus management, Escape and restoration. Browser verification of focus order/trapping remains open; the old Complete rating conflated code with verified acceptance. |
+| NAV-03 — Immersive shell | Mostly | Debate routes use local controls and omit marketing chrome. Verify authenticated route transitions and keyboard/screen-reader access end to end. |
+| SET-01 — Wizard persistence | Mostly | Four-step wizard and versioned session-storage restoration exist. `e2e/setup-wizard.spec.ts` tests unauthenticated redirects; it does not exercise signed-in back/forward/reload restoration. |
+| SET-02 — Motion discovery | Mostly | Search, filters, recommendations, custom motion handling and empty states exist. Authenticated discovery-to-creation acceptance remains unverified in the reviewed browser suite. |
+| SET-03 — Opponent/review | Mostly | Semantic choices, human-mode skipping, review and optional settings exist. Complete browser verification and clarify rhetorical-style presentation. |
+| LIVE-01 — Viewport/composer | Mostly | Dynamic-height layout, labeled input, character status and draft persistence exist. Mobile keyboard/safe-area behavior, resize preservation and 200% zoom still need verification. |
+| LIVE-02 — Transcript | Partial | Mobile sheet and desktop side-panel styling now exist behind `ui_live_v2`, with legacy resizable fallback. The desktop presentation still uses a modal overlay, backdrop and body scroll lock; non-covering composer access is not established. Focus/Escape acceptance needs browser tests. |
+| LIVE-03 — Realtime/recovery | Mostly | `user-input.tsx` awaits submission before clearing and retains text on rejection. Reconnect/Retry controls and polling fallback exist. A real AI journey is recorded; human invite/join/verdict and reconnect-without-duplicate-turn browser scenarios remain open. Drill retry evidence does not prove debate-turn deduplication. |
+| COACH-01 — Feedback contract | Implemented | Versioned feedback, legacy adapter, exact turn/excerpt validation and parser tests exist. Phase 0 production evidence verifies the AI coaching journey and displayed references. Human scoring calibration remains a separate gate. |
+| COACH-02 — Coaching view | Mostly | Strength, priority, rationale, evidence, scores, practice and Rematch are implemented. Legacy results use an adapter/badge rather than a clearly reduced layout. Verify first-viewport hierarchy and the original Share/Library/evidence-navigation criteria across viewports. |
+| COACH-03 — Targeted practice | Mostly | Existing setup supports suggested motion/difficulty/goal and explanatory copy. New linked drill/revision/reassessment flow is implemented and pushed to staging. Durable learning events exist, but generic CTA analytics forwarding and unavailable-recommendation reporting remain incomplete. New fixed-template drills are a distinct experience from the original editable debate-setup acceptance criteria. |
+| TRUST-01 — AI transparency | Mostly | Simulation/affiliation disclosures exist in live, transcript and shared views; scores are labeled estimates. Helpful/Not helpful/Report submit to an API, but that endpoint logs the signal rather than storing an owned review record. Verify persistent visible synthetic-voice disclosure before playback and operational report handling. |
+| VIS-01 — Typography/icons | Mostly | `src/app/layout.tsx` uses optimized Inter and Newsreader; tabular scores exist. Meaningful 10–12px utility text remains, including practice labels and composer character status. The original 13px minimum and zero-layout-shift claim are not fully established. |
+| VIS-02 — Landing narrative | Mostly | Stage-led hero, primary CTA, secondary pricing and editorial/coaching sections exist. Public browser evidence supports basic structure/overflow; crop contrast and light/dark visual baselines remain open. |
+| VIS-03 — Rows/motion | Mostly | Library rows, section-based layouts and sheet/panel/reduced-motion presets exist. Review remaining noninteractive cards and verify transitions do not block input. Desktop transcript behavior still limits full acceptance. |
 
-## Phase findings
+## Corrections to the prior audit
 
-### Phase 1: Foundations and accessibility
+- Drafts are **not** cleared immediately on calling submit: `user-input.tsx` awaits the callback and preserves content when it rejects. The end-to-end propagation of each failure mode still needs testing.
+- Transcript presentation is **not** limited to the original centered dialog. Adaptive sheet/side-panel styling and a legacy flag exist; the remaining concern is the desktop modal behavior.
+- Connection recovery has explicit Retry/reconnect controls in `debate-stage.tsx` and `use-realtime-debate.ts`.
+- Rematch, independent suggestion explanations, transcript/shared-view disclosures and Next.js font optimization are present.
+- Usefulness controls make a real HTTP request. `src/app/api/feedback/usefulness/route.ts` validates the rating and writes a content-free console log; this is not a database-backed moderation or review workflow.
+- `src/lib/flags.ts` declares all four original UI rollout flags. The reviewed component usages consume `ui_live_v2`; declarations alone do not prove navigation/setup/feedback rollback coverage. Separate measurement and learning server flags control their respective APIs.
+- Analytics are **not absent**. `src/lib/analytics.ts` exposes event hooks, but no production listener registration was found outside tests. Separately, migrations 015 and 018 persist authoritative debate and learning lifecycle events.
 
-The token, focus, semantic-selection, target-size, reduced-motion, and status-announcement foundations are present. Native radio inputs and fieldsets provide a solid semantic base for topic and persona selection.
+## Learning-cycle extension: current status
 
-Remaining acceptance gaps:
+| Checkpoint | Status/evidence |
+|---|---|
+| Migration 017 linked sessions | Applied to staging, user-confirmed. SQL suite user-confirmed passed. [Concurrent retry evidence](docs/evidence/phase-1-staging-concurrency.json) inspected: 36 assertions and three cleanup checks passed. |
+| Migration 018 runtime | Applied to staging, user-confirmed. [Runtime concurrency report](docs/evidence/phase-1-staging-drill-runtime.json) inspected: 26 assertions and four cleanup checks passed, including free-slot reservation and duplicate evaluation/commit protection. |
+| Hosted runtime SQL suite | Passed in full without SQL errors on staging, user-confirmed October 2, 2026. The blank `expect_error` helper result is expected. Raw SQL output was not independently inspected. |
+| Shared drill UI/API | Implemented in `src/lib/learning`, `src/components/learning`, `/api/learning/[...path]` and `/practice/[cycleId]`. Includes saved drafts, targeted coaching, revision, reassessment, ownership, server reservation and events. |
+| Three revised templates | Counterargument, warrant and claim repair are v2; prompt is `targeted-coach-2`. Revisions allow concessions, unsupported-inference explanations and evidence-based repair; difficulty guidance and reassessment scenarios are family-specific. |
+| Source pairing | Counterargument requires exact excerpts cited in the same rebuttal coaching; it no longer selects an uncited preceding AI turn. This remains coaching-supported pairing, not independently validated semantic relevance. |
+| Commit/push | `3f96ca9` introduced the runtime; `6f5d542` revised templates and recorded staging evidence. Both were pushed to `origin/staging`. Vercel Preview deployment of `6f5d542` was user-confirmed October 2, 2026; deployment URL and live behavior were not independently inspected. |
+| Curriculum/rollout | Revised templates await explicit approval and calibration. Preview variables `LEARNING_ROLLOUT=off` and `LEARNING_PAID_ENABLED=false` were created and staging Preview redeployed, user-confirmed October 2, 2026. Live flag behavior and template approval configuration remain to be verified. No pilot environment change or production rollout is claimed. Saved v1 snapshots remain readable; the prompt-version guard pauses their evaluation rather than silently reinterpreting them. |
+| Remaining validation | Real-service authenticated journeys for all families, deployed-model checks, coach ratings, the 20–30 learner pilot, and cohort/reporting work remain open. Stripe reconciliation stays deferred; Google Play reconciliation remains a paid-release dependency. |
 
-- Required light and dark screenshots for landing, setup, live, feedback, and library do not exist.
-- Several manual text buttons do not consistently use the shared target-size primitives.
-- Keyboard selection and form semantics are not covered by component or E2E tests.
-- No NVDA or VoiceOver validation is documented.
-- The TRUST-00 disclosure quick win is mostly implemented through persona, live, feedback, and synthetic-voice labels.
+See [drill rollout guide](docs/PHASE_1_DRILL_ROLLOUT.md) and [Phase 0 readiness](docs/PHASE_0_READINESS.md). Approval of rubric/feedback contracts does not substitute for coach calibration or demonstrate educational effectiveness.
 
-### Phase 2: Adaptive navigation and shell
+## Verification record and limits
 
-Navigation is the most complete phase. Compact, desktop, profile, TWA, and immersive-debate variants share a centralized route model. Active states and profile-menu keyboard behavior are implemented.
+These are recorded results, not new executions performed for this documentation update:
 
-Remaining acceptance gaps:
+| Evidence | Recorded result | Limit |
+|---|---|---|
+| [Phase 0 production AI journey](docs/evidence/phase-0-ai-journey-production-current.json) | 16 checks passed, including streamed turns, coaching persistence, transcript references and lifecycle deduplication. | Synthetic authenticated production session; not human-debate E2E, a broad reliability baseline or calibration. |
+| [Initial drill local verification](docs/evidence/phase-1-drill-local.json) | 222 unit/API tests; build/typecheck/lint; isolated SQL suites; six desktop/mobile browser checks passed. | Original drill implementation; browser learning APIs were mocked. Isolated SQL used prerequisite schema and simulated Supabase roles. |
+| October 2 v2 revision checks | 34 targeted learning/API tests, TypeScript and lint passed. Fresh `npm run build` also passed with lint/type checks and all 31 static pages generated. | Build used the local working tree, including pending Sentry changes; no deployment was performed. Fresh v2 browser checks passed: all six family/desktop/compact tests. Learning APIs were mocked; no real-model result is recorded. |
+| Public accessibility/setup test source | Landmark, public 320px overflow, reduced-motion/smoke and login-redirect checks exist. | Names overstate some assertions: the focus test checks only that an active-element tag exists; the leaderboard test checks its heading; the setup-prefill test checks redirect handling, not visible prefilled fields. No full accessibility scan or authenticated wizard persistence proof. |
 
-- There is no authenticated 320px browser test for the bottom navigation.
-- Focus-trap, restoration, and visual-order behavior are implemented but not exercised through E2E tests.
+The old 94-unit/24-browser test totals are obsolete. Avoid adding targeted counts to historical totals or claiming all existing test files were rerun. Sentry hydration changes and TWA manifest edits remain separate pending work; their presence is not evidence that those deployment gates passed.
 
-### Phase 3: Core debate flows
+## Next implementation priorities
 
-The setup half of Phase 3 is substantially implemented. The wizard has four progressive steps, versioned persistence, motion search, recommended motions, collapsed filters, semantic persona selection, human-mode skipping, review, and optional settings.
+1. **Close the drill staging gate:** verify deployed defaults and Preview behavior; review/approve v2 curriculum; verify real AI journeys and server pilot/off behavior. Preserve existing recorded concurrency passes.
+2. **Finish desktop transcript acceptance:** provide a truly supporting panel that leaves the composer usable, then test mobile sheet and desktop focus/Escape behavior.
+3. **Verify authenticated debate recovery:** setup persistence and keyboard operation, viewport/keyboard/200% zoom, transient submit failure, human invite/join/verdict and reconnect deduplication.
+4. **Close coaching/reporting gaps:** reduced legacy presentation, confirmed secondary actions, owned durable usefulness/report handling, analytics forwarding and unavailable-recommendation reporting. Keep private transcript text out of telemetry.
+5. **Complete visual/accessibility acceptance:** enforce the 13px meaningful-text minimum, measure target sizes/contrast, capture required light/dark route baselines, and record an actual VoiceOver or NVDA session.
+6. **Validate learner outcomes:** finish independent scoring/adjudication and the seven-day learner cohort before making improvement or completion-rate claims.
 
-The live-workspace half remains materially incomplete:
-
-- The composer is positioned in a dynamic-height flex layout, but system safe-area behavior is not explicit.
-- Draft text is cleared immediately after calling submit rather than after successful completion.
-- Viewport-height changes and 200% zoom are not tested.
-- The transcript remains a centered resizable overlay on all viewports.
-- There is no compact bottom sheet or wide supporting panel.
-- The legacy overlay is not controlled by a centralized feature flag.
-- Realtime loss has polling fallback but no explicit user Retry action.
-- Human and AI debate completion paths are not covered by E2E tests.
-
-### Phase 4: Coaching and trustworthy AI
-
-COACH-01 is strongly implemented. Feedback is versioned, old records adapt to the new schema, evidence is restricted to valid turn IDs and stored excerpts, invalid evidence is removed, and normalization has unit coverage.
-
-Remaining acceptance gaps:
-
-- There is no Rematch action in the coaching view.
-- Legacy feedback is labeled but not rendered through a clearly reduced fallback.
-- Targeted-practice suggestions do not explain each recommended field independently.
-- Targeted-practice and feedback-usefulness analytics are absent.
-- AI disclosure does not persist into the transcript overlay and shared debate view.
-- Helpful, Not helpful, and Report controls update local session state only; they do not submit a durable signal or report.
-- Synthetic-voice status is available through control labels and titles, but not always as persistent visible copy before playback.
-
-### Phase 5: Visual identity and purposeful motion
-
-The landing page, editorial structure, debate-stage image, typography hierarchy, brass accent, card reduction, list-row libraries, tabular scores, and CSS motion system are implemented. Reduced-motion rules force immediate visible states and remove spatial transitions.
-
-Remaining acceptance gaps:
-
-- Fonts use stable system stacks rather than a bundled `next/font` implementation.
-- Light and dark visual-regression screenshots are absent.
-- Image-crop contrast is supported by the overlay and tested indirectly at common viewports, but no visual-regression baseline exists.
-- Sheet-specific motion cannot be completed until LIVE-02 provides an actual adaptive sheet and panel.
-
-## Highest-priority remaining work
-
-1. Finish LIVE-01, LIVE-02, and LIVE-03: adaptive transcript, safe-area composer, draft recovery, Retry, and duplicate protection.
-2. Complete TRUST-01: persistent disclosures in transcripts and shared views plus a real privacy-safe report workflow.
-3. Complete COACH-02 and COACH-03: Rematch, reduced legacy layout, suggestion rationale, and analytics.
-4. Add signed-in AI and human completion E2E coverage.
-5. Add keyboard selection, focus trapping, wizard persistence, viewport resizing, 200% zoom, accessibility scanning, and visual-regression tests.
-6. Perform and document the required NVDA or VoiceOver audit.
-
-## Test-coverage assessment
-
-The current automated suite includes 94 unit tests and 24 Playwright executions across 1440x900, 768x1024, and 360x800 viewports. The browser suite primarily covers public routes, PWA behavior, authentication boundaries, the landing page, persona-form basics, overflow, and reduced motion.
-
-The following required paths remain uncovered:
-
-- Authenticated setup through debate creation
-- Wizard back, forward, and reload persistence
-- Keyboard selection of topics and personas
-- Focus trap and restoration for profile and transcript dialogs
-- AI debate completion through feedback
-- Human invite, join, realtime turns, and verdict
-- Connection loss during drafting and submission
-- Legacy and version-two feedback rendering in the browser
-- Automated accessibility scanning on core routes
-- Light and dark visual-regression screenshots
-- 200% browser zoom
-
-## Cross-cutting observations
-
-- No centralized `ui_navigation_v2`, `ui_setup_v2`, `ui_live_v2`, or `ui_feedback_v2` rollout module exists.
-- The measurement events listed in the implementation overview are not implemented.
-- `ROADMAP.md` contains older status information and should not be treated as the current Phase 1-5 acceptance record.
+This audit updates status only. It does not change code, enable flags, apply migrations, deploy, or claim that pending acceptance tests passed.

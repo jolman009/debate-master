@@ -10,7 +10,14 @@ Hosted runtime concurrency passed on September 25, 2026 at 10:59:37 UTC against
 `twtsdothnlfvbczzpdaj.supabase.co`: all 26 assertions and all four cleanup checks
 passed. The generated report was inspected and retained as
 [staging runtime evidence](evidence/phase-1-staging-drill-runtime.json).
-Hosted runtime SQL and real-service journey results remain pending confirmation.
+Hosted runtime SQL passed in full without SQL errors, user-confirmed October 2,
+2026; the blank `expect_error` helper result is expected. Raw SQL output was not
+independently inspected. Real-service journey results remain pending confirmation.
+Vercel Preview deployment of `6f5d542` was user-confirmed October 2, 2026;
+deployment URL and live behavior were not independently inspected.
+The user also confirmed creating Preview variables `LEARNING_ROLLOUT=off` and
+`LEARNING_PAID_ENABLED=false` and completing a staging Preview redeployment on
+October 2, 2026. Template approval configuration remains to be verified.
 
 ## Implemented behavior
 
@@ -153,8 +160,9 @@ They do not establish hosted authentication,
 real model output quality or provider billing correctness.
 
 Migration 018 application is user-confirmed on staging and hosted runtime
-concurrency passed. Hosted runtime SQL checks, real-service journeys,
-curriculum approval, coach calibration, and the 20–30 learner pilot remain release
+concurrency passed. The complete hosted runtime SQL suite passed, user-confirmed
+October 2, 2026. Real-service journeys, curriculum approval, coach calibration,
+and the 20–30 learner pilot remain release
 checkpoints. Stripe reconciliation remains deferred; Google Play reconciliation
 must be verified before paid rollout. No production deployment is claimed.
 
@@ -176,3 +184,19 @@ npx playwright test e2e/learning.spec.ts --project=desktop --project=compact
 The SQL suites can also run against a disposable fully migrated PostgreSQL
 database. Do not run a second build while a local production server is serving
 the previous `.next` output; stop/restart that server around builds.
+
+Fresh v2 build verification (October 2, 2026): `npm run build` exited 0,
+including lint, type checking and generation of all 31 static pages. Webpack
+reported non-blocking cache serialization performance warnings. This build used
+the local working tree, including pending Sentry changes; it does not establish
+a new deployment or real-service journey success.
+
+Fresh v2 browser verification (October 2, 2026):
+`npx playwright test e2e/learning.spec.ts --project=desktop --project=compact`
+passed all six tests in 1.4 minutes against a local production build. All three
+families passed at desktop 1440×900 and compact mobile 360×800: saved draft/reload,
+coaching/revision, linked reassessment, completion/reload, no horizontal overflow
+and no page errors. Counterargument also exercised saved evaluation retry.
+Learning APIs and telemetry were mocked and external browser requests blocked;
+this is not hosted authentication or real-model validation. The initial sandbox
+run could not bind port 3210 (EPERM); the permitted retry exited 0.

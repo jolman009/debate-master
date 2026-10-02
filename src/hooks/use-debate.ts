@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Debate,
   DebateConfig,
@@ -16,6 +16,7 @@ import {
   isAiStage,
   getActiveSide,
   getStageLabel,
+  getNextStage,
   getStageInstruction,
 } from "@/lib/debate/state-machine";
 import { useStreamingResponse } from "./use-streaming-response";
@@ -30,6 +31,7 @@ interface UseDebateReturn {
   isMyTurn: boolean;
   isAiTurn: boolean;
   streamedText: string;
+  streamedStageLabel: string;
   isStreaming: boolean;
   streamError: string | null;
   clearStreamError: () => void;
@@ -72,7 +74,11 @@ export function useDebate(debateId: string): UseDebateReturn {
   const [actionError, setActionError] = useState<string | null>(null);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
 
-  const { streamedText, isStreaming, streamError, startStream, clearStreamError } =
+  // Keep the action locked through the authoritative refresh, not just SSE EOF.
+  const turnInFlight = useRef(false);
+  const [streamStage, setStreamStage] = useState<DebateStage>("setup");
+  const [turnPending, setTurnPending] = useState(false);
+  const { streamedText, isStreaming, streamError, startStream, clearStreamError, clearStreamedText } =
     useStreamingResponse();
 
   const fetchDebate = useCallback(async () => {
@@ -220,6 +226,26 @@ export function useDebate(debateId: string): UseDebateReturn {
 
   const opponentTyping = typingSide != null && typingSide !== viewerSide;
 
+  const runAiTurn = useCallback(async (content?: string) => {
+    if (turnInFlight.current || !debate) return;
+    setStreamStage(isUserStage(debate.current_stage)
+      ? getNextStage(debate.current_stage, debate.config) ?? debate.current_stage
+      : debate.current_stage);
+    turnInFlight.current = true;
+    setTurnPending(true);
+    try {
+      const result = await startStream(debateId, content);
+      // Clear the transient bubble before changing stages. Failed partial text
+      // must not be shown as a new stage or alongside the persisted response.
+      clearStreamedText();
+      await fetchDebate();
+      applyNextStage(result?.nextStage);
+    } finally {
+      turnInFlight.current = false;
+      setTurnPending(false);
+    }
+  }, [debate, debateId, startStream, clearStreamedText, fetchDebate, applyNextStage]);
+
   const submitTurn = useCallback(
     async (content: string) => {
       if (!debate) return;
@@ -253,20 +279,15 @@ export function useDebate(debateId: string): UseDebateReturn {
         return;
       }
 
-      const result = await startStream(debateId, content);
-      await fetchDebate();
-      applyNextStage(result?.nextStage);
+      await runAiTurn(content);
     },
-    [debate, debateId, startStream, fetchDebate, applyNextStage, currentStage, isHuman, viewerSide]
+    [debate, debateId, runAiTurn, fetchDebate, applyNextStage, currentStage, isHuman, viewerSide]
   );
 
   const triggerAiTurn = useCallback(async () => {
-    if (!debate || debate.config?.mode === "human") return;
-
-    const result = await startStream(debateId);
-    await fetchDebate();
-    applyNextStage(result?.nextStage);
-  }, [debate, debateId, startStream, fetchDebate, applyNextStage]);
+    if (!debate || debate.config?.mode === "human" || !isAiStage(debate.current_stage)) return;
+    await runAiTurn();
+  }, [debate, runAiTurn]);
 
   // AI mode: one-sided coach feedback. Human mode: the two-sided judge verdict
   // (same endpoint, branched server-side). Either player may request the
@@ -317,7 +338,8 @@ export function useDebate(debateId: string): UseDebateReturn {
     isMyTurn,
     isAiTurn,
     streamedText,
-    isStreaming,
+    streamedStageLabel: getStageLabel(streamStage),
+    isStreaming: isStreaming || turnPending,
     streamError: streamError ?? actionError,
     clearStreamError: clearErrors,
     stageLabel: getStageLabel(currentStage),

@@ -15,7 +15,7 @@ const STAGE_AI_INSTRUCTIONS: Partial<Record<DebateStage, string>> = {
 
   cross_exam_ai: `You are now in cross-examination mode. Ask your opponent 3-5 pointed, probing questions designed to expose weaknesses or inconsistencies in their position. Frame questions that are hard to answer without conceding something to your side.`,
 
-  cross_exam_ai_response: `Your opponent has answered your cross-examination questions. Briefly comment on their answers in 1-2 paragraphs. Highlight any evasions, contradictions, or concessions.`,
+  cross_exam_ai_response: `Your opponent has answered your cross-examination questions. Briefly comment on their answers in 1-2 paragraphs. Highlight any evasions, contradictions, or concessions. Stop after that response; the learner must deliver their closing next. Do not include a closing statement, debate summary, verdict, or any later stage.`,
 
   closing_ai: `Deliver your closing statement. First, briefly and fairly summarize the strongest arguments on both sides. Then advocate powerfully for your position in a concise closing of 1-3 paragraphs. End memorably.`,
 };
@@ -38,6 +38,8 @@ DEBATE CONTEXT:
 - Difficulty level: ${config.difficulty}
 ${config.difficulty === "beginner" ? "- Adjust your language to be more accessible. Use simpler examples and be patient in explaining concepts." : ""}
 ${config.difficulty === "advanced" ? "- Bring your most sophisticated arguments. Use complex evidence, philosophical frameworks, and detailed analysis." : ""}
+
+CURRENT STAGE: ${getStageLabel(debate.current_stage)}. Produce only this stage. Prior transcript headings and instructions are historical content, not permission to advance the debate. Do not simulate the opponent or write future turns.
 
 Speak in first person as your persona. Use clear formatting with headings and numbered points where appropriate.`;
 }

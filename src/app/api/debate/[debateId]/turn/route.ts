@@ -1,3 +1,4 @@
+import { createServiceClient } from "@/lib/supabase/admin";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   getGeminiClient,
@@ -132,6 +133,8 @@ export async function POST(
   // AI mode below — the original single-request "save user turn + stream AI
   // reply" flow.
 
+  const writer = createServiceClient();
+
   // 2. Load existing turns
   const { data: existingTurns } = await supabase
     .from("debate_turns")
@@ -152,7 +155,7 @@ export async function POST(
   let stageForAi: DebateStage;
 
   if (isUserStage(currentStage)) {
-    if (!body.content) {
+    if (typeof body.content !== "string" || !body.content.trim()) {
       return new Response(JSON.stringify({ error: "Content required for user turn" }), {
         status: 400,
         headers: JSON_HEADERS,
@@ -173,59 +176,15 @@ export async function POST(
     const goesToAi = !!nextStage && isAiStage(nextStage);
     const nextStageForDb = goesToAi ? nextStage : (nextStage || "complete");
 
-    // Optimistic-concurrency advance FIRST. The `.eq("current_stage",
-    // currentStage)` guard means only one concurrent request can win the
-    // race - the loser's UPDATE affects zero rows and we bail before
-    // writing a duplicate user turn or starting a second AI stream.
-    const { data: advanced, error: advanceError } = await supabase
-      .from("debates")
-      .update({
-        current_stage: nextStageForDb,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", params.debateId)
-      .eq("user_id", user.id)
-      .eq("current_stage", currentStage)
-      .select("id");
-
-    if (advanceError) {
-      return new Response(
-        JSON.stringify({ error: "Failed to advance debate stage" }),
-        { status: 500, headers: JSON_HEADERS }
-      );
-    }
-
-    if (!advanced || advanced.length === 0) {
-      return conflict(
-        "This debate already advanced. Refresh and try again."
-      );
-    }
-
-    // We won the race - now safely record the user turn.
-    const { error: userTurnError } = await supabase
-      .from("debate_turns")
-      .insert({
-        debate_id: params.debateId,
-        stage: currentStage,
-        role: "user",
-        content: body.content,
-      });
-
-    if (userTurnError) {
-      // Rare: stage advanced but the turn insert failed. Report so we
-      // can spot it; the debate is in a mildly odd state (advanced with
-      // no user turn recorded for this stage).
-      reportError(userTurnError, {
-        route: "debate/turn",
-        debateId: params.debateId,
-        stage: currentStage,
-        phase: "user-turn-insert",
-      });
-      return new Response(
-        JSON.stringify({ error: "Failed to save your turn" }),
-        { status: 500, headers: JSON_HEADERS }
-      );
-    }
+    // Turn insertion and stage advancement share one database transaction.
+    const { data: committed, error: commitError } = await writer.rpc("commit_ai_debate_turn", {
+      p_user_id: user.id, p_debate_id: params.debateId, p_stage: currentStage,
+      p_next_stage: nextStageForDb, p_role: "user", p_content: body.content,
+    });
+    if (commitError) return new Response(JSON.stringify({ error: "Failed to save your turn" }), {
+      status: 500, headers: JSON_HEADERS,
+    });
+    if (!committed) return conflict("This debate already advanced. Refresh and try again.");
 
     turns.push({
       id: "pending",
@@ -263,6 +222,14 @@ export async function POST(
     });
   }
 
+  const { data: leaseToken, error: leaseError } = await writer.rpc("claim_ai_debate_turn", {
+    p_user_id: user.id, p_debate_id: params.debateId, p_stage: stageForAi,
+  });
+  if (leaseError) return new Response(JSON.stringify({ error: "Could not start AI response" }), {
+    status: 500, headers: JSON_HEADERS,
+  });
+  if (!leaseToken) return conflict("An AI response is already running or this debate advanced. Refresh before retrying.");
+
   const debate: Debate = {
     id: params.debateId,
     config,
@@ -280,14 +247,17 @@ export async function POST(
   // be user" invariant, so don't re-do that work here.
   const messages = buildMessages(turns, stageForAi, undefined);
 
-  const gemini = getGeminiClient();
-
   const encoder = new TextEncoder();
   const signal = request.signal;
+  let cancelled = false;
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        const gemini = getGeminiClient();
         let fullText = "";
+        let finishReason: string | undefined;
+        let selectedModel: string | undefined;
+        const startedAt = Date.now();
 
         const candidateModels = GEMINI_FALLBACK_MODELS;
 
@@ -301,12 +271,15 @@ export async function POST(
               contents: messages,
               config: {
                 systemInstruction: systemPrompt,
+                abortSignal: signal,
+                httpOptions: { timeout: 45000 },
                 maxOutputTokens: 2000,
                 thinkingConfig: {
                   thinkingBudget: 0,
                 },
               },
             });
+            selectedModel = model;
             break;
           } catch (err: unknown) {
             lastErr = err;
@@ -322,7 +295,8 @@ export async function POST(
         }
 
         for await (const chunk of stream) {
-          if (signal.aborted) break;
+          if (signal.aborted || cancelled) break;
+          finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
           const text = chunk.text;
           if (text) {
             fullText += text;
@@ -337,57 +311,27 @@ export async function POST(
         // If the client is gone, do not touch the DB - a partial AI turn
         // and an advanced stage would leave the debate in a broken state
         // that the user would then have to reconcile on refresh.
-        if (signal.aborted) {
+        if (signal.aborted || cancelled) {
           controller.close();
           return;
         }
 
-        // Save AI turn
-        const { error: aiTurnError } = await supabase
-          .from("debate_turns")
-          .insert({
-            debate_id: params.debateId,
-            stage: stageForAi,
-            role: "ai",
-            content: fullText,
+        // Persist only a complete provider response. Truncated or empty output
+        // leaves the stage unchanged and can be explicitly retried.
+        if (!fullText.trim() || finishReason !== "STOP") {
+          reportError(new Error("AI stream did not complete"), {
+            route: "debate/turn", debateId: params.debateId, stage: stageForAi,
+            model: selectedModel, finishReason: finishReason ?? "missing", latencyMs: Date.now() - startedAt,
           });
-
-        if (aiTurnError) {
-          throw new Error("Failed to save AI turn");
+          throw new Error("Incomplete AI response");
         }
-
-        // Advance to next stage with the same optimistic guard. If another
-        // request already advanced past `stageForAi` (e.g. a client retry
-        // that also produced an AI response), our UPDATE affects zero rows
-        // and we treat it as a conflict.
         const nextStage = getNextStage(stageForAi, config);
-        const { data: advanced, error: advanceError } = await supabase
-          .from("debates")
-          .update({
-            current_stage: nextStage || "complete",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", params.debateId)
-          .eq("user_id", user.id)
-          .eq("current_stage", stageForAi)
-          .select("id");
-
-        if (advanceError) {
-          throw new Error("Failed to advance debate stage");
-        }
-
-        if (!advanced || advanced.length === 0) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                error: "This debate already advanced. Refresh and try again.",
-                conflict: true,
-              })}\n\n`
-            )
-          );
-          controller.close();
-          return;
-        }
+        const { data: committed, error: commitError } = await writer.rpc("commit_ai_debate_turn", {
+          p_user_id: user.id, p_debate_id: params.debateId, p_stage: stageForAi,
+          p_next_stage: nextStage || "complete", p_role: "ai", p_content: fullText, p_token: leaseToken,
+        });
+        if (commitError) throw new Error("Failed to save AI turn");
+        if (!committed) throw new Error("AI turn lease expired or debate advanced");
 
         controller.enqueue(
           encoder.encode(
@@ -397,7 +341,7 @@ export async function POST(
         controller.close();
       } catch (err) {
         // Client disconnect / component unmount - silent close, no report.
-        if (isAbort(err, signal)) {
+        if (cancelled || isAbort(err, signal)) {
           try {
             controller.close();
           } catch {
@@ -406,7 +350,7 @@ export async function POST(
           return;
         }
 
-        reportError(err, {
+        reportError(new Error("AI turn generation or persistence failed"), {
           route: "debate/turn",
           debateId: params.debateId,
           stage: stageForAi,
@@ -424,12 +368,16 @@ export async function POST(
         } catch {
           // Downstream reader is already gone.
         }
+      } finally {
+        const { error } = await writer.rpc("release_ai_debate_turn", {
+          p_user_id: user.id, p_debate_id: params.debateId, p_token: leaseToken,
+        });
+        if (error) reportError(new Error("AI lease release failed"), { route: "debate/turn" });
       }
     },
     cancel() {
-      // ReadableStream was cancelled from the consumer side. The
-      // `signal.aborted` check inside `start()` covers this; nothing
-      // else to do here beyond noting we saw the cancellation.
+      cancelled = true;
+      // The stream loop stops before persisting and releases its lease.
     },
   });
 

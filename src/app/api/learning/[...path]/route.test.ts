@@ -45,6 +45,23 @@ describe("learning API boundaries", () => {
     expect(result.status).toBe(200); expect(result.headers.get("Cache-Control")).toBe("private, no-store");
     expect(mocks.read).toHaveBeenCalledWith(expect.anything(), "verified-owner", id);
   });
+  it.each([
+    ["POST", ["cycles"]],
+    ["POST", ["cycles", id, "reassessment"]],
+    ["PUT", ["sessions", id, "draft"]],
+    ["POST", ["sessions", id, "responses"]],
+    ["POST", ["sessions", id, "view"]],
+  ])("blocks %s %j before any privileged work while off", async (method, path) => {
+    vi.stubEnv("LEARNING_ROLLOUT", "off");
+    const result = await POST(request(path as string[], {}, method as string), { params: { path: path as string[] } });
+    expect(result.status).toBe(503);
+    expect(mocks.admin).not.toHaveBeenCalled(); expect(mocks.submit).not.toHaveBeenCalled();
+  });
+  it("excludes a non-allowlisted pilot user before privileged work", async () => {
+    vi.stubEnv("LEARNING_ROLLOUT", "pilot"); vi.stubEnv("LEARNING_PILOT_USERS", "another-user");
+    expect((await POST(request(["cycles"], {}), { params: { path: ["cycles"] } })).status).toBe(503);
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
   it("does not infer anonymous ownership for another session", async () => {
     mocks.owned.mockRejectedValue(new LearningError("Practice session not found.", 404));
     const path = ["sessions", id, "draft"];

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-02",
+  "environment": "Vercel Preview",
+  "commit": "a75c2f4c497485e1a9afd6102c2853bddd3d9482",
+  "deploymentUrl": "https://debate-master-g5gv7pnti-joel-guzmans-projects-f8aa100e.vercel.app",
+  "deploymentVerification": "Vercel UI independently confirmed Ready, staging and matching commit",
+  "debateId": "9fbc877f-33f7-44f5-b998-f5413befb719",
+  "status": "passed",
+  "scope": "Single-browser authenticated Free account AI debate, one rebuttal round, cross-examination, closing and coaching",
+  "checks": {
+    "completedWithoutRetry": true,
+    "noObservedTransitionErrorBanners": true,
+    "renderedTranscriptEntriesBeforeReload": 9,
+    "renderedTranscriptEntriesAfterReload": 9,
+    "eachExpectedStageLabelAppearsOnce": true,
+    "feedbackContentIdenticalAfterReload": true,
+    "feedbackRegenerationRequired": false
+  },
+  "scores": {
+    "overall": 5,
+    "evidenceUsage": 4,
+    "rebuttalQuality": 5,
+    "rhetoricalSkill": 6,
+    "argumentStrength": 4
+  },
+  "roundedEquallyWeightedMeanMatches": true,
+  "observations": [
+    "AI cross-examination response included premature closing prose within its single entry; model stage adherence remains a quality concern.",
+    "Four asynchronous message-channel console errors were observed on the debate library before the fresh debate; cause not established."
+  ],
+  "limitations": [
+    "UI persistence verification; no direct database row-count inspection.",
+    "Does not establish server idempotency across clients or provider interruption recovery.",
+    "No assessment calibration, premium entitlement or mobile verification in this run."
+  ],
+  "fixture": "Synthetic debate retained for follow-up; no invite or usefulness signal sent."
+}

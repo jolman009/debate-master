@@ -77,7 +77,7 @@
   },
   "localStreamingRemediation": {
     "date": "2026-10-02",
-    "status": "implemented locally; not deployed",
+    "status": "deployed as a75c2f4; fresh single-browser Preview smoke test passed",
     "changes": [
       "Lock AI action through stream and authoritative refresh",
       "Clear transient text before stage changes",
@@ -91,9 +91,9 @@
       "productionBuild": "passed, including typecheck and 31 static pages"
     },
     "remaining": [
-      "Fresh Preview smoke test after deployment",
       "Server atomic AI turn persistence/idempotency across clients",
       "Provider interruption diagnosis"
-    ]
+    ],
+    "previewRetestEvidence": "phase-1-preview-ai-retest.json"
   }
 }

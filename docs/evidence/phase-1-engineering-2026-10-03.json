@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-03",
+  "status": "engineering implemented; release gates remain open",
+  "stagingProject": "twtsdothnlfvbczzpdaj",
+  "migrations": {
+    "019": "Applied through staging SQL Editor; atomic_ai_turns.sql returned passed=true; fixtures rolled back",
+    "020": "Applied through staging SQL Editor; learning_pilot_measurement.sql returned passed=true; fixtures rolled back"
+  },
+  "localVerification": {
+    "unitApiTests": 249,
+    "testFiles": 34,
+    "productionBuild": "passed with lint, types and 31 static pages; includes unrelated pending Sentry files",
+    "calibrationScorer": "Three synthetic harness checks passed: empty rejected, complete synthetic accepted, fractional score rejected; not coach calibration",
+    "scriptSyntax": "All three new scripts passed node --check"
+  },
+  "previewPrerequisite": "SUPABASE_SERVICE_ROLE_KEY is configured for Preview; value not revealed",
+  "premiumFixture": {
+    "grant": "User-designated account profile set to active with no expiry; staging only",
+    "ui": "Preview g5gv7pnti: designated premium account shows Active Subscription and Pro Analysis with citations and download buttons; designated second account showed Free pricing. Download/audio/provider reconciliation not exercised.",
+    "scope": "Manual premium fixture; not Supabase administration or verified provider reconciliation"
+  },
+  "humanFixture": {
+    "debateId": "69ff5e9c-f699-4b91-b887-a08a5d9b2bf8",
+    "join": "Second participant joined; CON waiting state verified",
+    "opening": "PRO opening submitted and visible in other tab",
+    "exchange": "Pending CON submission from isolated login; normal Chrome windows shared cookies"
+  },
+  "remaining": [
+    "Application deployment and live retest",
+    "Simultaneous AI HTTP retry verifier requires staging CLI credentials",
+    "Real drill journeys after curriculum approval",
+    "Two independent coach ratings and held-out examples",
+    "20\u201330 learner pilot with full seven-day observation",
+    "Paid-provider reconciliation and production release remain separate"
+  ]
+}

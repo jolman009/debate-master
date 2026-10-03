@@ -47,7 +47,7 @@ The original 20 UI epics are substantially implemented in code. Remaining work c
 | LIVE-03 — Realtime/recovery | Mostly | `user-input.tsx` awaits submission before clearing and retains text on rejection. Reconnect/Retry controls and polling fallback exist. A real AI journey is recorded; human invite/join/verdict and reconnect-without-duplicate-turn browser scenarios remain open. Drill retry evidence does not prove debate-turn deduplication. |
 | COACH-01 — Feedback contract | Implemented | Versioned feedback, legacy adapter, exact turn/excerpt validation and parser tests exist. Phase 0 production evidence verifies the AI coaching journey and displayed references. Human scoring calibration remains a separate gate. |
 | COACH-02 — Coaching view | Mostly | Strength, priority, rationale, evidence, scores, practice and Rematch are implemented. Legacy results use an adapter/badge rather than a clearly reduced layout. Verify first-viewport hierarchy and the original Share/Library/evidence-navigation criteria across viewports. |
-| COACH-03 — Targeted practice | Mostly | Existing setup supports suggested motion/difficulty/goal and explanatory copy. New linked drill/revision/reassessment flow is implemented and pushed to staging. Durable learning events exist, but generic CTA analytics forwarding and unavailable-recommendation reporting remain incomplete. New fixed-template drills are a distinct experience from the original editable debate-setup acceptance criteria. |
+| COACH-03 — Targeted practice | Mostly | Existing setup supports suggested motion/difficulty/goal and explanatory copy. New linked drill/revision/reassessment flow is implemented and pushed to staging. Durable learning events exist. October 3 adds unavailable-recommendation storage, usefulness review and a seven-day cohort report (migration 020 verified in staging); application deployment remains pending. Generic CTA analytics forwarding remains incomplete. New fixed-template drills are a distinct experience from the original editable debate-setup acceptance criteria. |
 | TRUST-01 — AI transparency | Mostly | Simulation/affiliation disclosures exist in live, transcript and shared views; scores are labeled estimates. Helpful/Not helpful/Report submit to an API, but that endpoint logs the signal rather than storing an owned review record. Verify persistent visible synthetic-voice disclosure before playback and operational report handling. |
 | VIS-01 — Typography/icons | Mostly | `src/app/layout.tsx` uses optimized Inter and Newsreader; tabular scores exist. Meaningful 10–12px utility text remains, including practice labels and composer character status. The original 13px minimum and zero-layout-shift claim are not fully established. |
 | VIS-02 — Landing narrative | Mostly | Stage-led hero, primary CTA, secondary pricing and editorial/coaching sections exist. Public browser evidence supports basic structure/overflow; crop contrast and light/dark visual baselines remain open. |
@@ -73,7 +73,7 @@ The original 20 UI epics are substantially implemented in code. Remaining work c
 | Shared drill UI/API | Implemented in `src/lib/learning`, `src/components/learning`, `/api/learning/[...path]` and `/practice/[cycleId]`. Includes saved drafts, targeted coaching, revision, reassessment, ownership, server reservation and events. |
 | Three revised templates | Counterargument, warrant and claim repair are v2; prompt is `targeted-coach-2`. Revisions allow concessions, unsupported-inference explanations and evidence-based repair; difficulty guidance and reassessment scenarios are family-specific. |
 | Source pairing | Counterargument requires exact excerpts cited in the same rebuttal coaching; it no longer selects an uncited preceding AI turn. This remains coaching-supported pairing, not independently validated semantic relevance. |
-| Commit/push | `3f96ca9` introduced the runtime; `6f5d542` revised templates and recorded staging evidence. Both were pushed to `origin/staging`. Vercel Preview deployment of `6f5d542` was user-confirmed October 2, 2026; deployment URL and live behavior were not independently inspected. |
+| Commit/push | `3f96ca9` introduced the runtime; `6f5d542` revised templates and recorded staging evidence. Both were pushed to `origin/staging`. Vercel Preview deployment of `6f5d542` was user-confirmed October 2, 2026; Latest streaming fix `a75c2f4` was pushed to staging; Vercel Preview `g5gv7pnti` was independently confirmed Ready. A fresh single-browser debate completed without retries, with nine transcript entries and coaching persisting after reload; see `docs/evidence/phase-1-preview-ai-retest.json`. Cross-client idempotency remains unverified. |
 | Curriculum/rollout | Revised templates await explicit approval and calibration. Preview variables `LEARNING_ROLLOUT=off` and `LEARNING_PAID_ENABLED=false` were created and staging Preview redeployed, user-confirmed October 2, 2026. Live flag behavior and template approval configuration remain to be verified. No pilot environment change or production rollout is claimed. Saved v1 snapshots remain readable; the prompt-version guard pauses their evaluation rather than silently reinterpreting them. |
 | Remaining validation | Real-service authenticated journeys for all families, deployed-model checks, coach ratings, the 20–30 learner pilot, and cohort/reporting work remain open. Stripe reconciliation stays deferred; Google Play reconciliation remains a paid-release dependency. |
 
@@ -102,3 +102,14 @@ The old 94-unit/24-browser test totals are obsolete. Avoid adding targeted count
 6. **Validate learner outcomes:** finish independent scoring/adjudication and the seven-day learner cohort before making improvement or completion-rate claims.
 
 This audit updates status only. It does not change code, enable flags, apply migrations, deploy, or claim that pending acceptance tests passed.
+
+## October 3 Growth Phase 1 engineering follow-up
+
+Migrations 019 and 020 applied to staging and their rollback SQL suites returned
+`passed=true`. Atomic AI turn persistence/leases, complete-stream validation, stage
+prompt boundaries, durable recommendation/usefulness tracking and cohort reporting
+are implemented locally. The suite passes 249 tests; production build/type/lint
+checks pass. See [verification record](docs/evidence/phase-1-engineering-2026-10-03.json)
+and [pilot operations](docs/phase-1/PILOT_OPERATIONS.md). Deployment, simultaneous
+HTTP retry verification, live learning journeys, coach calibration and learner
+pilot outcomes remain separate gates.

@@ -28,6 +28,13 @@ export function databaseResult<T>(result: { data: T; error: { code?: string } | 
   }
   return result.data;
 }
+async function recordUnavailable(db: SupabaseClient, userId: string, debateId: string, reason: string) {
+  const { error } = await db.from("learning_recommendation_outcomes").upsert({
+    user_id: userId, debate_id: debateId, reason,
+  }, { onConflict: "user_id,debate_id,reason", ignoreDuplicates: true });
+  // Measurement failure must not prevent access to already saved learning work.
+  if (error) reportError(new Error("Recommendation measurement failed"), { route: "learning/recommendation" });
+}
 export async function recommendation(db: SupabaseClient, userId: string, debateId: string) {
   const debate = databaseResult(await db.from("debates").select("id,config,current_stage,feedback,assessment_status").eq("id", debateId).eq("user_id", userId).maybeSingle());
   if (!debate) throw new LearningError("Debate not found.", 404);
@@ -36,10 +43,16 @@ export async function recommendation(db: SupabaseClient, userId: string, debateI
     const runtime = databaseResult(await db.from("learning_runtime").select("session_id").eq("user_id", userId).eq("loop_id", c.id).limit(1));
     if (runtime?.length) return { existingCycleId: c.id as string, recommendation: null };
   }
-  if (debate.assessment_status !== "valid" || !["feedback", "complete"].includes(debate.current_stage) || debate.config?.mode === "human" || !debate.feedback) return { existingCycleId: null, recommendation: null };
+  if (debate.assessment_status !== "valid" || !["feedback", "complete"].includes(debate.current_stage) || debate.config?.mode === "human" || !debate.feedback) {
+    await recordUnavailable(db, userId, debateId, "ineligible_source");
+    return { existingCycleId: null, recommendation: null };
+  }
   const turns = databaseResult(await db.from("debate_turns").select("*").eq("debate_id", debateId).order("created_at"));
   const difficulty: Difficulty = ["beginner", "intermediate", "advanced"].includes(debate.config?.difficulty) ? debate.config.difficulty : "intermediate";
-  return { existingCycleId: null, recommendation: recommendDrill(debate.feedback as DebateFeedbackV2, turns as DebateTurn[], difficulty, approvedTemplateVersions(), GEMINI_MODEL) };
+  const approved = approvedTemplateVersions();
+  const drill = recommendDrill(debate.feedback as DebateFeedbackV2, turns as DebateTurn[], difficulty, approved, GEMINI_MODEL);
+  if (!drill) await recordUnavailable(db, userId, debateId, approved.length ? "insufficient_source_evidence" : "no_approved_template");
+  return { existingCycleId: null, recommendation: drill };
 }
 export async function openCycle(db: SupabaseClient, userId: string, debateId: string, requestId: string): Promise<string> {
   // Check request binding before the resume shortcut.

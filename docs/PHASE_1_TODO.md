@@ -1,6 +1,6 @@
 # Phase 1 completion checklist
 
-Updated October 2, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
+Updated October 3, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
 not the older UI roadmap's foundations/accessibility phase.
 
 Check items only when the stated result is evidenced. Record the date, version,
@@ -9,11 +9,39 @@ staging verification, curriculum approval and learner outcomes are separate.
 
 **Current status:** implementation, staging SQL/concurrency, v2 build and mocked
 browser checks passed. Live Preview smoke tests are partially complete; the Gemini
-authentication blocker is resolved. Phase 1 remains open.
+authentication blocker is resolved. A fresh AI debate on deployed `a75c2f4` completed
+without retries; nine transcript entries and coaching persisted after reload. Phase 1 remains open.
 
-**Next:** investigate AI streaming/transition findings, finish human join/turns,
-premium entitlement checks, and learning off-mode write rejection/saved reads; then complete curriculum
-approval before enabling the pilot.
+**Next:** deploy the October 3 engineering changes, run simultaneous staging AI
+retries, finish the two-account human exchange and premium UI checks, and verify
+hosted learning off-mode writes/saved reads. Curriculum approval, independent coach
+ratings and the seven-day learner pilot remain external gates.
+
+### October 3 implementation work
+
+- [x] Apply migration 019 to staging: database lease/fencing and atomic AI-mode
+  turn insertion plus stage advancement. Transactional SQL assertions passed;
+  simultaneous HTTP verification remains below.
+- [x] Apply migration 020 to staging: content-free unavailable recommendations,
+  durable usefulness review queue and deduplicated seven-day cohort reporting.
+  Synthetic SQL checks passed, including pending follow-up and RLS/privileges.
+- [x] Run October 3 verification: 249 unit/API tests across 34 files, production
+  build with lint/type checks and 31 static pages; three synthetic calibration
+  scorer checks. These are technical checks, not coach calibration.
+- [x] Implement complete-provider-response checks and content-free failure context;
+  release leases on failed/disconnected requests so explicit retry can resume.
+- [x] Add current-stage prompt boundaries, including no premature closing during
+  cross-examination. Real-provider adherence must still be checked after deployment.
+- [x] Prepare the [pilot operations guide](phase-1/PILOT_OPERATIONS.md), held-out
+  calibration worksheet/scorer and simultaneous AI retry verifier. Empty calibration
+  data fails the gate; no coach ratings or learner outcomes are fabricated.
+- [x] Grant the user-designated Premium test account app-level access in staging.
+  No Supabase administrator privileges or verified payment records were created.
+- [x] Join the retained human invitation as the designated second participant;
+  Preview shows CON waiting for PRO's opening. Turn exchange remains pending.
+- [ ] Deploy these application changes to Preview and record the commit and URL.
+
+Evidence: [October 3 engineering verification](evidence/phase-1-engineering-2026-10-03.json).
 
 ## Completed foundation
 
@@ -38,9 +66,9 @@ approval before enabling the pilot.
   The blank `expect_error` helper result is expected. The suite rolls back its
   fixtures; no further rerun is needed without a relevant change. Raw SQL output
   was not independently inspected.
-- [x] Confirm Vercel Preview deployed `6f5d542` — Ready status and staging branch
-  independently inspected October 2, 2026. Current retest deployment:
-  [Preview 8bvsqrt9v](https://debate-master-8bvsqrt9v-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [x] Confirm current Vercel Preview deployed `a75c2f4` — Ready status and staging
+  branch independently inspected October 2, 2026:
+  [Preview g5gv7pnti](https://debate-master-g5gv7pnti-joel-guzmans-projects-f8aa100e.vercel.app/).
 - [x] Set Preview variables `LEARNING_ROLLOUT=off` and
   `LEARNING_PAID_ENABLED=false` and redeploy staging Preview — user-confirmed
   October 2, 2026. Live behavior checks remain below.
@@ -52,11 +80,14 @@ approval before enabling the pilot.
 - [x] Run fresh v2 desktop/mobile drill browser checks — October 2, 2026:
   all six tests passed (three families × desktop/compact mobile). Production
   build with mocked learning APIs; hosted authentication and real AI remain separate.
+
 ### Live Preview smoke tests
 
 Evidence: [Preview smoke-test record](evidence/phase-1-preview-smoke.json).
 Initial checks used Preview `9tvzvzy5o`; post-credential-fix checks used `8bvsqrt9v`.
-Results below are scoped to those deployments, not production.
+The fresh streaming-fix retest used `g5gv7pnti` (`a75c2f4`):
+[AI retest evidence](evidence/phase-1-preview-ai-retest.json).
+Results below are scoped to the stated deployments, not production.
 
 - [x] Verify public homepage and pricing render, annual billing toggle works, and
   debate/upgrade entry points redirect signed-out users to login.
@@ -82,22 +113,37 @@ Results below are scoped to those deployments, not production.
   its captured AI stage label, and missing SSE completion requires explicit retry.
   Two regression tests fail on the prior implementation and pass with the fix.
   Full unit/API suite passed (230 tests); production build passed.
-- [ ] Commit/deploy the streaming fix and repeat a fresh Preview debate through
-  coaching. Current Preview `8bvsqrt9v` does not contain the local fix.
-- [ ] Investigate remaining server/provider reliability: the AI route inserts a
-  response before its stage-advance guard, so concurrent requests from multiple
-  clients can still insert duplicate turns. Client locking does not provide
-  durable server idempotency. Confirm the causes of interrupted provider streams
-  from logs and verify retry recovery and persisted turn counts in staging.
-  Earlier duplicate UI entries and error banners remain recorded in the evidence.
+- [x] Commit/deploy the streaming fix and repeat a fresh Preview debate through
+  coaching — October 2, 2026, `a75c2f4` on `g5gv7pnti`. All nine expected transcript
+  entries rendered once before and after reload; coaching content and scores
+  (overall 5; evidence 4, rebuttal 5, rhetoric 6, argument strength 4) persisted.
+  No retries or transition error banners were observed. This is a single-browser
+  UI verification, not proof of server idempotency across clients.
+  Saved debate: `9fbc877f-33f7-44f5-b998-f5413befb719`.
+- [x] Check the saved overall score matches the rounded, equally weighted mean
+  in this smoke test: `round((4 + 5 + 6 + 4) / 4) = 5`. This observed result does
+  not replace rubric calibration or server-contract tests.
+- [x] Implement durable server idempotency for AI turns with migration 019 and
+  update the route to use it. Database assertions verify fencing, repeat commits,
+  ownership denial and atomic validation failure.
+- [ ] Run `scripts/verify-ai-turn-concurrency.mjs` against staging and retain its
+  report. Sequential SQL assertions are not simultaneous HTTP concurrency proof.
+- [ ] Diagnose interrupted provider streams from logs and verify recovery with
+  explicit retry in staging. The fresh run needed no retry, so it does not close
+  this check. Preserve earlier duplicate UI entries and errors in the evidence.
+- [ ] Verify the new stage-boundary prompt against real AI output. The October 2
+  cross-examination response contained premature closing prose within one entry;
+  the October 3 correction is implemented but not yet verified on Preview.
 - [ ] Verify a second staging test participant can join the human invite and
   exchange turns. Saved test debate: `69ff5e9c-f699-4b91-b887-a08a5d9b2bf8`.
-- [ ] Verify existing premium entitlement behavior with an appropriate staging
-  test account, within the billing scope below; do not treat Free pricing as proof.
+- [x] Verify existing premium entitlement UI on Preview `g5gv7pnti`, October 3:
+  the designated test account shows Active Subscription and Pro Analysis with
+  exact citations and download controls. The second account showed Free pricing.
+  This manual staging fixture does not verify checkout, audio or provider reconciliation.
 - [ ] Verify authenticated learning writes are rejected while rollout is off,
   and owned saved cycles remain readable. The availability GET alone is insufficient.
 - [ ] Retain verification results and clean up synthetic sessions when follow-up
-  checks are complete; both smoke-test debates are currently retained.
+  checks are complete; all three smoke-test debates are currently retained.
 
 **Exit:** version and environment are known, baseline checks pass, and the feature
 remains disabled until the next gates are ready. Do not repeat already-passed
@@ -117,9 +163,8 @@ concurrency tests without a relevant schema/runtime change.
 - [ ] Check approved transcript examples actually meet routing prerequisites.
   Counterargument requires co-cited learner/opposing excerpts; warrants require
   distinct claim/evidence excerpts. Test unavailable cases without inventing links.
-- [ ] Decide how any existing v1 cycles will be handled: keep readable and paused,
-  or implement explicit version-compatible continuation. Never rewrite snapshots
-  or silently score them with the v2 prompt.
+- [x] Preserve existing v1 cycles as readable and paused under the version guard,
+  as documented in the operations guide. No snapshot rewriting or v2 rescoring.
 
 **Exit:** explicit curriculum approval is recorded. The previous rubric approval
 and permission to revise code do not establish approval of the revised exercises.
@@ -169,16 +214,19 @@ browser tests and database-only concurrency checks cannot substitute for these.
 
 ## 5. Finish pilot measurement — engineering/product
 
-- [ ] Implement durable, content-free tracking of unavailable recommendations.
-- [ ] Provide a cohort report joining first-debate completion to linked drill and
-  reassessment completion. Deduplicate learners and identify the observation window.
+- [x] Implement durable, content-free tracking of unavailable recommendations
+  (migration 020 and recommendation service); deployed application behavior pending.
+- [x] Provide `learning_pilot_report` and `scripts/learning-pilot-report.mjs`: join
+  first-debate completers to linked completed cycles, deduplicate learners and report
+  seven-day matured/pending denominators. Staging synthetic SQL checks passed.
 - [ ] Define the denominator before enrollment and allow a full seven days of
   follow-up. Report numerator, denominator and unavailable cases, not percentages alone.
-- [ ] Add a usable coaching-usefulness/abandonment review process. The current
-  general usefulness endpoint logs signals; do not assume a durable review queue.
-- [ ] Confirm scope for the initial pilot: deterministic controlled templates are
-  implemented; model-generated exercise variations are not. Record that scope or
-  separately validate variations before adding them.
+- [x] Add authenticated durable usefulness storage, a review queue with dispositions,
+  failed-save UI feedback, and incomplete-cycle counts with a daily review workflow
+  in the operations guide. Assign an operator and exercise the deployed workflow
+  before enrollment; incomplete cycles are not automatically proven abandonment.
+- [x] Record the initial scope as deterministic controlled v2 templates in the
+  operations guide. Model-generated exercise variations are excluded.
 
 ## 6. Exercise release controls and run the learner pilot — operator/product
 

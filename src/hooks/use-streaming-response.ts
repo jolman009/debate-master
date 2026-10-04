@@ -17,7 +17,8 @@ export function useStreamingResponse() {
   const startStream = useCallback(
     async (
       debateId: string,
-      content?: string
+      content?: string,
+      expectedStage?: string
     ): Promise<StreamResult | null> => {
       if (abortRef.current) return null;
       setIsStreaming(true);
@@ -30,7 +31,7 @@ export function useStreamingResponse() {
         const res = await fetch(`/api/debate/${debateId}/turn`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content, expectedStage }),
           signal: abortRef.current.signal,
         });
 

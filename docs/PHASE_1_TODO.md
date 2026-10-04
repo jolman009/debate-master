@@ -1,20 +1,21 @@
 # Phase 1 completion checklist
 
-Updated October 3, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
+Updated October 4, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
 not the older UI roadmap's foundations/accessibility phase.
 
 Check items only when the stated result is evidenced. Record the date, version,
 target environment and report/link alongside new passes. Source implementation,
 staging verification, curriculum approval and learner outcomes are separate.
 
-**Current status:** implementation, staging SQL/concurrency, v2 build and mocked
-browser checks passed. Live Preview smoke tests are partially complete; the Gemini
-authentication blocker is resolved. A fresh AI debate on deployed `a75c2f4` completed
-without retries; nine transcript entries and coaching persisted after reload. Phase 1 remains open.
+**Current status:** core implementation, staging SQL/runtime concurrency, v2 build
+and mocked browser checks passed. Live `8a41d68` AI smoke test completed October 4:
+nine entries and unchanged coaching persisted after reload; scores were overall 6,
+evidence 4, rebuttal 6, rhetoric 7, argument strength 5. Phase 1 remains open.
 
-**Next:** deploy the October 3 engineering changes, run simultaneous staging AI
-retries, finish the two-account human exchange and premium UI checks, and verify
-hosted learning off-mode writes/saved reads. Curriculum approval, independent coach
+**Next:** deploy/retest the local expected-stage retry guard, finish controlled
+provider interruption/log verification and the simultaneous AI verifier, then
+verify hosted learning off-mode writes/saved reads. The two-account human opening
+exchange and Premium UI checks passed. Curriculum approval, independent coach
 ratings and the seven-day learner pilot remain external gates.
 
 ### October 3 implementation work
@@ -38,8 +39,23 @@ ratings and the seven-day learner pilot remain external gates.
 - [x] Grant the user-designated Premium test account app-level access in staging.
   No Supabase administrator privileges or verified payment records were created.
 - [x] Join the retained human invitation as the designated second participant;
-  Preview shows CON waiting for PRO's opening. Turn exchange remains pending.
-- [ ] Deploy these application changes to Preview and record the commit and URL.
+  PRO and CON openings are saved once each with distinct correct authors; CON
+  reload preserves both entries and shows PRO's rebuttal as the next stage.
+- [x] Deploy application commit `8a41d68` to staging Preview — GitHub Vercel status
+  and Vercel Ready independently verified October 3:
+  [Preview pbqftftkz](https://debate-master-pbqftftkz-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [x] Retest signed-in AI completion and saved coaching on `8a41d68`, October 4.
+  All nine entries survive reload once each; coaching and five scores are unchanged.
+  A synthetic Helpful signal returned the save acknowledgement. Independent row
+  readback and review-queue exercise remain open because the current Supabase
+  browser account cannot access staging.
+- [x] Observe two-client lease conflict on `8a41d68`: competing opening generation
+  rejected; SQL confirmed two saved turns and zero leases after completion.
+  This does not replace the simultaneous verifier below.
+- [x] Add local expected-stage guard following the stale-client retry observation:
+  stale requests return 409 before mutation/provider work. Twelve targeted tests
+  and typecheck passed October 4; older clients without the field stay compatible.
+- [ ] Deploy and live-retest the expected-stage guard; it is not in `8a41d68`.
 
 Evidence: [October 3 engineering verification](evidence/phase-1-engineering-2026-10-03.json).
 
@@ -66,7 +82,7 @@ Evidence: [October 3 engineering verification](evidence/phase-1-engineering-2026
   The blank `expect_error` helper result is expected. The suite rolls back its
   fixtures; no further rerun is needed without a relevant change. Raw SQL output
   was not independently inspected.
-- [x] Confirm current Vercel Preview deployed `a75c2f4` — Ready status and staging
+- [x] Confirm October 2 Vercel Preview deployed `a75c2f4` — Ready status and staging
   branch independently inspected October 2, 2026:
   [Preview g5gv7pnti](https://debate-master-g5gv7pnti-joel-guzmans-projects-f8aa100e.vercel.app/).
 - [x] Set Preview variables `LEARNING_ROLLOUT=off` and
@@ -129,13 +145,18 @@ Results below are scoped to the stated deployments, not production.
 - [ ] Run `scripts/verify-ai-turn-concurrency.mjs` against staging and retain its
   report. Sequential SQL assertions are not simultaneous HTTP concurrency proof.
 - [ ] Diagnose interrupted provider streams from logs and verify recovery with
-  explicit retry in staging. The fresh run needed no retry, so it does not close
-  this check. Preserve earlier duplicate UI entries and errors in the evidence.
-- [ ] Verify the new stage-boundary prompt against real AI output. The October 2
-  cross-examination response contained premature closing prose within one entry;
-  the October 3 correction is implemented but not yet verified on Preview.
-- [ ] Verify a second staging test participant can join the human invite and
-  exchange turns. Saved test debate: `69ff5e9c-f699-4b91-b887-a08a5d9b2bf8`.
+  explicit retry in staging. In the October 3–4 run, navigation away did not
+  establish provider cancellation: the server completed the rebuttal. Retry from
+  the stale tab could act on the next AI stage; refresh recovered without duplicate
+  persisted entries. The local expected-stage fix and provider/log retest remain
+  separate. Preserve earlier duplicate UI entries and errors in the evidence.
+- [x] Verify the new stage-boundary prompt against real AI output on `8a41d68`:
+  cross-examination response had two paragraphs and no premature closing/verdict;
+  final closing occurred separately. This is one observed case, not calibration.
+- [x] Verify a second staging test participant joins and exchanges opening turns
+  on `g5gv7pnti`, October 3. UI reload and SQL confirm one PRO and one CON opening,
+  each with its correct author. Saved debate: `69ff5e9c-f699-4b91-b887-a08a5d9b2bf8`.
+  Full human debate/judging is outside this opening-exchange check.
 - [x] Verify existing premium entitlement UI on Preview `g5gv7pnti`, October 3:
   the designated test account shows Active Subscription and Pro Analysis with
   exact citations and download controls. The second account showed Free pricing.
@@ -143,7 +164,7 @@ Results below are scoped to the stated deployments, not production.
 - [ ] Verify authenticated learning writes are rejected while rollout is off,
   and owned saved cycles remain readable. The availability GET alone is insufficient.
 - [ ] Retain verification results and clean up synthetic sessions when follow-up
-  checks are complete; all three smoke-test debates are currently retained.
+  checks are complete; all four smoke-test debates are currently retained.
 
 **Exit:** version and environment are known, baseline checks pass, and the feature
 remains disabled until the next gates are ready. Do not repeat already-passed

@@ -145,11 +145,18 @@ export async function POST(
   const turns = (existingTurns || []) as DebateTurn[];
 
   // 3. Handle user content if this is a user stage
-  let body: { content?: string } = {};
+  let body: { content?: string; expectedStage?: string } = {};
   try {
     body = await request.json();
   } catch {
     // Empty body is ok for AI-only stages
+  }
+
+  // A retry from a stale tab must not generate a different stage under the old
+  // client label, or submit an old answer into a later user stage. Older clients
+  // without this field retain compatibility; database fencing still applies.
+  if (body.expectedStage !== undefined && body.expectedStage !== currentStage) {
+    return conflict("This debate already advanced. Refresh and try again.");
   }
 
   let stageForAi: DebateStage;

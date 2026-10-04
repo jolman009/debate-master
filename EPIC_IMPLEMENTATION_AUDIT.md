@@ -47,7 +47,7 @@ The original 20 UI epics are substantially implemented in code. Remaining work c
 | LIVE-03 — Realtime/recovery | Mostly | `user-input.tsx` awaits submission before clearing and retains text on rejection. Reconnect/Retry controls and polling fallback exist. A real AI journey is recorded; human invite/join/verdict and reconnect-without-duplicate-turn browser scenarios remain open. Drill retry evidence does not prove debate-turn deduplication. |
 | COACH-01 — Feedback contract | Implemented | Versioned feedback, legacy adapter, exact turn/excerpt validation and parser tests exist. Phase 0 production evidence verifies the AI coaching journey and displayed references. Human scoring calibration remains a separate gate. |
 | COACH-02 — Coaching view | Mostly | Strength, priority, rationale, evidence, scores, practice and Rematch are implemented. Legacy results use an adapter/badge rather than a clearly reduced layout. Verify first-viewport hierarchy and the original Share/Library/evidence-navigation criteria across viewports. |
-| COACH-03 — Targeted practice | Mostly | Existing setup supports suggested motion/difficulty/goal and explanatory copy. New linked drill/revision/reassessment flow is implemented and pushed to staging. Durable learning events exist. October 3 adds unavailable-recommendation storage, usefulness review and a seven-day cohort report (migration 020 verified in staging); application deployment remains pending. Generic CTA analytics forwarding remains incomplete. New fixed-template drills are a distinct experience from the original editable debate-setup acceptance criteria. |
+| COACH-03 — Targeted practice | Mostly | Existing setup supports suggested motion/difficulty/goal and explanatory copy. New linked drill/revision/reassessment flow is implemented and pushed to staging. Durable learning events exist. October 3 adds unavailable-recommendation storage, usefulness review and a seven-day cohort report (migration 020 verified in staging); application commit `8a41d68` is deployed to Preview `pbqftftkz`. Generic CTA analytics forwarding remains incomplete. New fixed-template drills are a distinct experience from the original editable debate-setup acceptance criteria. |
 | TRUST-01 — AI transparency | Mostly | Simulation/affiliation disclosures exist in live, transcript and shared views; scores are labeled estimates. Helpful/Not helpful/Report submit to an API, but that endpoint logs the signal rather than storing an owned review record. Verify persistent visible synthetic-voice disclosure before playback and operational report handling. |
 | VIS-01 — Typography/icons | Mostly | `src/app/layout.tsx` uses optimized Inter and Newsreader; tabular scores exist. Meaningful 10–12px utility text remains, including practice labels and composer character status. The original 13px minimum and zero-layout-shift claim are not fully established. |
 | VIS-02 — Landing narrative | Mostly | Stage-led hero, primary CTA, secondary pricing and editorial/coaching sections exist. Public browser evidence supports basic structure/overflow; crop contrast and light/dark visual baselines remain open. |
@@ -108,8 +108,14 @@ This audit updates status only. It does not change code, enable flags, apply mig
 Migrations 019 and 020 applied to staging and their rollback SQL suites returned
 `passed=true`. Atomic AI turn persistence/leases, complete-stream validation, stage
 prompt boundaries, durable recommendation/usefulness tracking and cohort reporting
-are implemented locally. The suite passes 249 tests; production build/type/lint
+are deployed to staging Preview `pbqftftkz` as `8a41d68`. The suite passes 249 tests; production build/type/lint
 checks pass. See [verification record](docs/evidence/phase-1-engineering-2026-10-03.json)
-and [pilot operations](docs/phase-1/PILOT_OPERATIONS.md). Deployment, simultaneous
-HTTP retry verification, live learning journeys, coach calibration and learner
-pilot outcomes remain separate gates.
+and [pilot operations](docs/phase-1/PILOT_OPERATIONS.md). October 4 authenticated retest completed: nine transcript entries and unchanged
+coaching persisted after reload (overall 6; dimensions 4, 6, 7, 5). Two-client
+opening contention was rejected with one saved AI opening; cross-examination
+stayed within its stage. A synthetic usefulness save was acknowledged, but row
+readback is pending staging dashboard access. Stale-client retry exposed an
+outdated-stage issue; a local expected-stage guard passes 12 targeted tests and
+typecheck but awaits deployment/retest. Controlled provider interruption/logs,
+simultaneous HTTP verifier, hosted learning off-mode checks, real learning journeys,
+coach calibration and learner pilot outcomes remain open.

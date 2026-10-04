@@ -234,7 +234,7 @@ export function useDebate(debateId: string): UseDebateReturn {
     turnInFlight.current = true;
     setTurnPending(true);
     try {
-      const result = await startStream(debateId, content);
+      const result = await startStream(debateId, content, debate.current_stage);
       // Clear the transient bubble before changing stages. Failed partial text
       // must not be shown as a new stage or alongside the persisted response.
       clearStreamedText();

@@ -22,6 +22,12 @@ beforeEach(() => {
   m.stream.mockImplementation(async function* () { yield { text: "Complete answer", candidates: [{ finishReason: "STOP" }] }; });
 });
 describe("atomic AI turn orchestration", () => {
+  it.each(["cross_exam_ai", "closing_user"])("rejects a stale retry before acting on %s", async stage => {
+    m.stage = stage;
+    expect((await request({ expectedStage: "rebuttal_ai_1", content: "Old answer" })).status).toBe(409);
+    expect(m.rpc).not.toHaveBeenCalled();
+    expect(m.stream).not.toHaveBeenCalled();
+  });
   it("requires authentication before using the writer", async () => {
     m.user = null; expect((await request()).status).toBe(401); expect(m.rpc).not.toHaveBeenCalled();
   });

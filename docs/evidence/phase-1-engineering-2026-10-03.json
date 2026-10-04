@@ -1,6 +1,6 @@
 {
   "date": "2026-10-03",
-  "status": "engineering implemented; release gates remain open",
+  "status": "deployed to Preview; release gates remain open",
   "stagingProject": "twtsdothnlfvbczzpdaj",
   "migrations": {
     "019": "Applied through staging SQL Editor; atomic_ai_turns.sql returned passed=true; fixtures rolled back",
@@ -23,14 +23,47 @@
     "debateId": "69ff5e9c-f699-4b91-b887-a08a5d9b2bf8",
     "join": "Second participant joined; CON waiting state verified",
     "opening": "PRO opening submitted and visible in other tab",
-    "exchange": "Pending CON submission from isolated login; normal Chrome windows shared cookies"
+    "exchange": "Passed on g5gv7pnti: PRO and CON openings saved; SQL confirms one row per opening stage and distinct correct authors; both openings survive CON reload, active stage rebuttal_pro_1. Full human debate/judge not exercised."
   },
   "remaining": [
-    "Application deployment and live retest",
+    "Deploy and retest expected-stage guard; verify controlled provider interruption and recovery with logs",
     "Simultaneous AI HTTP retry verifier requires staging CLI credentials",
+    "Hosted learning off-mode writes/saved reads and usefulness review queue readback",
     "Real drill journeys after curriculum approval",
     "Two independent coach ratings and held-out examples",
     "20\u201330 learner pilot with full seven-day observation",
     "Paid-provider reconciliation and production release remain separate"
-  ]
+  ],
+  "deployment": {
+    "commit": "8a41d68060f5ecdc0717298685a074ae8fbac324",
+    "url": "https://debate-master-pbqftftkz-joel-guzmans-projects-f8aa100e.vercel.app",
+    "vercelDeployment": "AqAuAUcgAgeyKUC4yQ1kwG2Mzeoq",
+    "verification": "GitHub Vercel status success and Vercel UI Ready on staging independently observed"
+  },
+  "lastVerified": "2026-10-04",
+  "aiPreviewRetest": {
+    "debateId": "c6b0c306-a508-499e-a7d2-7670d807175e",
+    "commit": "8a41d68",
+    "completed": "2026-10-04",
+    "transcript": "All nine expected stage/role labels appear once after reload; both closings persisted. Final SQL counts not independently rechecked.",
+    "feedback": {
+      "overall": 6,
+      "evidence": 4,
+      "rebuttal": 6,
+      "rhetoric": 7,
+      "argumentStrength": 5,
+      "roundedMean": 6,
+      "reload": "Coaching summary, strongest moment, priority improvement, citations and five scores unchanged; no regeneration."
+    },
+    "stageBoundary": "Cross-examination response comprised two paragraphs, without premature closing or verdict; closing occurred in closing_ai. One observed real-provider case, not calibration.",
+    "twoClientConflict": "Second browser client was refused while opening AI lease was active. SQL observed opening_ai/1 turn/1 lease followed by rebuttal_user_1/2 turns/0 leases.",
+    "recovery": "Navigation away during rebuttal did not establish cancellation: server subsequently persisted one rebuttal and advanced. Explicit Retry on a stale client could target the next AI stage with an outdated label. Refresh recovered; provider-abort/log diagnosis remains open.",
+    "usefulness": "Synthetic Helpful signal acknowledged as recorded. UI acknowledgement follows successful server upsert. Database row readback/review workflow not independently verified; current Supabase browser account redirects away from staging to a different organization."
+  },
+  "localFollowup": {
+    "date": "2026-10-04",
+    "change": "AI requests carry expectedStage; mismatched stages return 409 before any lease, commit or provider call. Older clients without the field remain compatible.",
+    "verification": "12 targeted route/hook tests, TypeScript check and production build passed; build includes unrelated pending Sentry files",
+    "deployment": "Pending; not included in 8a41d68"
+  }
 }

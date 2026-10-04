@@ -34,6 +34,7 @@ test("AI auto-trigger stays locked through delayed refresh and clears old text b
   let posts = 0;
   vi.stubGlobal("fetch", vi.fn(async (_url, options) => {
     if (options?.method === "POST") {
+      expect(JSON.parse(options.body).expectedStage).toBe("cross_exam_ai_response");
       posts++;
       return new Response('data: {"text":"Saved AI response"}\n\ndata: {"done":true,"nextStage":"closing_user"}\n\n', { headers: { "Content-Type": "text/event-stream" } });
     }

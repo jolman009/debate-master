@@ -1,6 +1,6 @@
 # Phase 1 completion checklist
 
-Updated October 4, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
+Updated October 5, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
 not the older UI roadmap's foundations/accessibility phase.
 
 Check items only when the stated result is evidenced. Record the date, version,
@@ -12,11 +12,12 @@ and mocked browser checks passed. Live `8a41d68` AI smoke test completed October
 nine entries and unchanged coaching persisted after reload; scores were overall 6,
 evidence 4, rebuttal 6, rhetoric 7, argument strength 5. Phase 1 remains open.
 
-**Next:** deploy/retest the local expected-stage retry guard, finish controlled
+**Next:** sign in and retest the deployed `51b47b1` expected-stage guard, finish controlled
 provider interruption/log verification and the simultaneous AI verifier, then
 verify hosted learning off-mode writes/saved reads. The two-account human opening
-exchange and Premium UI checks passed. Curriculum approval, independent coach
-ratings and the seven-day learner pilot remain external gates.
+exchange and Premium UI checks passed. Curriculum approval was given October 4;
+staging pilot redeployment is Ready and the first warrant cycle is in progress. Independent
+coach ratings and the seven-day learner pilot remain external gates.
 
 ### October 3 implementation work
 
@@ -32,7 +33,7 @@ ratings and the seven-day learner pilot remain external gates.
 - [x] Implement complete-provider-response checks and content-free failure context;
   release leases on failed/disconnected requests so explicit retry can resume.
 - [x] Add current-stage prompt boundaries, including no premature closing during
-  cross-examination. Real-provider adherence must still be checked after deployment.
+  cross-examination. One real-provider case passed on `8a41d68`; see below.
 - [x] Prepare the [pilot operations guide](phase-1/PILOT_OPERATIONS.md), held-out
   calibration worksheet/scorer and simultaneous AI retry verifier. Empty calibration
   data fails the gate; no coach ratings or learner outcomes are fabricated.
@@ -55,7 +56,9 @@ ratings and the seven-day learner pilot remain external gates.
 - [x] Add local expected-stage guard following the stale-client retry observation:
   stale requests return 409 before mutation/provider work. Twelve targeted tests
   and typecheck passed October 4; older clients without the field stay compatible.
-- [ ] Deploy and live-retest the expected-stage guard; it is not in `8a41d68`.
+- [x] Push expected-stage guard as `51b47b1` to staging; Vercel Ready verified
+  October 4 on [Preview 7mwdpeszz](https://debate-master-7mwdpeszz-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [ ] Live-retest the guard on `51b47b1`; the new hostname requires sign-in.
 
 Evidence: [October 3 engineering verification](evidence/phase-1-engineering-2026-10-03.json).
 
@@ -172,14 +175,18 @@ concurrency tests without a relevant schema/runtime change.
 
 ## 2. Approve the revised curriculum — coach/product
 
-- [ ] Review `counterargument-response-v2`: accurate opposing/source pairing,
+All three exact v2 versions approved for staging October 4 by project owner Joel
+Guzman. See the [curriculum review packet](phase-1/CURRICULUM_REVIEW.md).
+Paid learning remains disabled; a second independent coach is still needed for calibration.
+
+- [x] Review `counterargument-response-v2`: accurate opposing/source pairing,
   strongest-reason response, supported comparison and justified concessions.
-- [ ] Review `claim-evidence-warrant-v2`: explicit assumptions, alternative
+- [x] Review `claim-evidence-warrant-v2`: explicit assumptions, alternative
   explanations, and valid recognition that evidence may not support a claim.
-- [ ] Review `unsupported-claim-repair-v2`: bounded fictional evidence, clear
+- [x] Review `unsupported-claim-repair-v2`: bounded fictional evidence, clear
   separation from the original debate, and justified narrowing/qualification/
   withdrawal rather than merely inserting “might.”
-- [ ] Approve beginner/intermediate/advanced guidance and parallel reassessments
+- [x] Approve beginner/intermediate/advanced guidance and parallel reassessments
   for each family; record reviewer, date, exact versions and any required edits.
 - [ ] Check approved transcript examples actually meet routing prerequisites.
   Counterargument requires co-cited learner/opposing excerpts; warrants require
@@ -192,13 +199,21 @@ and permission to revise code do not establish approval of the revised exercises
 
 ## 3. Validate real coaching in staging — engineering/coach
 
-- [ ] After approval, configure only approved v2 template IDs and explicit staging
-  test-user IDs; set `LEARNING_ROLLOUT=pilot`. Keep paid learning disabled.
+- [x] After October 4 approval, save all three approved v2 template IDs and the two
+  designated staging test-user IDs in Vercel, scoped to Preview/staging only.
+  `LEARNING_ROLLOUT=pilot`; inherited Preview `LEARNING_PAID_ENABLED=false`
+  independently revealed/confirmed. Pilot redeployment `13XFDjgdXieS1woPcsPTau7y2cra`
+  is Ready; included user opened the warrant cycle. Excluded-user check pending.
 - [ ] Verify staging Gemini/service credentials, rate limits, deployed error capture
   and an alert recipient. Keep keys and learner text out of reports.
 - [ ] Complete a real authenticated **counterargument** cycle: source → first
   response → coaching → revision → linked reassessment → summary.
-- [ ] Complete the same real-service journey for **warrants**.
+- [ ] Complete the same real-service journey for **warrants**. Cycle
+  `3af71d41-e291-4d8d-a461-48b19fec9e78` opened on the staging pilot; draft
+  survived browser reconnect October 5. Initial evaluation failed once, then
+  explicit retry returned 8/10 with correct provenance and one saved response.
+  Revision is saved but has two provider failures; final retry awaits diagnostic
+  deployment. Reassessment/completion are not yet passed.
 - [ ] Complete the same real-service journey for **claim repair**.
 - [ ] Use separate eligible free test accounts where necessary to exercise all
   families without bypassing the one-introductory-cycle rule.

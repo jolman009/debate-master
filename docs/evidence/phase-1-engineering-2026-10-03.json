@@ -26,10 +26,10 @@
     "exchange": "Passed on g5gv7pnti: PRO and CON openings saved; SQL confirms one row per opening stage and distinct correct authors; both openings survive CON reload, active stage rebuttal_pro_1. Full human debate/judge not exercised."
   },
   "remaining": [
-    "Deploy and retest expected-stage guard; verify controlled provider interruption and recovery with logs",
+    "Authenticated retest of deployed 51b47b1; controlled provider interruption and recovery with logs",
     "Simultaneous AI HTTP retry verifier requires staging CLI credentials",
     "Hosted learning off-mode writes/saved reads and usefulness review queue readback",
-    "Real drill journeys after curriculum approval",
+    "Three real drill journeys after pilot redeployment and stable-host sign-in",
     "Two independent coach ratings and held-out examples",
     "20\u201330 learner pilot with full seven-day observation",
     "Paid-provider reconciliation and production release remain separate"
@@ -45,7 +45,7 @@
     "debateId": "c6b0c306-a508-499e-a7d2-7670d807175e",
     "commit": "8a41d68",
     "completed": "2026-10-04",
-    "transcript": "All nine expected stage/role labels appear once after reload; both closings persisted. Final SQL counts not independently rechecked.",
+    "transcript": "Authenticated debate API and UI reload confirm nine saved entries, each stage/role once; final stage complete and assessment_status valid. Lease count not rechecked after completion.",
     "feedback": {
       "overall": 6,
       "evidence": 4,
@@ -64,6 +64,53 @@
     "date": "2026-10-04",
     "change": "AI requests carry expectedStage; mismatched stages return 409 before any lease, commit or provider call. Older clients without the field remain compatible.",
     "verification": "12 targeted route/hook tests, TypeScript check and production build passed; build includes unrelated pending Sentry files",
-    "deployment": "Pending; not included in 8a41d68"
+    "deployment": "51b47b1 pushed to staging; Vercel Ready independently observed October 4. Authenticated retest pending sign-in on new hostname.",
+    "url": "https://debate-master-7mwdpeszz-joel-guzmans-projects-f8aa100e.vercel.app"
+  },
+  "curriculumApproval": {
+    "date": "2026-10-04",
+    "reviewer": "Project owner Joel Guzman",
+    "decision": "Explicit approval of all three exact v2 templates, difficulty guidance and reassessments for staging with paid learning disabled",
+    "record": "../phase-1/CURRICULUM_REVIEW.md",
+    "calibration": "Second independent coach and actual blind ratings still pending"
+  },
+  "stagingPilot": {
+    "scope": "Preview environment, staging branch only",
+    "rollout": "pilot",
+    "approvedTemplates": [
+      "counterargument-response-v2",
+      "claim-evidence-warrant-v2",
+      "unsupported-claim-repair-v2"
+    ],
+    "accounts": "Two user-designated staging test accounts; UUIDs configured in Vercel, not copied into evidence",
+    "paidEnabled": false,
+    "deploymentId": "13XFDjgdXieS1woPcsPTau7y2cra",
+    "url": "https://debate-master-l84oalp0s-joel-guzmans-projects-f8aa100e.vercel.app",
+    "status": "Vercel Ready October 4; stable-host authenticated GET reaches recommendation logic. Current smoke source correctly unavailable; prior 9fbc877f source offers warrant practice."
+  },
+  "warrantJourney": {
+    "cycleId": "3af71d41-e291-4d8d-a461-48b19fec9e78",
+    "sourceDebateId": "9fbc877f-33f7-44f5-b998-f5413befb719",
+    "template": "claim-evidence-warrant-v2",
+    "date": "2026-10-05",
+    "draftResume": "464-character synthetic response recovered unchanged after browser reconnect; Draft saved visible",
+    "status": "Revision has two failed provider attempts; saved response preserved. Final retry reserved until content-free provider-status diagnostics are deployed.",
+    "initialScore": 8,
+    "recovery": "First provider evaluation returned 502 after 25.8 seconds in Vercel logs. Saved-response retry succeeded; authenticated GET shows exactly one initial response with attempts=2 and status=evaluated. Provider-specific cause was not logged.",
+    "provenance": {
+      "model": "gemini-3.5-flash",
+      "templateVersion": "claim-evidence-warrant-v2",
+      "promptVersion": "targeted-coach-2",
+      "rubricVersion": "debate-anchors-1",
+      "difficulty": "intermediate",
+      "sessionFormat": "drill"
+    },
+    "revisionRecovery": "Authenticated GET confirms exactly one revision response, status failed, attempts=2; initial response remains evaluated with score 8."
+  },
+  "providerDiagnostics": {
+    "date": "2026-10-05",
+    "change": "Log only allowlisted numeric HTTP status, fixed failure category and elapsed time; no raw provider message/name/body",
+    "verification": "Seven evaluation orchestration tests and typecheck passed",
+    "deployment": "Pending"
   }
 }

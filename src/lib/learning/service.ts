@@ -113,9 +113,18 @@ export async function submitResponse(db: SupabaseClient, userId: string, session
       difficulty: runtime.exercise.difficulty, sessionFormat: runtime.exercise.kind,
       evaluatedAt: new Date().toISOString(),
     } };
-  } catch {
+  } catch (error) {
     // Provider errors may include request text. Report only a content-free error.
-    reportError(new Error("Learning evaluation failed"), { route: "learning/responses", sessionId });
+    const provider = error as { status?: unknown; code?: unknown; name?: unknown } | null;
+    const rawStatus = provider?.status ?? provider?.code;
+    const status = typeof rawStatus === "number" && Number.isInteger(rawStatus) && rawStatus >= 400 && rawStatus <= 599
+      ? rawStatus : undefined;
+    const category = provider?.name === "AbortError" || provider?.name === "TimeoutError"
+      ? "timeout_or_abort" : status === 429 ? "rate_limit" : status && status >= 500 ? "provider_unavailable" : "provider_error";
+    reportError(new Error("Learning evaluation failed"), {
+      route: "learning/responses", sessionId, providerStatus: status,
+      failureCategory: category, latencyMs: Date.now() - start,
+    });
   }
   const committed = databaseResult(await db.rpc("learning_finish", {
     p_user_id: userId, p_response_id: claim.response.id, p_token: claim.response.lease_token,

@@ -41,6 +41,21 @@ describe("evaluation orchestration", () => {
     await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
     expect(rpc).toHaveBeenLastCalledWith("learning_finish", expect.objectContaining({ p_outcome: "failed" }));
     expect(report.mock.calls[0][0].message).toBe("Learning evaluation failed");
+    expect(JSON.stringify(report.mock.calls)).not.toContain("Sensitive provider body");
+  });
+  it("records an allowlisted provider status without its payload", async () => {
+    generate.mockRejectedValue({ status: 503, name: "PRIVATE NAME", message: "PRIVATE BODY", response: { text: "My answer" } });
+    const { client } = database();
+    await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
+    expect(report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ providerStatus: 503, failureCategory: "provider_unavailable", latencyMs: expect.any(Number) }));
+    expect(JSON.stringify(report.mock.calls)).not.toMatch(/PRIVATE|My answer/);
+  });
+  it("does not log arbitrary provider status or code strings", async () => {
+    generate.mockRejectedValue({ status: "PRIVATE STATUS", code: "PRIVATE CODE", name: "PRIVATE NAME" });
+    const { client } = database();
+    await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
+    expect(report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ providerStatus: undefined, failureCategory: "provider_error" }));
+    expect(JSON.stringify(report.mock.calls)).not.toContain("PRIVATE");
   });
   it("does not report a stale worker result as saved", async () => {
     generate.mockResolvedValue({ text: JSON.stringify(valid) });

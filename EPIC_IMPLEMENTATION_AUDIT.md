@@ -74,7 +74,7 @@ The original 20 UI epics are substantially implemented in code. Remaining work c
 | Three revised templates | Counterargument, warrant and claim repair are v2; prompt is `targeted-coach-2`. Revisions allow concessions, unsupported-inference explanations and evidence-based repair; difficulty guidance and reassessment scenarios are family-specific. |
 | Source pairing | Counterargument requires exact excerpts cited in the same rebuttal coaching; it no longer selects an uncited preceding AI turn. This remains coaching-supported pairing, not independently validated semantic relevance. |
 | Commit/push | `3f96ca9` introduced the runtime; `6f5d542` revised templates and recorded staging evidence. Both were pushed to `origin/staging`. Vercel Preview deployment of `6f5d542` was user-confirmed October 2, 2026; Latest streaming fix `a75c2f4` was pushed to staging; Vercel Preview `g5gv7pnti` was independently confirmed Ready. A fresh single-browser debate completed without retries, with nine transcript entries and coaching persisting after reload; see `docs/evidence/phase-1-preview-ai-retest.json`. Cross-client idempotency remains unverified. |
-| Curriculum/rollout | Revised templates await explicit approval and calibration. Preview variables `LEARNING_ROLLOUT=off` and `LEARNING_PAID_ENABLED=false` were created and staging Preview redeployed, user-confirmed October 2, 2026. Live flag behavior and template approval configuration remain to be verified. No pilot environment change or production rollout is claimed. Saved v1 snapshots remain readable; the prompt-version guard pauses their evaluation rather than silently reinterpreting them. |
+| Curriculum/rollout | Project owner approved all three exact v2 templates for staging October 4. Preview/staging now has the three-version allowlist, two designated test-user IDs and `LEARNING_ROLLOUT=pilot`; paid learning remains false. Redeployment `13XFDjgdXieS1woPcsPTau7y2cra` is Ready. Included-user access and unavailable-source handling are observed; excluded-user/off-switch checks and independent calibration remain open. This is synthetic staging verification, not learner enrollment or production rollout. Saved v1 snapshots remain readable; the prompt-version guard pauses their evaluation rather than silently reinterpreting them. |
 | Remaining validation | Real-service authenticated journeys for all families, deployed-model checks, coach ratings, the 20–30 learner pilot, and cohort/reporting work remain open. Stripe reconciliation stays deferred; Google Play reconciliation remains a paid-release dependency. |
 
 See [drill rollout guide](docs/PHASE_1_DRILL_ROLLOUT.md) and [Phase 0 readiness](docs/PHASE_0_READINESS.md). Approval of rubric/feedback contracts does not substitute for coach calibration or demonstrate educational effectiveness.
@@ -94,7 +94,7 @@ The old 94-unit/24-browser test totals are obsolete. Avoid adding targeted count
 
 ## Next implementation priorities
 
-1. **Close the drill staging gate:** verify deployed defaults and Preview behavior; review/approve v2 curriculum; verify real AI journeys and server pilot/off behavior. Preserve existing recorded concurrency passes.
+1. **Close the drill staging gate:** verify deployed defaults and Preview behavior; retain approved v2 curriculum; verify real AI journeys and server pilot/off behavior. Preserve existing recorded concurrency passes.
 2. **Finish desktop transcript acceptance:** provide a truly supporting panel that leaves the composer usable, then test mobile sheet and desktop focus/Escape behavior.
 3. **Verify authenticated debate recovery:** setup persistence and keyboard operation, viewport/keyboard/200% zoom, transient submit failure, human invite/join/verdict and reconnect deduplication.
 4. **Close coaching/reporting gaps:** reduced legacy presentation, confirmed secondary actions, owned durable usefulness/report handling, analytics forwarding and unavailable-recommendation reporting. Keep private transcript text out of telemetry.
@@ -116,6 +116,7 @@ opening contention was rejected with one saved AI opening; cross-examination
 stayed within its stage. A synthetic usefulness save was acknowledged, but row
 readback is pending staging dashboard access. Stale-client retry exposed an
 outdated-stage issue; a local expected-stage guard passes 12 targeted tests and
-typecheck but awaits deployment/retest. Controlled provider interruption/logs,
+typecheck and production build. It was pushed as `51b47b1`; Vercel Preview
+`7mwdpeszz` is Ready, with authenticated retest pending sign-in. Controlled provider interruption/logs,
 simultaneous HTTP verifier, hosted learning off-mode checks, real learning journeys,
 coach calibration and learner pilot outcomes remain open.

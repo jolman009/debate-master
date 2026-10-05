@@ -1,7 +1,7 @@
 # Phase 1 v2 curriculum review
 
 Prepared October 4, 2026. Reviewer: project owner (designated in conversation).
-Status: all three exact v2 versions, difficulty guidance and reassessments approved for staging by project owner Joel Guzman on October 4, 2026 (explicit conversation approval). Paid learning remains disabled. Second independent coach remains unassigned.
+Status: all three exact v2 versions, difficulty guidance and reassessments approved for staging by project owner Joel Guzman on October 4, 2026 (explicit conversation approval). Paid learning remains disabled. `mzguzman77@gmail.com` was designated as the second independent coach and additional staging test account on October 5, 2026; blind ratings remain pending.
 
 This review authorizes the exact curriculum for staging tests only. It does not establish calibration, pilot outcomes, or paid/production release readiness.
 

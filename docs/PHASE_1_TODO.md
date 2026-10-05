@@ -185,7 +185,9 @@ concurrency tests without a relevant schema/runtime change.
 
 All three exact v2 versions approved for staging October 4 by project owner Joel
 Guzman. See the [curriculum review packet](phase-1/CURRICULUM_REVIEW.md).
-Paid learning remains disabled; a second independent coach is still needed for calibration.
+Paid learning remains disabled. `mzguzman77@gmail.com` was designated October 5 as
+the second independent coach and additional staging test account; blind ratings
+from both coaches remain pending.
 
 - [x] Review `counterargument-response-v2`: accurate opposing/source pairing,
   strongest-reason response, supported comparison and justified concessions.
@@ -247,6 +249,9 @@ browser tests and database-only concurrency checks cannot substitute for these.
 
 ## 4. Calibrate the targeted assessments — two coaches/evaluation owner
 
+- [x] Designate two coaches: project owner `jolman009@yahoo.com` and independent
+  reviewer `mzguzman77@gmail.com`. The blank 54-slot restricted worksheet was
+  generated at `/private/tmp/drill-calibration.json` on October 5; this records no ratings.
 - [ ] Prepare the proposed 54 held-out response examples across three families,
   three difficulties and three quality bands, with two examples per combination.
   Include insufficient-evidence cases; keep evaluation material out of tuning.

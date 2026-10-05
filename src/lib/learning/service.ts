@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { GEMINI_MODEL, getGeminiClient } from "@/lib/gemini";
+import { GEMINI_FALLBACK_MODELS, GEMINI_MODEL, getGeminiClient } from "@/lib/gemini";
 import type { DebateFeedbackV2, DebateTurn, Difficulty } from "@/lib/debate/types";
 import { reportError } from "@/lib/observability";
 import { approvedTemplateVersions, learningEnabled } from "./flags";
@@ -95,20 +95,41 @@ export async function submitResponse(db: SupabaseClient, userId: string, session
   let outcome = "failed";
   let assessment = null;
   let usage: Record<string, unknown> = { model: runtime.exercise.model, inputTokens: null, outputTokens: null, thinkingTokens: null, totalTokens: null };
+  let providerAttempts = 0;
   try {
-    const result = await getGeminiClient().models.generateContent({
-      model: runtime.exercise.model,
-      contents: [{ role: "user", parts: [{ text: assessmentPrompt(runtime.exercise, claim.response.content) }] }],
-      config: { systemInstruction: assessmentSystem(runtime.exercise), responseMimeType: "application/json", maxOutputTokens: 2500, httpOptions: { timeout: 45000 } },
-    });
-    usage = { ...usage, inputTokens: result.usageMetadata?.promptTokenCount ?? null,
+    const fallback = GEMINI_FALLBACK_MODELS.find(model => model !== runtime.exercise.model);
+    const models = fallback ? [runtime.exercise.model, fallback] : [runtime.exercise.model];
+    const contents = [{ role: "user" as const, parts: [{ text: assessmentPrompt(runtime.exercise, claim.response.content) }] }];
+    const systemInstruction = assessmentSystem(runtime.exercise);
+    let result: Awaited<ReturnType<ReturnType<typeof getGeminiClient>["models"]["generateContent"]>> | undefined;
+    let scoringModel = runtime.exercise.model;
+    for (const [index, model] of models.entries()) {
+      const remaining = 54000 - (Date.now() - start);
+      if (remaining < 8000) throw new Error("Evaluation deadline reached");
+      providerAttempts++;
+      try {
+        result = await getGeminiClient().models.generateContent({
+          model, contents,
+          config: { systemInstruction, responseMimeType: "application/json", maxOutputTokens: 2500,
+            httpOptions: { timeout: Math.min(index === 0 ? 35000 : 17000, remaining - 2000) } },
+        });
+        scoringModel = model;
+        break;
+      } catch (error) {
+        const status = (error as { status?: unknown } | null)?.status;
+        if (index === 0 && fallback && (status === 502 || status === 503 || status === 504) && 54000 - (Date.now() - start) >= 8000) continue;
+        throw error;
+      }
+    }
+    if (!result) throw new Error("Evaluation returned no result");
+    usage = { ...usage, model: scoringModel, providerAttempts, inputTokens: result.usageMetadata?.promptTokenCount ?? null,
       outputTokens: result.usageMetadata?.candidatesTokenCount ?? null,
       thinkingTokens: result.usageMetadata?.thoughtsTokenCount ?? null,
       totalTokens: result.usageMetadata?.totalTokenCount ?? null };
     const parsed = parseTargetedAssessment(result.text ?? "", claim.response.content);
     outcome = parsed?.status ?? "invalid";
     if (parsed) assessment = { ...parsed, provenance: {
-      model: runtime.exercise.model, rubricVersion: runtime.exercise.rubricVersion,
+      model: scoringModel, rubricVersion: runtime.exercise.rubricVersion,
       promptVersion: runtime.exercise.promptVersion, templateVersion: runtime.exercise.templateVersion,
       difficulty: runtime.exercise.difficulty, sessionFormat: runtime.exercise.kind,
       evaluatedAt: new Date().toISOString(),
@@ -123,7 +144,7 @@ export async function submitResponse(db: SupabaseClient, userId: string, session
       ? "timeout_or_abort" : status === 429 ? "rate_limit" : status && status >= 500 ? "provider_unavailable" : "provider_error";
     reportError(new Error("Learning evaluation failed"), {
       route: "learning/responses", sessionId, providerStatus: status,
-      failureCategory: category, latencyMs: Date.now() - start,
+      failureCategory: category, providerAttempts, latencyMs: Date.now() - start,
     });
   }
   const committed = databaseResult(await db.rpc("learning_finish", {

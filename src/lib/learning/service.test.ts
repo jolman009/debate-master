@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 const { generate, report } = vi.hoisted(() => ({ generate: vi.fn(), report: vi.fn() }));
-vi.mock("@/lib/gemini", () => ({ GEMINI_MODEL: "test-model", getGeminiClient: () => ({ models: { generateContent: generate } }) }));
+vi.mock("@/lib/gemini", () => ({ GEMINI_MODEL: "test-model", GEMINI_FALLBACK_MODELS: ["test-model", "fallback-model"], getGeminiClient: () => ({ models: { generateContent: generate } }) }));
 vi.mock("@/lib/observability", () => ({ reportError: report }));
 import { submitResponse } from "./service";
 const exercise = { templateVersion: "counterargument-response-v2", model: "test-model", competency: "rebuttalQuality", kind: "drill", promptVersion: "targeted-coach-2", rubricVersion: "debate-anchors-1", difficulty: "beginner" };
@@ -44,11 +44,29 @@ describe("evaluation orchestration", () => {
     expect(JSON.stringify(report.mock.calls)).not.toContain("Sensitive provider body");
   });
   it("records an allowlisted provider status without its payload", async () => {
-    generate.mockRejectedValue({ status: 503, name: "PRIVATE NAME", message: "PRIVATE BODY", response: { text: "My answer" } });
+    generate.mockRejectedValueOnce({ status: 503, name: "PRIVATE NAME", message: "PRIVATE BODY", response: { text: "My answer" } })
+      .mockRejectedValueOnce({ status: 503, name: "PRIVATE NAME", message: "PRIVATE BODY" });
     const { client } = database();
     await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
     expect(report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ providerStatus: 503, failureCategory: "provider_unavailable", latencyMs: expect.any(Number) }));
     expect(JSON.stringify(report.mock.calls)).not.toMatch(/PRIVATE|My answer/);
+  });
+  it("uses one fallback for provider unavailability and records the scoring model", async () => {
+    generate.mockRejectedValueOnce({ status: 503 }).mockResolvedValueOnce({ text: JSON.stringify(valid) });
+    const { client, rpc } = database();
+    await submitResponse(client, "owner", "session", input);
+    expect(generate.mock.calls.map(([request]) => request.model)).toEqual(["test-model", "fallback-model"]);
+    expect(rpc).toHaveBeenLastCalledWith("learning_finish", expect.objectContaining({
+      p_outcome: "valid",
+      p_assessment: expect.objectContaining({ provenance: expect.objectContaining({ model: "fallback-model" }) }),
+      p_usage: expect.objectContaining({ model: "fallback-model", providerAttempts: 2 }),
+    }));
+  });
+  it("does not switch models for rate limits", async () => {
+    generate.mockRejectedValueOnce({ status: 429 });
+    const { client } = database();
+    await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
+    expect(generate).toHaveBeenCalledTimes(1);
   });
   it("does not log arbitrary provider status or code strings", async () => {
     generate.mockRejectedValue({ status: "PRIVATE STATUS", code: "PRIVATE CODE", name: "PRIVATE NAME" });

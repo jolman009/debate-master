@@ -20,6 +20,13 @@ staging pilot redeployment is Ready. The first warrant drill finished, but its
 linked reassessment is blocked by provider failures. Independent
 coach ratings and the seven-day learner pilot remain external gates.
 
+The evaluation service now makes one bounded model fallback for HTTP 502/503/504
+and records the model that actually scored an answer. This prevents a fallback
+score from being presented as directly comparable to a score from another model.
+The existing warrant reassessment remains capped and needs a documented operator
+recovery path or a new eligible test cycle; deployment of the fallback alone does
+not complete that cycle.
+
 ### October 3 implementation work
 
 - [x] Apply migration 019 to staging: database lease/fencing and atomic AI-mode

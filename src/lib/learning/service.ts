@@ -23,7 +23,7 @@ export function databaseResult<T>(result: { data: T; error: { code?: string } | 
     if (code === "42501") throw new LearningError("Practice session not found.", 404);
     if (code === "P0001") throw new LearningError("Your introductory cycle is already reserved. Resume it to finish your practice.", 403);
     if (code === "22023" || code === "40001" || code === "23505") throw new LearningError("This practice changed. Refresh to resume the saved attempt.", 409);
-    if (code === "54000") throw new LearningError("Three evaluation attempts failed. Your work is saved; please contact support.", 409);
+    if (code === "54000") throw new LearningError("The evaluation retry limit was reached. Your work is saved; please contact support.", 409);
     throw new LearningError("Practice could not be saved. Please retry.", 500);
   }
   return result.data;
@@ -74,7 +74,7 @@ export async function readCycle(db: SupabaseClient, userId: string, cycleId: str
   if (!cycle) throw new LearningError("Practice cycle not found.", 404);
   const sessions = databaseResult(await db.from("learning_runtime").select("session_id,loop_id,exercise,state,draft,draft_revision").eq("user_id", userId).eq("loop_id", cycleId)) as RuntimeSession[];
   const responses = sessions.length ? databaseResult(await db.from("learning_responses")
-    .select("id,session_id,request_id,kind,content,status,assessment,attempts,lease_until").eq("user_id", userId).in("session_id", sessions.map(s => s.session_id)).order("created_at")) as LearningResponse[] : [];
+    .select("id,session_id,request_id,kind,content,status,assessment,attempts,attempt_limit,lease_until").eq("user_id", userId).in("session_id", sessions.map(s => s.session_id)).order("created_at")) as LearningResponse[] : [];
   return { cycle, sessions, responses, enabled: learningEnabled(userId) && sessions.every(supportedExercise) };
 }
 export async function ownedRuntime(db: SupabaseClient, userId: string, sessionId: string) {

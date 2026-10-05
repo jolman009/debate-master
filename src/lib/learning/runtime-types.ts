@@ -12,6 +12,7 @@ export interface LearningResponse {
   status: "pending" | "evaluated" | "invalid" | "failed";
   assessment: (TargetedAssessment & { provenance: Record<string, unknown> }) | null;
   attempts: number;
+  attempt_limit: number;
   lease_until: string | null;
 }
 export interface RuntimeSession {

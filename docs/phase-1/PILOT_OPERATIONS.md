@@ -78,6 +78,42 @@ one disposition (`no_action`, `prompt_review`, `curriculum_review`, or
 Changing a rating reopens review. Review reported/not-helpful ratings and incomplete
 cycles daily during enrollment, recording counts and decisions without learner text.
 
+## Exhausted evaluation recovery
+
+Migration 021 adds one audited recovery grant per response. It preserves the three
+original evaluation rows and saved answer, raises only that response's attempt limit
+from three to four, and does not modify `learning_allowances`. Learners and normal
+application routes cannot grant recovery.
+
+First identify the response UUID in the staging SQL editor without selecting its
+content. Confirm it is failed or invalid, has three attempts, no assessment and no
+live lease:
+
+```sql
+select id, user_id, session_id, kind, status, attempts, attempt_limit, lease_until
+from public.learning_responses
+where session_id = '<affected-session-id>';
+```
+
+Then use explicit staging credentials from the repository terminal:
+
+```sh
+read -r "staging_ref?Staging Supabase project reference: "
+export STAGING_SUPABASE_URL="https://${staging_ref}.supabase.co"
+read -rs "STAGING_SUPABASE_SERVICE_ROLE_KEY?Staging service-role key (hidden): "
+printf '\n'
+export STAGING_SUPABASE_SERVICE_ROLE_KEY
+node scripts/grant-learning-evaluation-recovery.mjs "$staging_ref" \
+  '<response-id>' '<operator-reference>' provider_unavailable
+unset STAGING_SUPABASE_SERVICE_ROLE_KEY
+```
+
+Allowed reasons are `provider_unavailable`, `provider_timeout`, and
+`platform_incident`. A repeated command reports `granted: false`; it cannot create
+a fifth attempt. After `granted: true`, the learner refreshes the saved cycle and
+selects **Retry saved evaluation**. If the fourth evaluation also fails, the answer
+remains readable and requires investigation rather than another reset.
+
 ## Release decision and rollback
 
 Operator must name the rollback owner, alert recipient, error/latency/cost limits,

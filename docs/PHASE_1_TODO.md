@@ -27,6 +27,10 @@ The existing warrant reassessment remains capped and needs a documented operator
 recovery path or a new eligible test cycle; deployment of the fallback alone does
 not complete that cycle.
 
+Migration 021 and its operator script now implement a one-time, audited fourth
+evaluation without deleting attempt history or changing the free-cycle allowance.
+Local verification and staging application of migration 021 remain pending.
+
 ### October 3 implementation work
 
 - [x] Apply migration 019 to staging: database lease/fencing and atomic AI-mode
@@ -237,6 +241,9 @@ and permission to revise code do not establish approval of the revised exercises
 - [ ] Test refresh, navigation away, second-device resume and stale draft conflicts.
 - [ ] Test failed/invalid evaluations, lease expiry, duplicate clicks and bounded
   retries; preserve answers and ensure failures do not count as completion.
+- [ ] Apply and verify migration 021 in staging, then grant the capped warrant
+  response one audited recovery and complete its saved reassessment. The grant must
+  preserve three failed evaluation rows and the existing introductory allowance.
 - [ ] Verify owner isolation and deletion cleanup across runtime/content/events.
 - [ ] Inspect events: one completion per action, practice clicks never treated as
   completions, and no transcript/response text in analytics.

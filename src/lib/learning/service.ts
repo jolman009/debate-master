@@ -149,7 +149,7 @@ export async function submitResponse(db: SupabaseClient, userId: string, session
   }
   const committed = databaseResult(await db.rpc("learning_finish", {
     p_user_id: userId, p_response_id: claim.response.id, p_token: claim.response.lease_token,
-    p_assessment: assessment, p_outcome: outcome, p_usage: { ...usage, latencyMs: Date.now() - start },
+    p_assessment: assessment, p_outcome: outcome, p_usage: { ...usage, providerAttempts, latencyMs: Date.now() - start },
   }));
   if (outcome === "invalid") reportError(new Error("Invalid targeted assessment"), { route: "learning/responses", sessionId });
   if (!committed) return { pending: true };

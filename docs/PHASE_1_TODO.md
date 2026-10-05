@@ -27,9 +27,13 @@ The existing warrant reassessment remains capped and needs a documented operator
 recovery path or a new eligible test cycle; deployment of the fallback alone does
 not complete that cycle.
 
-Migration 021 and its operator script now implement a one-time, audited fourth
+Migration 021 and its operator script implement a one-time, audited fourth
 evaluation without deleting attempt history or changing the free-cycle allowance.
-Local verification and staging application of migration 021 remain pending.
+Migration and SQL verification passed in staging October 5. The warrant recovery
+grant preserved three prior rows and one allowance, then its fourth evaluation also
+failed safely after 1.2 seconds; no completion event was emitted and no fifth retry
+is available. Failed-attempt persistence initially omitted the provider-attempt
+count; a follow-up fix records it for future diagnosis.
 
 ### October 3 implementation work
 
@@ -241,9 +245,10 @@ and permission to revise code do not establish approval of the revised exercises
 - [ ] Test refresh, navigation away, second-device resume and stale draft conflicts.
 - [ ] Test failed/invalid evaluations, lease expiry, duplicate clicks and bounded
   retries; preserve answers and ensure failures do not count as completion.
-- [ ] Apply and verify migration 021 in staging, then grant the capped warrant
-  response one audited recovery and complete its saved reassessment. The grant must
-  preserve three failed evaluation rows and the existing introductory allowance.
+- [x] Apply and verify migration 021 in staging; grant the capped warrant response
+  one audited recovery. Three failed evaluation rows and the existing introductory
+  allowance were preserved before the fourth attempt. The attempt also failed and
+  remained capped, so the saved reassessment is still incomplete.
 - [ ] Verify owner isolation and deletion cleanup across runtime/content/events.
 - [ ] Inspect events: one completion per action, practice clicks never treated as
   completions, and no transcript/response text in analytics.

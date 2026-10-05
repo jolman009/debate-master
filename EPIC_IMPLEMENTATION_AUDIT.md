@@ -120,3 +120,10 @@ typecheck and production build. It was pushed as `51b47b1`; Vercel Preview
 `7mwdpeszz` is Ready, with authenticated retest pending sign-in. Controlled provider interruption/logs,
 simultaneous HTTP verifier, hosted learning off-mode checks, real learning journeys,
 coach calibration and learner pilot outcomes remain open.
+
+October 5 pilot finding: one approved warrant drill opened for an included staging
+account. Draft resume, initial coaching (8/10) and revision coaching (9/10) passed.
+The linked reassessment answer was saved but three provider attempts failed; the
+app enforced its cap and retained the answer. Live safe diagnostics identified one
+Gemini 503. Warrant full-cycle validation remains open pending operator recovery
+and provider reliability. No pilot outcome is claimed.

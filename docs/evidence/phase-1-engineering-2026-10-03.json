@@ -26,6 +26,7 @@
     "exchange": "Passed on g5gv7pnti: PRO and CON openings saved; SQL confirms one row per opening stage and distinct correct authors; both openings survive CON reload, active stage rebuttal_pro_1. Full human debate/judge not exercised."
   },
   "remaining": [
+    "Warrant reassessment blocked at its enforced three-attempt limit after provider failures; establish safe operator recovery before marking cycle complete",
     "Authenticated retest of deployed 51b47b1; controlled provider interruption and recovery with logs",
     "Simultaneous AI HTTP retry verifier requires staging CLI credentials",
     "Hosted learning off-mode writes/saved reads and usefulness review queue readback",
@@ -94,7 +95,7 @@
     "template": "claim-evidence-warrant-v2",
     "date": "2026-10-05",
     "draftResume": "464-character synthetic response recovered unchanged after browser reconnect; Draft saved visible",
-    "status": "Revision has two failed provider attempts; saved response preserved. Final retry reserved until content-free provider-status diagnostics are deployed.",
+    "status": "Drill completed (initial 8, revision 9); linked reassessment submitted but three provider attempts failed. Saved answer preserved and retry cap enforced. Full cycle not complete.",
     "initialScore": 8,
     "recovery": "First provider evaluation returned 502 after 25.8 seconds in Vercel logs. Saved-response retry succeeded; authenticated GET shows exactly one initial response with attempts=2 and status=evaluated. Provider-specific cause was not logged.",
     "provenance": {
@@ -105,12 +106,16 @@
       "difficulty": "intermediate",
       "sessionFormat": "drill"
     },
-    "revisionRecovery": "Authenticated GET confirms exactly one revision response, status failed, attempts=2; initial response remains evaluated with score 8."
+    "revisionRecovery": "Final permitted retry succeeded after two provider failures; UI displays 8 to 9 within-exercise comparison and Drill completed. Earlier failures preserved.",
+    "revisionScore": 9,
+    "reassessmentRecovery": "First reassessment failure independently diagnosed from Vercel logs: providerStatus=503, failureCategory=provider_unavailable, latencyMs=31236. Second and third attempts also failed; UI after reload says three attempts failed and no retry control. Their exact causes were not independently classified.",
+    "exit": "Requires an operator recovery design or new eligible test cycle after provider reliability improves; no manual attempt-count reset performed."
   },
   "providerDiagnostics": {
     "date": "2026-10-05",
     "change": "Log only allowlisted numeric HTTP status, fixed failure category and elapsed time; no raw provider message/name/body",
     "verification": "Seven evaluation orchestration tests and typecheck passed",
-    "deployment": "Pending"
+    "deployment": "9d90e70 pushed to staging; GitHub Vercel success and Vercel Ready verified October 5; 503 classification observed in live logs.",
+    "url": "https://debate-master-6cwxlib5e-joel-guzmans-projects-f8aa100e.vercel.app"
   }
 }

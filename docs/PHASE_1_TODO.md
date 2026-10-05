@@ -16,7 +16,8 @@ evidence 4, rebuttal 6, rhetoric 7, argument strength 5. Phase 1 remains open.
 provider interruption/log verification and the simultaneous AI verifier, then
 verify hosted learning off-mode writes/saved reads. The two-account human opening
 exchange and Premium UI checks passed. Curriculum approval was given October 4;
-staging pilot redeployment is Ready and the first warrant cycle is in progress. Independent
+staging pilot redeployment is Ready. The first warrant drill finished, but its
+linked reassessment is blocked by provider failures. Independent
 coach ratings and the seven-day learner pilot remain external gates.
 
 ### October 3 implementation work
@@ -208,12 +209,15 @@ and permission to revise code do not establish approval of the revised exercises
   and an alert recipient. Keep keys and learner text out of reports.
 - [ ] Complete a real authenticated **counterargument** cycle: source → first
   response → coaching → revision → linked reassessment → summary.
-- [ ] Complete the same real-service journey for **warrants**. Cycle
-  `3af71d41-e291-4d8d-a461-48b19fec9e78` opened on the staging pilot; draft
-  survived browser reconnect October 5. Initial evaluation failed once, then
-  explicit retry returned 8/10 with correct provenance and one saved response.
-  Revision is saved but has two provider failures; final retry awaits diagnostic
-  deployment. Reassessment/completion are not yet passed.
+- [ ] Complete the same real-service journey for **warrants**. Staging cycle
+  `3af71d41-e291-4d8d-a461-48b19fec9e78`: draft survived browser reconnect;
+  first response scored 8 after one saved-response retry; revision scored 9 after
+  two failed attempts and final permitted retry. Linked reassessment was submitted
+  with a separate hypothetical challenge, but all three provider attempts failed.
+  The answer survived reload and the retry cap removed the retry control. The first
+  reassessment failure was classified from live logs as Gemini HTTP 503 after 31.2s.
+  Do not mark the full cycle complete or reset attempts without an operator recovery
+  design. [Evidence](evidence/phase-1-engineering-2026-10-03.json).
 - [ ] Complete the same real-service journey for **claim repair**.
 - [ ] Use separate eligible free test accounts where necessary to exercise all
   families without bypassing the one-introductory-cycle rule.

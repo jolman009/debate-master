@@ -192,7 +192,7 @@ Evaluate the USER's performance (not the AI's) across these dimensions on a 1-10
 - rhetoricalSkill: How persuasive was their delivery and structure?
 - overallScore: Overall debate performance
 
-Use evidence from the transcript. Evidence references MUST use exact TURN_ID values from the transcript and excerpts MUST be copied exactly from that turn. Prefer USER turns when coaching the user's performance. If no exact excerpt supports a claim, leave that claim's evidence array empty.
+Use evidence from the transcript. Evidence references MUST use exact TURN_ID values from the transcript and excerpts MUST be copied exactly from that turn. Prefer USER turns when coaching the user's performance. For rebuttalQuality, when the user answers a specific opposing argument, include both an exact excerpt from the USER response and an exact excerpt from the earlier AI turn containing that opposing argument. If no exact excerpt supports a claim, leave that claim's evidence array empty.
 
 Also provide:
 - summary: A 2-3 sentence overall assessment

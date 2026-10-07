@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/admin";
 import {
   verifyAndAcknowledgePlaySubscription,
   isGooglePlayConfigured,
+  getGooglePlayEnvironment,
 } from "@/lib/billing/google-play-server";
 import { reportError } from "@/lib/observability";
 
@@ -62,14 +63,19 @@ export async function POST(req: Request) {
     }
 
     const admin = createServiceClient();
-    const { error: saveError } = await admin.from("profiles").upsert(
+    const now = new Date().toISOString();
+    const { error: saveError } = await admin.rpc(
+      "claim_google_play_subscription",
       {
-        user_id: user.id,
-        subscription_status: "active",
-        subscription_current_period_end: result.periodEnd,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
+        p_user_id: user.id,
+        p_environment: getGooglePlayEnvironment(),
+        p_purchase_token: purchaseToken,
+        p_product_id: sku,
+        p_status: "active",
+        p_period_end: result.periodEnd,
+        p_acknowledged_at: result.acknowledgedAt ?? null,
+        p_provider_updated_at: result.providerUpdatedAt || result.periodEnd || now,
+      }
     );
 
     if (saveError) throw saveError;

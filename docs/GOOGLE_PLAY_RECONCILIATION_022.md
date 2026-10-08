@@ -26,7 +26,28 @@ on its legacy profile handler until its separate reconciliation work is resumed.
 
 The RTDN route validates the package name and re-fetches current subscription state
 from the Google Play Publisher API before changing access. Pub/Sub push identity
-authentication remains required before the production payment gate can close.
+authentication is enforced with `GOOGLE_PLAY_PUBSUB_AUDIENCE` and
+`GOOGLE_PLAY_PUBSUB_SERVICE_ACCOUNT`; both must match the authenticated push
+subscription. Live delivery and renewal evidence remain required before the
+production payment gate can close.
+
+## Staging renewal investigation — 2026-10-08
+
+The license-test checkout succeeded after adding read-only Debate Master app access
+to the verification service account. Google Play recorded the initial purchase at
+03:18 CDT and six renewals at five-minute intervals through 03:48 CDT. The user
+reported the app had returned to Free while those renewals were still occurring.
+
+Play Console publishes RTDN to `play-billing-notifications` in
+`gen-lang-client-0426942212`. Both attached subscriptions (`play-billing-notifications`
+and `play-billing-notifications-sub`) were configured as **Pull**, with no push
+endpoint. This leaves Vercel's webhook without renewal delivery and the profile with
+the period end captured during checkout.
+
+The application now authenticates Pub/Sub push requests before processing their
+payloads and ignores purchase tokens not owned by the receiving environment.
+Configuration and a fresh live renewal test must be verified separately; passing
+unit tests alone does not prove delivery.
 
 ## Recover a purchase after verification fails
 

@@ -18,6 +18,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 interface AppNavigationProps {
   email: string | null;
   initialAvatarUrl?: string | null;
+  isPremium?: boolean;
   inTwa: boolean;
 }
 
@@ -30,7 +31,7 @@ const BOTTOM_ICONS: Record<string, IconName> = {
   "/leaderboard": "leaderboard",
 };
 
-export function AppNavigation({ email, initialAvatarUrl, inTwa }: AppNavigationProps) {
+export function AppNavigation({ email, initialAvatarUrl, isPremium = false, inTwa }: AppNavigationProps) {
   const pathname = usePathname();
   const signedIn = !!email;
   const isLiveDebateRoute =
@@ -67,7 +68,17 @@ export function AppNavigation({ email, initialAvatarUrl, inTwa }: AppNavigationP
                 priority
               />
             </div>
-            <span>Debate<span className="text-stage-accent">Master</span></span>
+            <span className="flex flex-col items-start">
+              <span>Debate<span className="text-stage-accent">Master</span></span>
+              {signedIn && isPremium && (
+                <span
+                  aria-label="Premium account"
+                  className="rounded-full border border-stage-accent/30 bg-stage-accent/10 px-2 py-0.5 font-sans text-[11px] font-semibold leading-none tracking-wide text-stage-accent"
+                >
+                  Premium
+                </span>
+              )}
+            </span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">

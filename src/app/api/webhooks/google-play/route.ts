@@ -7,6 +7,7 @@ import {
   verifyAndAcknowledgePlaySubscription,
 } from "@/lib/billing/google-play-server";
 import { reportError } from "@/lib/observability";
+import { authenticateGooglePlayPush } from "@/lib/billing/google-play-push-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,9 @@ interface PlayDeveloperNotification {
 // 13: SUBSCRIPTION_EXPIRED
 
 export async function POST(req: Request) {
+  const denied = await authenticateGooglePlayPush(req);
+  if (denied) return denied;
+
   let body: PubSubPushBody;
   try {
     body = await req.json();
@@ -93,6 +97,18 @@ export async function POST(req: Request) {
   const admin = createServiceClient();
 
   try {
+    // A shared Play topic can include purchases belonging to another environment.
+    // Checkout/restore claims ownership; notifications only update known purchases.
+    const { data: owned, error: ownershipError } = await admin
+      .from("billing_subscriptions")
+      .select("id")
+      .eq("provider", "google_play")
+      .eq("provider_environment", getGooglePlayEnvironment())
+      .eq("provider_subscription_id", purchaseToken)
+      .maybeSingle();
+    if (ownershipError) throw ownershipError;
+    if (!owned) return Response.json({ received: true, outcome: "unowned" });
+
     // Query current status from Google Play
     const verified = await verifyAndAcknowledgePlaySubscription({
       subscriptionId,

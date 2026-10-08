@@ -2,10 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 
 const mockRpc = vi.fn();
+const mockOwned = vi.fn();
+const mockEq = vi.fn();
+const mockAuthenticate = vi.fn();
+
+vi.mock("@/lib/billing/google-play-push-auth", () => ({
+  authenticateGooglePlayPush: (req: Request) => mockAuthenticate(req),
+}));
 
 vi.mock("@/lib/supabase/admin", () => ({
   createServiceClient: () => ({
     rpc: mockRpc,
+    from: () => ({ select: () => ({ eq: mockEq }) }),
   }),
 }));
 
@@ -21,6 +29,37 @@ describe("POST /api/webhooks/google-play", () => {
     vi.restoreAllMocks();
     mockRpc.mockReset();
     mockVerifyAndAck.mockReset();
+    mockAuthenticate.mockReset().mockResolvedValue(null);
+    mockEq.mockReset().mockImplementation(() => ({ eq: mockEq, maybeSingle: mockOwned }));
+    mockOwned.mockReset().mockResolvedValue({ data: { id: "owned-subscription" }, error: null });
+  });
+
+  it("rejects unauthenticated requests before processing purchase data", async () => {
+    mockAuthenticate.mockResolvedValue(new Response("Unauthorized", { status: 401 }));
+    const res = await POST(new Request("https://example.com/api/webhooks/google-play", {
+      method: "POST", body: "not-json",
+    }));
+    expect(res.status).toBe(401);
+    expect(mockOwned).not.toHaveBeenCalled();
+    expect(mockVerifyAndAck).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it("ignores tokens not owned by this environment without verifying or acknowledging them", async () => {
+    mockOwned.mockResolvedValue({ data: null, error: null });
+    const payload = {
+      packageName: "app.debatemaster.twa",
+      subscriptionNotification: { purchaseToken: "other-token", subscriptionId: "premium_monthly", notificationType: 2 },
+    };
+    const res = await POST(new Request("https://example.com/api/webhooks/google-play", {
+      method: "POST",
+      body: JSON.stringify({ message: { data: Buffer.from(JSON.stringify(payload)).toString("base64"), messageId: "other-message" } }),
+    }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true, outcome: "unowned" });
+    expect(mockEq).toHaveBeenCalledWith("provider_environment", "test");
+    expect(mockVerifyAndAck).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it("handles test notifications from Play Console", async () => {

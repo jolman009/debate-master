@@ -89,6 +89,24 @@ See [Google's service-account setup](https://developers.google.com/android-publi
 2. In Google Play Console → **Monetization setup** → Paste topic name: `projects/<your-gcp-project>/topics/play-subs-notifications`.
 3. In Pub/Sub, create a **Push Subscription** targeting:
    `https://<your-domain>/api/webhooks/google-play`
+   Pull subscriptions do not deliver to the Vercel webhook.
+4. Enable push authentication and select the push service account. Set the audience
+   to the exact webhook URL. Pub/Sub's service agent must be allowed to mint an ID
+   token for this account; use the service-account-scoped permission if a grant is needed.
+5. Configure `GOOGLE_PLAY_PUBSUB_AUDIENCE` (the same audience URL) and
+   `GOOGLE_PLAY_PUBSUB_SERVICE_ACCOUNT` (the push account email) on the receiving
+   Vercel environment, then redeploy. The webhook fails closed when either is missing,
+   and validates Google's signature, issuer, expiration, audience and verified email.
+6. Send a Play Console test notification and confirm HTTP 200 at the webhook.
+   Then test a purchase through at least two renewals. Confirm the owned subscription
+   and profile expiration advance without manually restoring the purchase.
+
+Use a stable staging URL for Preview, and a separate subscription and audience for
+production. Notifications for tokens not already owned in the receiving environment
+are acknowledged without calling the purchase API or creating an entitlement.
+Checkout/restore remains responsible for the initial ownership claim.
+
+See [Google's authenticated push setup](https://cloud.google.com/pubsub/docs/authenticate-push-subscriptions).
 
 ### 6. Collect Certificate Fingerprints & Set Env Vars
 

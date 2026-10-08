@@ -53,3 +53,15 @@ Google may refund unacknowledged license-test purchases quickly. If the original
 order has since been refunded, verify that status before making a fresh test
 purchase. A local implementation or passing unit tests do not establish live
 purchase recovery; the Android restore and database checks remain necessary.
+
+The signed-in Android profile menu includes Pricing, which selects native Play
+Billing in the TWA. Restore distinguishes connection to Play, purchase lookup,
+network access to verification, and an unsuccessful server response. Native
+failures include only recognized browser/Play error codes, never raw tokens or
+provider payloads. A successful HTTP response alone is insufficient: verification
+must explicitly return `success: true` and `active: true`.
+
+If a restore error says `purchase lookup failed`, check the code displayed in
+parentheses before changing server credentials. A failed native lookup has no
+purchase token to send to the server. These messages diagnose the stage; they do
+not establish that live recovery has succeeded.

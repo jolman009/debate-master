@@ -17,10 +17,10 @@ describe("navigation model", () => {
     expect(getBottomNavItems(false, false)).toEqual([]);
   });
 
-  it("omits pricing in TWA while keeping it reachable on the web", () => {
+  it("makes Play plans reachable from the signed-in Android profile menu", () => {
     expect(getDesktopNavItems(true, true).some((item) => item.href === "/pricing")).toBe(false);
     expect(getDesktopNavItems(false, false).some((item) => item.href === "/pricing")).toBe(true);
-    expect(getProfileMenuNavItems(true, true).some((item) => item.href === "/pricing")).toBe(false);
+    expect(getProfileMenuNavItems(true, true).some((item) => item.href === "/pricing")).toBe(true);
     expect(getProfileMenuNavItems(true, false).some((item) => item.href === "/pricing")).toBe(true);
   });
 

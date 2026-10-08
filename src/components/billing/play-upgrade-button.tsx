@@ -94,7 +94,7 @@ export function PlayUpgradeButton({
       </button>
 
       {errorMsg && (
-        <p className="text-center text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded p-1.5">
+        <p role="alert" className="text-center text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded p-1.5">
           {errorMsg}
         </p>
       )}

@@ -21,7 +21,7 @@ export async function Header() {
     user = null;
   }
 
-  // Play policy: no purchase or steering surfaces inside the Android app.
+  // Pricing chooses native Play Billing inside the Android app.
   const inTwa = isTwa();
 
   return (

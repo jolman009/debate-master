@@ -27,3 +27,29 @@ on its legacy profile handler until its separate reconciliation work is resumed.
 The RTDN route validates the package name and re-fetches current subscription state
 from the Google Play Publisher API before changing access. Pub/Sub push identity
 authentication remains required before the production payment gate can close.
+
+## Recover a purchase after verification fails
+
+If Google Play reports an active order but Debate Master remains Free, do not
+start another checkout. The error `Google Play verification is not configured.`
+means the server cannot load service-account credentials; that request stops
+before acknowledging the purchase or saving an entitlement.
+
+1. Configure the server credentials and Play Console permissions described in
+   [the Android setup guide](android-twa.md#4-configure-server-verification-google-cloud-service-account).
+   For staging, set the credentials in Vercel Preview and redeploy.
+2. Deploy the application change that adds **Restore Google Play purchase**.
+3. Open Pricing in the Play-installed app using the purchasing Google account
+   and the intended Debate Master account, then select the restore action.
+4. The app obtains existing monthly or yearly purchase tokens through
+   `DigitalGoodsService.listPurchases()` and submits them to the same server
+   verification and ownership RPC used by checkout. It never starts a payment
+   sheet or grants access from the client purchase list alone.
+5. Confirm Premium appears after the redirect and that staging contains the
+   verified subscription owned by the signed-in user. Do not record tokens or
+   service-account keys in test evidence.
+
+Google may refund unacknowledged license-test purchases quickly. If the original
+order has since been refunded, verify that status before making a fresh test
+purchase. A local implementation or passing unit tests do not establish live
+purchase recovery; the Android restore and database checks remain necessary.

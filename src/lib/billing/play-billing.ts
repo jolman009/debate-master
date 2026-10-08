@@ -80,6 +80,62 @@ export async function getPlayProductDetails(
   }
 }
 
+async function verifyPlayPurchase(
+  sku: string,
+  purchaseToken: string
+): Promise<{ success: boolean; error?: string }> {
+  const response = await fetch("/api/billing/play/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sku, purchaseToken }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: body.error || "Subscription verification failed on the server. Please contact support.",
+    };
+  }
+
+  return { success: true };
+}
+
+/** Reverify an existing Play subscription without opening another checkout. */
+export async function restorePlaySubscription(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const service = await getPlayBillingService();
+    if (!service) {
+      return { success: false, error: "Open the Google Play app version of Debate Master to restore your purchase." };
+    }
+
+    const purchases = await service.listPurchases();
+    const subscriptions = purchases.filter(
+      (purchase) =>
+        (purchase.itemId === PLAY_SKUS.monthly || purchase.itemId === PLAY_SKUS.yearly) &&
+        purchase.purchaseToken
+    );
+    if (!subscriptions.length) {
+      return {
+        success: false,
+        error: "No current Premium purchase was found. Check that Google Play is using the account that made the purchase.",
+      };
+    }
+
+    let result: { success: boolean; error?: string } = { success: false };
+    for (const purchase of subscriptions) {
+      result = await verifyPlayPurchase(purchase.itemId, purchase.purchaseToken);
+      if (result.success) return result;
+    }
+    return result;
+  } catch {
+    return { success: false, error: "Unable to restore your Google Play purchase. Please try again." };
+  }
+}
+
 /**
  * Initiates the native Google Play purchase flow using the Payment Request API.
  * Upon receiving the purchaseToken, it sends it to the backend verification endpoint
@@ -126,24 +182,10 @@ export async function purchasePlaySubscription(sku: string): Promise<{
     }
 
     // Verify token with backend
-    const verifyRes = await fetch("/api/billing/play/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sku,
-        purchaseToken,
-      }),
-    });
-
-    if (!verifyRes.ok) {
-      const errorJson = await verifyRes.json().catch(() => ({}));
+    const verification = await verifyPlayPurchase(sku, purchaseToken);
+    if (!verification.success) {
       await paymentResponse.complete("fail");
-      return {
-        success: false,
-        error:
-          errorJson.error ||
-          "Subscription verification failed on the server. Please contact support.",
-      };
+      return verification;
     }
 
     await paymentResponse.complete("success");

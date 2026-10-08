@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   purchasePlaySubscription,
+  restorePlaySubscription,
   PLAY_SKUS,
 } from "@/lib/billing/play-billing";
 
@@ -19,8 +20,25 @@ export function PlayUpgradeButton({
   className = "btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2",
 }: PlayUpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    setErrorMsg(null);
+    try {
+      const result = await restorePlaySubscription();
+      if (result.success) {
+        router.refresh();
+        window.location.href = "/pricing?status=success";
+      } else {
+        setErrorMsg(result.error || "Unable to restore your Google Play purchase.");
+      }
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   const handlePurchase = async () => {
     setLoading(true);
@@ -51,7 +69,7 @@ export function PlayUpgradeButton({
       <button
         type="button"
         onClick={handlePurchase}
-        disabled={loading}
+        disabled={loading || restoring}
         className={className}
       >
         {loading ? (
@@ -64,6 +82,15 @@ export function PlayUpgradeButton({
             <span>{label || `Subscribe with Google Play — ${interval === "year" ? "$69.99/yr" : "$9.99/mo"}`}</span>
           </>
         )}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleRestore}
+        disabled={loading || restoring}
+        className="w-full text-center text-sm text-sky-300 underline underline-offset-4 disabled:opacity-50"
+      >
+        {restoring ? "Restoring purchase…" : "Restore Google Play purchase"}
       </button>
 
       {errorMsg && (

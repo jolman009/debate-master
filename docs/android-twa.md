@@ -67,14 +67,21 @@ In Google Play Console → **Monetize with Play → Products → Subscriptions**
 To verify purchases and prevent fraudulent or refunded subscriptions from staying active:
 
 1. In **Google Cloud Console** (for your Play Console project):
+   - Enable **Google Play Android Developer API**.
    - Go to **IAM & Admin → Service Accounts** → Create Service Account.
-   - Grant role: **Google Play Developer Admin** or **Service Account User**.
    - Create and download a JSON key.
 2. In **Google Play Console** → **Users and permissions** → Invite the service account email and grant permissions:
-   - *View app information and download bulk reports*
+   - *View financial data, orders, and cancellation survey responses*
    - *Manage orders and subscriptions*
+   - Give the account access to Debate Master. These are Play Console permissions;
+     a Google Cloud IAM role does not replace them.
 3. In **Vercel** (or `.env.local`):
    - Set `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY` to the full JSON string of the downloaded service account key (or set `GOOGLE_PLAY_CLIENT_EMAIL` and `GOOGLE_PLAY_PRIVATE_KEY`).
+   - For the staging Android release, select **Preview** and redeploy staging.
+     Keep these variables server-only; do not use a `NEXT_PUBLIC_` prefix or commit the key.
+   - `GOOGLE_PLAY_ENVIRONMENT=test` and signing fingerprints do not supply API credentials.
+
+See [Google's service-account setup](https://developers.google.com/android-publisher/getting_started).
 
 ### 5. Set Real-Time Developer Notifications (RTDN via Pub/Sub)
 

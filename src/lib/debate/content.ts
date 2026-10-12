@@ -74,7 +74,7 @@ export function rowToPersona(r: PersonaRow): Persona {
 /** All selectable topics, DB-backed with an in-code fallback. */
 export async function getTopics(): Promise<Topic[]> {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
     const { data, error } = await supabase
       .from("topics")
       .select("slug, title, motion, category, difficulty, pack_id")
@@ -89,7 +89,7 @@ export async function getTopics(): Promise<Topic[]> {
 /** Curated topic packs (empty if none / not migrated yet). */
 export async function getTopicPacks(): Promise<TopicPack[]> {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
     const { data, error } = await supabase
       .from("topic_packs")
       .select("id, name, description")
@@ -113,7 +113,7 @@ export async function getTopicPacks(): Promise<TopicPack[]> {
 export async function getPersonas(): Promise<Persona[]> {
   const builtIns = getAllPersonas();
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
     const { data, error } = await supabase
       .from("personas")
       .select(PERSONA_COLUMNS)
@@ -138,7 +138,7 @@ export async function getPersonaBySlug(slug: PersonaId): Promise<Persona | null>
   const builtIn = getPersona(slug);
   if (builtIn) return builtIn;
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
     const { data, error } = await supabase
       .from("personas")
       .select(PERSONA_COLUMNS)

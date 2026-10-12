@@ -7,15 +7,15 @@ import { getTierForUser } from "@/lib/billing/tier-server";
 import { Tier } from "@/lib/billing/tier";
 
 interface DebatePageProps {
-  params: { debateId: string };
+  params: Promise<{ debateId: string }>;
 }
 
 export default async function DebatePage({ params }: DebatePageProps) {
   // Resolve the opponent persona server-side (handles custom personas that
   // aren't in code). DebateStage still streams live debate data client-side.
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const [debateRes, userRes] = await Promise.all([
-    supabase.from("debates").select("config").eq("id", params.debateId).maybeSingle(),
+    supabase.from("debates").select("config").eq("id", (await params).debateId).maybeSingle(),
     supabase.auth.getUser(),
   ]);
 
@@ -27,5 +27,5 @@ export default async function DebatePage({ params }: DebatePageProps) {
   const user = userRes.data?.user;
   const tier: Tier = user ? await getTierForUser(supabase, user.id) : "free";
 
-  return <DebateStage debateId={params.debateId} persona={persona} tier={tier} />;
+  return <DebateStage debateId={(await params).debateId} persona={persona} tier={tier} />;
 }

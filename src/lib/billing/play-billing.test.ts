@@ -3,6 +3,7 @@ import {
   isDigitalGoodsSupported,
   getPlayProductDetails,
   purchasePlaySubscription,
+  restorePlaySubscription,
   PLAY_SKUS,
 } from "./play-billing";
 
@@ -84,7 +85,7 @@ describe("play-billing", () => {
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue({ success: true }),
+      json: vi.fn().mockResolvedValue({ success: true, active: true }),
     } as unknown as Response);
 
     const res = await purchasePlaySubscription(PLAY_SKUS.monthly);
@@ -121,5 +122,137 @@ describe("play-billing", () => {
     expect(res.success).toBe(false);
     expect(res.error).toBe("Invalid purchase token");
     expect(mockComplete).toHaveBeenCalledWith("fail");
+  });
+
+  it.each([PLAY_SKUS.monthly, PLAY_SKUS.yearly])(
+    "restores an existing %s purchase through server verification without checkout",
+    async (sku) => {
+      const checkout = vi.fn();
+      const listPurchases = vi.fn().mockResolvedValue([
+        { itemId: sku, purchaseToken: "existing-purchase" },
+      ]);
+      (globalThis.window as any).PaymentRequest = checkout;
+      (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({ listPurchases });
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue({ success: true, active: true }) });
+
+      expect(await restorePlaySubscription()).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/billing/play/verify",
+        expect.objectContaining({ body: JSON.stringify({ sku, purchaseToken: "existing-purchase" }) })
+      );
+      expect(checkout).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not grant Premium when an existing purchase cannot be verified", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockResolvedValue([
+        { itemId: PLAY_SKUS.monthly, purchaseToken: "existing-purchase" },
+      ]),
+    });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: vi.fn().mockResolvedValue({ error: "This purchase belongs to another account." }),
+    });
+
+    expect(await restorePlaySubscription()).toEqual({
+      success: false,
+      error: "This purchase belongs to another account.",
+    });
+  });
+
+  it("ignores unrelated purchases and subscriptions without tokens", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockResolvedValue([
+        { itemId: "unrelated-product", purchaseToken: "other-purchase" },
+        { itemId: PLAY_SKUS.monthly, purchaseToken: "" },
+      ]),
+    });
+    global.fetch = vi.fn();
+
+    expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("No current Premium purchase") });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("reports restoration is unavailable outside the Play app", async () => {
+    global.fetch = vi.fn();
+    expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("Open the Google Play app version") });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("handles a failed Play purchase lookup without starting checkout", async () => {
+    const checkout = vi.fn();
+    (globalThis.window as any).PaymentRequest = checkout;
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockRejectedValue(new Error("Service unavailable")),
+    });
+    global.fetch = vi.fn();
+
+    expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("purchase lookup failed (unknown)") });
+    expect(checkout).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it.each(["clientAppUnavailable", "clientAppError", "error"])(
+    "identifies a native purchase lookup failure (%s) without attempting server verification",
+    async (code) => {
+      (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+        listPurchases: vi.fn().mockRejectedValue(new DOMException(code, "OperationError")),
+      });
+      global.fetch = vi.fn();
+      expect(await restorePlaySubscription()).toMatchObject({
+        success: false,
+        error: expect.stringContaining(`purchase lookup failed (${code})`),
+      });
+      expect(global.fetch).not.toHaveBeenCalled();
+    }
+  );
+
+  it("distinguishes failure to connect to the native service", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockRejectedValue(new DOMException("private diagnostic", "NotAllowedError"));
+    global.fetch = vi.fn();
+    const result = await restorePlaySubscription();
+    expect(result.error).toContain("connection failed (NotAllowedError)");
+    expect(result.error).not.toContain("private diagnostic");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("distinguishes a server network failure from a native lookup failure", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockResolvedValue([{ itemId: PLAY_SKUS.monthly, purchaseToken: "private-token" }]),
+    });
+    global.fetch = vi.fn().mockRejectedValue(new TypeError("private-token"));
+    const result = await restorePlaySubscription();
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("Could not reach the subscription verification server");
+    expect(result.error).not.toContain("private-token");
+  });
+
+  it.each([null, { success: true }, { success: true, active: false }])(
+    "does not report restored access without explicit server confirmation: %j",
+    async (body) => {
+      (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+        listPurchases: vi.fn().mockResolvedValue([{ itemId: PLAY_SKUS.monthly, purchaseToken: "existing" }]),
+      });
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+      expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("did not confirm") });
+    }
+  );
+
+  it("does not mistake a redirected HTML response for successful verification", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockResolvedValue([{ itemId: PLAY_SKUS.monthly, purchaseToken: "existing" }]),
+    });
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockRejectedValue(new SyntaxError("HTML")) });
+    expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("did not confirm") });
+  });
+
+  it("handles malformed purchase lists without revealing provider data", async () => {
+    (globalThis.window as any).getDigitalGoodsService = vi.fn().mockResolvedValue({
+      listPurchases: vi.fn().mockResolvedValue({ purchaseToken: "private-token" }),
+    });
+    global.fetch = vi.fn();
+    expect(await restorePlaySubscription()).toMatchObject({ success: false, error: expect.stringContaining("invalid purchase list") });
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

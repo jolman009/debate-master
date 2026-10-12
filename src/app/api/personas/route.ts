@@ -9,7 +9,7 @@ import {
 } from "@/lib/debate/custom-persona";
 
 export async function POST(req: Request) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

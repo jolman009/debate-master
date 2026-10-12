@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     let userId: string | null = null;
     let userEmail: string | null = null;
     try {
-      const supabase = createServerClient();
+      const supabase = await createServerClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         userId = user.id;
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
 
     // 8. Attempt database persistence if user_feedback table exists
     try {
-      const supabase = createServerClient();
+      const supabase = await createServerClient();
       await supabase.from("user_feedback").insert({
         id: submissionId,
         user_id: userId,

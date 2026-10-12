@@ -8,21 +8,21 @@ import { createServerClient } from "@/lib/supabase/server";
 export default async function JoinDebatePage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=/debate/join/${params.token}`);
+    redirect(`/login?redirect=/debate/join/${(await params).token}`);
   }
 
   const { data: debateId, error } = await supabase.rpc(
     "join_debate_via_invite",
-    { p_token: params.token }
+    { p_token: (await params).token }
   );
 
   if (!error && debateId) {

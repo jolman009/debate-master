@@ -39,9 +39,10 @@ function isAbort(err: unknown, signal: AbortSignal): boolean {
 
 export async function POST(
   request: Request,
-  { params }: { params: { debateId: string } }
+  { params: paramsPromise }: { params: Promise<{ debateId: string }> }
 ) {
-  const supabase = createServerClient();
+  const params = await paramsPromise;
+  const supabase = await createServerClient();
 
   const {
     data: { user },

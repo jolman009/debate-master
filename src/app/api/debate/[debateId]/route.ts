@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { debateId: string } }
+  { params: paramsPromise }: { params: Promise<{ debateId: string }> }
 ) {
-  const supabase = createServerClient();
+  const params = await paramsPromise;
+  const supabase = await createServerClient();
 
   const {
     data: { user },
@@ -127,9 +128,10 @@ export async function GET(
 /** Soft-delete: archive the debate so it drops off the dashboard. */
 export async function DELETE(
   _request: Request,
-  { params }: { params: { debateId: string } }
+  { params: paramsPromise }: { params: Promise<{ debateId: string }> }
 ) {
-  const supabase = createServerClient();
+  const params = await paramsPromise;
+  const supabase = await createServerClient();
 
   const {
     data: { user },

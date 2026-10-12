@@ -6,8 +6,8 @@ import { cookies } from "next/headers";
  * It reads the user's session from cookies, so all queries run AS the
  * signed-in user and Row Level Security policies are enforced per-user.
  */
-export function createServerClient() {
-  const cookieStore = cookies();
+export async function createServerClient() {
+  const cookieStore = await cookies();
 
   return createSSRClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

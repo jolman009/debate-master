@@ -8,9 +8,9 @@ import { cookies } from "next/headers";
 import { TWA_COOKIE } from "./twa";
 
 /** True when this request is being rendered inside the Android TWA shell. */
-export function isTwa(): boolean {
+export async function isTwa(): Promise<boolean> {
   try {
-    return cookies().get(TWA_COOKIE)?.value === "1";
+    return (await cookies()).get(TWA_COOKIE)?.value === "1";
   } catch {
     // Called outside a request scope (e.g. static generation).
     return false;

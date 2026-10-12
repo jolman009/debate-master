@@ -48,6 +48,17 @@ export function isGooglePlayConfigured(): boolean {
   return getServiceAccount() !== null;
 }
 
+export function getGooglePlayEnvironment(): "test" | "live" {
+  const configured = process.env.GOOGLE_PLAY_ENVIRONMENT;
+  if (configured === "test" || configured === "live") return configured;
+  if (configured) throw new Error("GOOGLE_PLAY_ENVIRONMENT must be 'test' or 'live'");
+  return process.env.VERCEL_ENV === "production" ? "live" : "test";
+}
+
+export function getGooglePlayPackageName(): string {
+  return process.env.ANDROID_PACKAGE_NAME || "app.debatemaster.twa";
+}
+
 /**
  * Exchanges a signed JWT assertion for a Google OAuth2 access token
  * with scope 'https://www.googleapis.com/auth/androidpublisher'.
@@ -129,6 +140,8 @@ export interface VerifySubscriptionResult {
   active: boolean;
   periodEnd: string | null;
   orderId?: string;
+  acknowledgedAt?: string | null;
+  providerUpdatedAt?: string;
   error?: string;
 }
 
@@ -140,10 +153,7 @@ export async function verifyAndAcknowledgePlaySubscription(input: {
   purchaseToken: string;
   packageName?: string;
 }): Promise<VerifySubscriptionResult> {
-  const packageName =
-    input.packageName ||
-    process.env.ANDROID_PACKAGE_NAME ||
-    "app.debatemaster.twa";
+  const packageName = input.packageName || getGooglePlayPackageName();
 
   const token = await getGooglePlayAccessToken();
   if (!token) {
@@ -187,6 +197,7 @@ export async function verifyAndAcknowledgePlaySubscription(input: {
   const periodEndIso = expiryMs > 0 ? new Date(expiryMs).toISOString() : null;
 
   // 2. Acknowledge the subscription if not yet acknowledged
+  let acknowledged = sub.acknowledgementState === 1;
   if (sub.acknowledgementState === 0) {
     const ackUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${input.subscriptionId}/tokens/${input.purchaseToken}:acknowledge`;
     const ackRes = await fetch(ackUrl, {
@@ -200,6 +211,8 @@ export async function verifyAndAcknowledgePlaySubscription(input: {
 
     if (!ackRes.ok) {
       console.warn("Failed to acknowledge subscription:", await ackRes.text());
+    } else {
+      acknowledged = true;
     }
   }
 
@@ -208,5 +221,7 @@ export async function verifyAndAcknowledgePlaySubscription(input: {
     active: isActive,
     periodEnd: periodEndIso,
     orderId: sub.orderId,
+    acknowledgedAt: acknowledged ? new Date().toISOString() : null,
+    providerUpdatedAt: new Date().toISOString(),
   };
 }

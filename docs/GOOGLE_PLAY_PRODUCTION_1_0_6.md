@@ -60,25 +60,41 @@ The script never creates a replacement signing key.
   layout (390 × 844) and mobile sign-in page passed browser checks. Authenticated
   and native production-host purchase/restore checks remain in the Internal
   testing gate below.
-- [ ] Review and merge candidate, then verify the new production deployment.
-- [ ] Create a separate authenticated production Pub/Sub push subscription on
+- [x] PR #13 merged into main as `dd44106ee367c67bb119b1d58042d8da7856c5ed`.
+  CI run 51 and Vercel Preview passed for SDK 24 commit `ed9480c`.
+  Vercel production deployment `dpl_CUrVY5DNbKgyFrwjiYFMe6U9PFLc` is Ready,
+  built from the exact merge commit. The registered Android host
+  `debate-master-psi.vercel.app` independently maps to that deployment.
+- [x] Final production endpoint checks: unsigned and invalid-bearer Google Play
+  push requests both return HTTP 401; unsigned purchase verification returns
+  HTTP 401; asset links serve the correct package and both signing fingerprints.
+  The deployed production Pricing page renders successfully.
+- [x] Created a separate authenticated production Pub/Sub push subscription on
   `projects/gen-lang-client-0426942212/topics/play-billing-notifications`.
   Endpoint and audience: `https://debate-master-psi.vercel.app/api/webhooks/google-play`.
   Push identity: `ais-gemini-key-b55185a80f0a48d@611102270579.iam.gserviceaccount.com`.
   Keep the existing staging subscription; keep wrapped message delivery.
-  Enable this connection only after the new webhook is deployed.
-- [ ] Send a Play Console test notification and verify authenticated HTTP 200;
-  unauthenticated requests must return 401.
+  Subscription `play-billing-notifications-production` is active. Saved settings
+  confirm the production endpoint, exact audience and service-account identity.
+  Authentication is enabled, payload unwrapping disabled, exponential retry
+  backoff is 10–600 seconds and there is no inactivity expiration.
+- [x] Sent a Play Console test notification. Production Vercel logs confirm
+  POST `/api/webhooks/google-play` returned HTTP 200 on the registered Android
+  host at 2026-10-12T12:30:59.165Z (07:30:59 CDT), deployment
+  `dpl_CUrVY5DNbKgyFrwjiYFMe6U9PFLc`. The handler logged
+  `[Google Play RTDN] Received test notification from Google Play Console.`
+  Unsigned and invalid-bearer requests previously returned HTTP 401.
+  This verifies authenticated notification delivery, not a subscription renewal.
 - [ ] Upload code 9 to Internal testing, verify production-host purchase/restore
   with a license tester, then approve the Production Play rollout.
 
 Do not publish the AAB before the production application and notification path
 are ready: the Android package opens the live production site.
 
-Draft review: https://github.com/jolman009/debate-master/pull/13.
-Candidate commit: `f8ad649b888340d3563a787d95c014a3e6cd6c6f`.
+Merged review: https://github.com/jolman009/debate-master/pull/13.
+Release head: `ed9480ca3d1e45c9ba13963cdf91bc9517946a26`.
+Production merge: `dd44106ee367c67bb119b1d58042d8da7856c5ed`.
 
-The final unauthenticated Preview webhook and production asset-links HTTP
-checks were not executed because automatic approval review reached its usage
-limit. This was a review availability failure, not a finding that the checks
-were unsafe. Resume these checks before closing the deployment gate.
+Production endpoint checks and authenticated test notification delivery are complete.
+Native purchase, restore and renewal validation on the production-host Internal
+testing bundle remain the final release gate.

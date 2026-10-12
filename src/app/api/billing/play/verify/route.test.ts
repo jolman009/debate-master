@@ -3,7 +3,7 @@ import { POST } from "./route";
 
 // Mock Supabase
 const mockGetUser = vi.fn();
-const mockUpsert = vi.fn();
+const mockRpc = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerClient: () => ({
@@ -15,9 +15,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/lib/supabase/admin", () => ({
   createServiceClient: () => ({
-    from: () => ({
-      upsert: mockUpsert,
-    }),
+    rpc: mockRpc,
   }),
 }));
 
@@ -27,6 +25,7 @@ const mockIsConfigured = vi.fn();
 
 vi.mock("@/lib/billing/google-play-server", () => ({
   isGooglePlayConfigured: () => mockIsConfigured(),
+  getGooglePlayEnvironment: () => "test",
   verifyAndAcknowledgePlaySubscription: (args: any) => mockVerifyAndAck(args),
 }));
 
@@ -34,7 +33,7 @@ describe("POST /api/billing/play/verify", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     mockGetUser.mockReset();
-    mockUpsert.mockReset();
+    mockRpc.mockReset();
     mockVerifyAndAck.mockReset();
     mockIsConfigured.mockReset();
   });
@@ -72,7 +71,7 @@ describe("POST /api/billing/play/verify", () => {
       method: "POST", body: JSON.stringify({ sku: "premium_monthly", purchaseToken: "unverified" }),
     }));
     expect(response.status).toBe(503);
-    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
     expect(mockVerifyAndAck).not.toHaveBeenCalled();
   });
 
@@ -80,7 +79,7 @@ describe("POST /api/billing/play/verify", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
     mockIsConfigured.mockReturnValue(true);
     mockVerifyAndAck.mockResolvedValue({ valid: true, active: true, periodEnd: "2026-10-09T00:00:00Z" });
-    mockUpsert.mockResolvedValue({ error: new Error("Storage unavailable") });
+    mockRpc.mockResolvedValue({ error: new Error("Storage unavailable") });
     const response = await POST(new Request("http://localhost/api/billing/play/verify", {
       method: "POST", body: JSON.stringify({ sku: "premium_monthly", purchaseToken: "verified-token" }),
     }));
@@ -97,7 +96,7 @@ describe("POST /api/billing/play/verify", () => {
       periodEnd: "2026-10-09T00:00:00.000Z",
       orderId: "GPA.1234-5678",
     });
-    mockUpsert.mockResolvedValue({ error: null });
+    mockRpc.mockResolvedValue({ error: null });
 
     const req = new Request("http://localhost:3000/api/billing/play/verify", {
       method: "POST",
@@ -114,13 +113,15 @@ describe("POST /api/billing/play/verify", () => {
     expect(data.success).toBe(true);
     expect(data.periodEnd).toBe("2026-10-09T00:00:00.000Z");
 
-    expect(mockUpsert).toHaveBeenCalledWith(
+    expect(mockRpc).toHaveBeenCalledWith(
+      "claim_google_play_subscription",
       expect.objectContaining({
-        user_id: "user-1",
-        subscription_status: "active",
-        subscription_current_period_end: "2026-10-09T00:00:00.000Z",
-      }),
-      { onConflict: "user_id" }
+        p_user_id: "user-1",
+        p_purchase_token: "valid-token-xyz",
+        p_product_id: "premium_monthly",
+        p_status: "active",
+        p_period_end: "2026-10-09T00:00:00.000Z",
+      })
     );
   });
 

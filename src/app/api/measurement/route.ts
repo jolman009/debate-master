@@ -4,7 +4,7 @@ import { measurementEnabled } from "@/lib/measurement-flags";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
-  const db = createServerClient();
+  const db = await createServerClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!measurementEnabled(user.id)) return new Response(null, { status: 503 });

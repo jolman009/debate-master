@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   // Premium-only feature when billing is on; free users get a 403 and the
   // client falls back to browser speech. No-op when billing is disabled.
   if (isBillingEnabled()) {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

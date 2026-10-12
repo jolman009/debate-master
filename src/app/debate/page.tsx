@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function DebatesDashboard() {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   // RLS scopes this to the signed-in user's own debates.
   const [{ data }, personas] = await Promise.all([

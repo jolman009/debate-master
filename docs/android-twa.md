@@ -22,6 +22,11 @@ Debate Master integrates **Google Play Billing** for users on Android via the **
 
 ## Setup & Release Workflow
 
+For the current production candidate, follow
+[the 1.0.6 release checklist](GOOGLE_PLAY_PRODUCTION_1_0_6.md). The reproducible
+production build is `npm run build:twa:production`, using the existing signing
+key and passwords supplied through environment variables.
+
 ### 1. Build the Billing-Enabled App Bundle (AAB)
 
 Run the automated build script:
@@ -67,14 +72,21 @@ In Google Play Console → **Monetize with Play → Products → Subscriptions**
 To verify purchases and prevent fraudulent or refunded subscriptions from staying active:
 
 1. In **Google Cloud Console** (for your Play Console project):
+   - Enable **Google Play Android Developer API**.
    - Go to **IAM & Admin → Service Accounts** → Create Service Account.
-   - Grant role: **Google Play Developer Admin** or **Service Account User**.
    - Create and download a JSON key.
 2. In **Google Play Console** → **Users and permissions** → Invite the service account email and grant permissions:
-   - *View app information and download bulk reports*
+   - *View financial data, orders, and cancellation survey responses*
    - *Manage orders and subscriptions*
+   - Give the account access to Debate Master. These are Play Console permissions;
+     a Google Cloud IAM role does not replace them.
 3. In **Vercel** (or `.env.local`):
    - Set `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY` to the full JSON string of the downloaded service account key (or set `GOOGLE_PLAY_CLIENT_EMAIL` and `GOOGLE_PLAY_PRIVATE_KEY`).
+   - For the staging Android release, select **Preview** and redeploy staging.
+     Keep these variables server-only; do not use a `NEXT_PUBLIC_` prefix or commit the key.
+   - `GOOGLE_PLAY_ENVIRONMENT=test` and signing fingerprints do not supply API credentials.
+
+See [Google's service-account setup](https://developers.google.com/android-publisher/getting_started).
 
 ### 5. Set Real-Time Developer Notifications (RTDN via Pub/Sub)
 
@@ -82,6 +94,24 @@ To verify purchases and prevent fraudulent or refunded subscriptions from stayin
 2. In Google Play Console → **Monetization setup** → Paste topic name: `projects/<your-gcp-project>/topics/play-subs-notifications`.
 3. In Pub/Sub, create a **Push Subscription** targeting:
    `https://<your-domain>/api/webhooks/google-play`
+   Pull subscriptions do not deliver to the Vercel webhook.
+4. Enable push authentication and select the push service account. Set the audience
+   to the exact webhook URL. Pub/Sub's service agent must be allowed to mint an ID
+   token for this account; use the service-account-scoped permission if a grant is needed.
+5. Configure `GOOGLE_PLAY_PUBSUB_AUDIENCE` (the same audience URL) and
+   `GOOGLE_PLAY_PUBSUB_SERVICE_ACCOUNT` (the push account email) on the receiving
+   Vercel environment, then redeploy. The webhook fails closed when either is missing,
+   and validates Google's signature, issuer, expiration, audience and verified email.
+6. Send a Play Console test notification and confirm HTTP 200 at the webhook.
+   Then test a purchase through at least two renewals. Confirm the owned subscription
+   and profile expiration advance without manually restoring the purchase.
+
+Use a stable staging URL for Preview, and a separate subscription and audience for
+production. Notifications for tokens not already owned in the receiving environment
+are acknowledged without calling the purchase API or creating an entitlement.
+Checkout/restore remains responsible for the initial ownership claim.
+
+See [Google's authenticated push setup](https://cloud.google.com/pubsub/docs/authenticate-push-subscriptions).
 
 ### 6. Collect Certificate Fingerprints & Set Env Vars
 

@@ -35,20 +35,20 @@ interface SharedTurn {
 export default async function SharedDebatePage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   // Public read goes through the SECURITY DEFINER function — RLS still
   // hides the row from a direct query.
   const { data: debateRows } = await supabase.rpc("get_shared_debate", {
-    token: params.token,
+    token: (await params).token,
   });
   const debate = (debateRows?.[0] ?? null) as SharedDebate | null;
   if (!debate) notFound();
 
   const { data: turnRows } = await supabase.rpc("get_shared_debate_turns", {
-    token: params.token,
+    token: (await params).token,
   });
   const turns = (turnRows ?? []) as SharedTurn[];
 

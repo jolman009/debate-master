@@ -12,10 +12,10 @@ export const metadata = {
 export default async function PricingPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
   const billingEnabled = isBillingEnabled();
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -25,7 +25,7 @@ export default async function PricingPage({
   // Play policy: inside the Android app this page is informational only — no
   // checkout, no billing portal, and nothing that points at the web to pay.
   // Premium unlocked on the web still works here; we just don't sell it.
-  const inTwa = isTwa();
+  const inTwa = await isTwa();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -40,12 +40,12 @@ export default async function PricingPage({
         </p>
       </div>
 
-      {searchParams.status === "success" && (
+      {(await searchParams).status === "success" && (
         <div className="mt-6 rounded-xl border border-stage-accent/40 bg-stage-accent/10 p-4 text-center text-sm font-medium text-stage-accent">
           🎉 You&apos;re now on Premium! Thank you for subscribing. Your account benefits are active.
         </div>
       )}
-      {searchParams.status === "cancelled" && (
+      {(await searchParams).status === "cancelled" && (
         <div className="mt-6 rounded-xl border border-stage-border bg-stage-surface p-4 text-center text-sm text-stage-muted">
           Checkout was cancelled — no charges were made.
         </div>

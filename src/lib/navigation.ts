@@ -34,7 +34,6 @@ export const PRODUCT_NAV_ITEMS: NavItem[] = [
     href: "/pricing",
     label: "Pricing",
     match: "prefix",
-    hideInTwa: true,
   },
 ];
 

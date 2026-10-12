@@ -4,9 +4,10 @@ import { createServerClient } from "@/lib/supabase/server";
 /** Enable sharing — generate a share token if the debate doesn't have one. */
 export async function POST(
   _request: Request,
-  { params }: { params: { debateId: string } }
+  { params: paramsPromise }: { params: Promise<{ debateId: string }> }
 ) {
-  const supabase = createServerClient();
+  const params = await paramsPromise;
+  const supabase = await createServerClient();
 
   const {
     data: { user },
@@ -49,9 +50,10 @@ export async function POST(
 /** Revoke sharing — the share link stops working immediately. */
 export async function DELETE(
   _request: Request,
-  { params }: { params: { debateId: string } }
+  { params: paramsPromise }: { params: Promise<{ debateId: string }> }
 ) {
-  const supabase = createServerClient();
+  const params = await paramsPromise;
+  const supabase = await createServerClient();
 
   const {
     data: { user },

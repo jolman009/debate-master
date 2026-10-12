@@ -13,7 +13,7 @@ function toDifficulty(value: string | undefined): Difficulty | undefined {
 export default async function NewDebatePage({
   searchParams,
 }: {
-  searchParams?: { motion?: string; difficulty?: string; goal?: string };
+  searchParams?: Promise<{ motion?: string; difficulty?: string; goal?: string }>;
 }) {
   const [personas, topics, packs] = await Promise.all([
     getPersonas(),
@@ -26,10 +26,10 @@ export default async function NewDebatePage({
       topics={topics}
       packs={packs}
       // Play policy: the upgrade link is hidden inside the Android app.
-      inTwa={isTwa()}
-      initialCustomTopic={searchParams?.motion ?? ""}
-      initialDifficulty={toDifficulty(searchParams?.difficulty)}
-      initialCoachingGoal={searchParams?.goal}
+      inTwa={await isTwa()}
+      initialCustomTopic={(await searchParams)?.motion ?? ""}
+      initialDifficulty={toDifficulty((await searchParams)?.difficulty)}
+      initialCoachingGoal={(await searchParams)?.goal}
     />
   );
 }

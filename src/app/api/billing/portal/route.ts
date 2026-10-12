@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Billing is not enabled." }, { status: 503 });
   }
 
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

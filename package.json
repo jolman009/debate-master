@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "build:twa": "node scripts/build-twa.mjs"
+    "build:twa": "node scripts/build-twa.mjs",
+    "build:twa:production": "node scripts/build-production-twa.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
@@ -20,7 +21,8 @@
     "@supabase/supabase-js": "^2.49.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
-    "next": "14.2.21",
+    "google-auth-library": "^10.9.1",
+    "next": "^15.5.24",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sharp": "^0.35.3",
@@ -35,10 +37,15 @@
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.21",
+    "eslint-config-next": "^15.5.24",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.0",
     "vitest": "^2.1.9"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.23"
+    }
   }
 }

@@ -16,17 +16,17 @@ function resolveRedirect(target: string | undefined): string {
   return "/debate";
 }
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { redirect?: string; error?: string };
+  searchParams: Promise<{ redirect?: string; error?: string }>;
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-4 py-16">
       <LoginForm
-        redirectTo={resolveRedirect(searchParams.redirect)}
+        redirectTo={resolveRedirect((await searchParams).redirect)}
         initialError={
-          searchParams.error === "confirm"
+          (await searchParams).error === "confirm"
             ? "Email confirmation failed or expired. Please sign in again."
             : null
         }

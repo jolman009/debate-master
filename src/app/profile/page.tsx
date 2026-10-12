@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -51,7 +51,7 @@ export default async function ProfilePage() {
         debates: debatesCount ?? 0,
         personas: personasCount ?? 0,
       }}
-      inTwa={isTwa()}
+      inTwa={await isTwa()}
     />
   );
 }

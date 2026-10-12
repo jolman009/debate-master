@@ -6,7 +6,7 @@ import { reportError } from "@/lib/observability";
 // The heavy lifting (validate token, assert human mode, lock, claim side) is in
 // the join_debate_via_invite SECURITY DEFINER function (migration 010).
 export async function POST(request: Request) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },

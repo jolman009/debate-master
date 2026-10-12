@@ -31,13 +31,13 @@ type Tab = "practice" | "ranked";
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: { tab?: string };
+  searchParams: Promise<{ tab?: string }>;
 }) {
   // Two boards, because the numbers measure different things: Practice rates
   // how well you argued against an AI persona; Ranked is head-to-head Elo.
-  const tab: Tab = searchParams.tab === "ranked" ? "ranked" : "practice";
+  const tab: Tab = (await searchParams).tab === "ranked" ? "ranked" : "practice";
 
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -23,17 +23,17 @@ const ROUNDS = [
   },
 ];
 
-export default function Home({
+export default async function Home({
   searchParams,
 }: {
-  searchParams?: { account_deleted?: string };
+  searchParams?: Promise<{ account_deleted?: string }>;
 }) {
   const personas = getAllPersonas();
-  const inTwa = isTwa();
+  const inTwa = await isTwa();
 
   return (
     <div className="overflow-hidden">
-      {searchParams?.account_deleted === "1" && (
+      {(await searchParams)?.account_deleted === "1" && (
         <div className="bg-stage-surface border-b border-stage-border py-3 px-4 text-center text-xs sm:text-sm font-medium text-stage-text">
           ✓ Your account, debates, and personal data have been permanently deleted.
         </div>

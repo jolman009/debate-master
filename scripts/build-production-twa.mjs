@@ -11,6 +11,9 @@ const manifest = JSON.parse(readFileSync(join(twa, 'twa-manifest.json'), 'utf8')
 if (manifest.host !== 'debate-master-psi.vercel.app' || !manifest.features?.playBilling?.enabled) {
   throw new Error('Production host and Google Play Billing must be configured.');
 }
+if (!Number.isInteger(manifest.minSdkVersion) || manifest.minSdkVersion < 24) {
+  throw new Error('Google Play automatic protection requires minimum SDK 24 or higher.');
+}
 if (!process.env.BUBBLEWRAP_KEYSTORE_PASSWORD || !process.env.BUBBLEWRAP_KEY_PASSWORD) {
   throw new Error('Provide upload signing passwords through environment variables.');
 }
@@ -27,7 +30,7 @@ gradle = gradle.replace(/versionCode \d+/, `versionCode ${manifest.appVersionCod
   .replace(/versionName "[^"]+"/, `versionName "${manifest.appVersionName}"`)
   .replace(/compileSdkVersion \d+/, 'compileSdkVersion 36')
   .replace(/targetSdkVersion \d+/, 'targetSdkVersion 36')
-  .replace(/minSdkVersion \d+/, 'minSdkVersion 23')
+  .replace(/minSdkVersion \d+/, `minSdkVersion ${manifest.minSdkVersion}`)
   .replace(/com.google.androidbrowserhelper:billing:[^']+/, 'com.google.androidbrowserhelper:billing:1.2.0');
 if (!gradle.includes(`hostName: '${manifest.host}'`)) throw new Error('Generated project host differs from the manifest.');
 writeFileSync(gradleFile, gradle);

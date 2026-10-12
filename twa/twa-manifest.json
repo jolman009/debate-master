@@ -21,7 +21,7 @@
     "alias": "my-key-alias"
   },
   "appVersionName": "1.0.6",
-  "appVersionCode": 8,
+  "appVersionCode": 9,
   "shortcuts": [
     {
       "name": "New Debate",
@@ -51,7 +51,7 @@
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://debate-master-psi.vercel.app/",
-  "minSdkVersion": 23,
+  "minSdkVersion": 24,
   "orientation": "portrait",
   "fingerprints": [],
   "additionalTrustedOrigins": [],

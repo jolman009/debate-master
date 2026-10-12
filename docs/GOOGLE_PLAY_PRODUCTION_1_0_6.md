@@ -6,12 +6,20 @@ Phase 1 learning rollout.
 
 ## Android artifact
 
-- Package: `app.debatemaster.twa`; version 1.0.6, code 8.
+- Package: `app.debatemaster.twa`; version 1.0.6, code 9.
 - Production host: `https://debate-master-psi.vercel.app`, start path `/debate`.
-- Target/compile SDK 36; minimum SDK 23; Play Billing 8.3.0.
+- Target/compile SDK 36; minimum SDK 24; Play Billing 8.3.0.
 - Signed using the existing upload key; `jarsigner -verify` passed.
-- Local artifact: `twa/debate-master-production-v1.0.6-code8.aab` (ignored by Git).
-- SHA-256: `bd9490bd5a2445083617d62b3c258444ae508972a222745d8a018951dcca603b`.
+- Local artifact: `twa/debate-master-production-v1.0.6-code9.aab` (ignored by Git).
+- SHA-256: `208c3e236a48d69230b0f3ed925e8d3c3351c40f7dce9f13ae216086ad405fbe`.
+
+Code 9 replaces the uploaded code 8 bundle, which Google Play rejected because
+automatic protection requires minimum SDK 24. The production build script reads
+the manifest's minimum SDK and refuses values below 24. Android 7.0 is now the
+oldest supported Android version.
+The code 9 Gradle release build and `jarsigner -verify` both passed; the merged
+release manifest confirms `minSdkVersion="24"`, `targetSdkVersion="36"`,
+`versionCode="9"` and `versionName="1.0.6"`.
 
 Rebuild using `npm run build:twa:production` with
 `BUBBLEWRAP_KEYSTORE_PASSWORD` and `BUBBLEWRAP_KEY_PASSWORD` supplied through the
@@ -40,9 +48,18 @@ The script never creates a replacement signing key.
 - [x] Production build, lint and TypeScript checks pass after Stripe ledger change.
 - [x] Runtime npm audit: zero vulnerabilities after patched PostCSS override.
   This is the runtime audit, not a claim about development dependencies.
-- [ ] Verify and backfill the existing production Stripe subscription from Stripe,
-  using `scripts/backfill-stripe-entitlements.mjs` (dry run before `--apply`).
-- [ ] Release branch Preview desktop/mobile smoke checks.
+- [x] Verify the legacy production Stripe customer: the signed-in live Stripe
+  Dashboard shows no subscriptions, payments, invoices or active entitlements
+  for `cus_Unh0dyr7u2Oijn`. The legacy profile has an active flag with a null
+  expiry; this is not evidence of a paid Stripe subscription. No subscription
+  backfill or profile change was made. The provider-verified backfill script
+  remains available if actual subscriptions are identified later.
+- [x] Release Preview `f8ad649` is Ready at
+  `https://debate-master-gc9cjqxq6-joel-guzmans-projects-f8aa100e.vercel.app`.
+  Signed-out desktop Pricing, annual toggle ($69.99 annually), mobile Pricing
+  layout (390 × 844) and mobile sign-in page passed browser checks. Authenticated
+  and native production-host purchase/restore checks remain in the Internal
+  testing gate below.
 - [ ] Review and merge candidate, then verify the new production deployment.
 - [ ] Create a separate authenticated production Pub/Sub push subscription on
   `projects/gen-lang-client-0426942212/topics/play-billing-notifications`.
@@ -52,8 +69,16 @@ The script never creates a replacement signing key.
   Enable this connection only after the new webhook is deployed.
 - [ ] Send a Play Console test notification and verify authenticated HTTP 200;
   unauthenticated requests must return 401.
-- [ ] Upload code 8 to Internal testing, verify production-host purchase/restore
+- [ ] Upload code 9 to Internal testing, verify production-host purchase/restore
   with a license tester, then approve the Production Play rollout.
 
 Do not publish the AAB before the production application and notification path
 are ready: the Android package opens the live production site.
+
+Draft review: https://github.com/jolman009/debate-master/pull/13.
+Candidate commit: `f8ad649b888340d3563a787d95c014a3e6cd6c6f`.
+
+The final unauthenticated Preview webhook and production asset-links HTTP
+checks were not executed because automatic approval review reached its usage
+limit. This was a review availability failure, not a finding that the checks
+were unsafe. Resume these checks before closing the deployment gate.

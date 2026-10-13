@@ -26,6 +26,26 @@ const buildEnv = { ...process.env, JAVA_HOME: jdk, ANDROID_HOME: config.androidS
   ANDROID_SDK_ROOT: config.androidSdkPath };
 const gradleFile = join(twa, 'app/build.gradle');
 let gradle = readFileSync(gradleFile, 'utf8');
+// Play can retain localized overrides for old resource names. Routing must not
+// depend on a translated string; use literal manifest values and fresh names.
+const launchUrl = `https://${manifest.host}${manifest.startUrl}`;
+const androidManifestFile = join(twa, 'app/src/main/AndroidManifest.xml');
+let androidManifest = readFileSync(androidManifestFile, 'utf8')
+  .replace(/android:value="@string\/(?:launchUrl|dmProductionLaunchUrl)"/g, `android:value="${launchUrl}"`)
+  .replace(/android:host="@string\/(?:hostName|dmProductionHost)"/g, `android:host="${manifest.host}"`)
+  .replace(/android:value="@string\/(?:webManifestUrl|dmProductionWebManifestUrl)"/g,
+    `android:value="${manifest.webManifestUrl}"`)
+  .replace(/@string\/assetStatements/g, '@string/dmProductionAssetStatements');
+writeFileSync(androidManifestFile, androidManifest);
+const stringsFile = join(twa, 'app/src/main/res/values/strings.xml');
+const strings = readFileSync(stringsFile, 'utf8').replace(
+  /<string name="(?:assetStatements|dmProductionAssetStatements)"[^>]*>/,
+  '<string name="dmProductionAssetStatements" translatable="false">');
+writeFileSync(stringsFile, strings);
+for (const [oldName, newName] of Object.entries({
+  hostName: 'dmProductionHost', launchUrl: 'dmProductionLaunchUrl',
+  webManifestUrl: 'dmProductionWebManifestUrl', fullScopeUrl: 'dmProductionFullScopeUrl',
+})) gradle = gradle.replaceAll(`"${oldName}"`, `"${newName}"`);
 gradle = gradle.replace(/versionCode \d+/, `versionCode ${manifest.appVersionCode}`)
   .replace(/versionName "[^"]+"/, `versionName "${manifest.appVersionName}"`)
   .replace(/compileSdkVersion \d+/, 'compileSdkVersion 36')
@@ -38,10 +58,13 @@ function run(command, args) {
   const result = spawnSync(command, args, { cwd: twa, env: buildEnv, stdio: 'inherit' });
   if (result.error || result.status !== 0) throw new Error('Android build or signature verification failed.');
 }
-run(join(twa, 'gradlew'), ['--no-daemon', '-Pandroid.useAndroidX=true', 'bundleRelease']);
+run(join(twa, 'gradlew'), ['--no-daemon', '-Pandroid.useAndroidX=true', 'clean', 'bundleRelease', '--rerun-tasks']);
+run('python3', [join(root, 'scripts/verify-production-twa.py'),
+  join(twa, 'app/build/outputs/bundle/release/app-release.aab'), join(twa, 'twa-manifest.json')]);
 const bundle = join(twa, `debate-master-production-v${manifest.appVersionName}-code${manifest.appVersionCode}.aab`);
 run(join(jdk, 'bin/jarsigner'), ['-keystore', key,
   '-storepass:env', 'BUBBLEWRAP_KEYSTORE_PASSWORD', '-keypass:env', 'BUBBLEWRAP_KEY_PASSWORD',
   '-signedjar', bundle, join(twa, 'app/build/outputs/bundle/release/app-release.aab'), manifest.signingKey.alias]);
 run(join(jdk, 'bin/jarsigner'), ['-verify', bundle]);
+run('python3', [join(root, 'scripts/verify-production-twa.py'), bundle, join(twa, 'twa-manifest.json')]);
 console.log(`Signed production bundle: ${bundle}`);

@@ -55,3 +55,17 @@ code 11 APK inspection and native production purchase/renewal tests remain pendi
 
 The local release APK also passed `verify-play-apk.py`; the downloaded Play code
 10 APK was rejected specifically for localized launch URL overrides.
+
+## Play-generated code 11 APK verified — October 13, 2026
+
+The downloaded `/Users/joelguzman/Downloads/11.apk` passes the APK verifier:
+package `app.debatemaster.twa`, version 1.0.8, code 11, literal production
+launch URL and supported domain, and no staging domains in any resource
+configuration. `apksigner verify --print-certs` passes; its Google Play app
+signing certificate SHA-256 is
+`AFC53FC8B9D4DD9659A3B9F77E645E43C2A065629750A7EE6BF7C16481D949B2`.
+
+APK SHA-256: `078b0779f5411afb89090397552c844c6ec4767d072f5cdf711aa08789d32e5e`.
+
+The post-Play artifact gate is complete. Phone installation, production billing
+ownership, restore, renewals and expiration verification remain pending.

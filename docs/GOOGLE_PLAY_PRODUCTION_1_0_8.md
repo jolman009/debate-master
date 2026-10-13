@@ -69,3 +69,30 @@ APK SHA-256: `078b0779f5411afb89090397552c844c6ec4767d072f5cdf711aa08789d32e5e`.
 
 The post-Play artifact gate is complete. Phone installation, production billing
 ownership, restore, renewals and expiration verification remain pending.
+
+## Native production purchase verified — October 13, 2026
+
+The user confirms installed version 1.0.8, supported production address and
+Free Starter before checkout. The license-test monthly purchase for
+`jolman009@gmail.com` returned HTTP 200 from production verification at
+04:42:51 CDT. Production `billing_subscriptions` records `premium_monthly`,
+provider environment `live`, active status and acknowledgement at 04:42:52 CDT.
+The profile is active and its initial period end is 04:47:42 CDT. The user
+confirms Premium in both header and Pricing.
+
+At 04:44 CDT there were no renewal events yet, as expected before the first
+renewal. Two processed renewals, UI persistence, Restore and expiration
+remain pending. No purchase tokens or credentials are included in this record.
+
+## Production renewal validation — October 13, 2026
+
+At 04:59 CDT, the production monthly subscription had three processed
+`subscription_notification:2` events, at 04:47:48, 04:52:48 and 04:57:48 CDT.
+Each event was processed on its first attempt. Vercel recorded HTTP 200 for
+all three production webhook requests. The subscription and profile remained
+active, with the current period end advanced from 04:47:42 to 05:02:42 CDT.
+The user refreshed the phone app and confirmed Premium remained visible.
+
+Purchase, acknowledgement, three automatic renewals and UI persistence pass.
+Restore and eventual expiration remain pending. The Premium Pricing UI is being
+updated to expose the existing Restore handler while the subscription is active.

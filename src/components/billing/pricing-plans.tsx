@@ -235,8 +235,13 @@ export function PricingPlans({
           <div className="mt-8 pt-4 border-t border-stage-border/40">
             {inTwa ? (
               isPremium ? (
-                <div className="rounded-lg bg-stage-accent/15 py-2.5 text-center text-sm font-semibold text-stage-accent border border-stage-accent/30">
-                  You&apos;re on Premium ✓
+                <div className="space-y-2">
+                  <div className="rounded-lg bg-stage-accent/15 py-2.5 text-center text-sm font-semibold text-stage-accent border border-stage-accent/30">
+                    You&apos;re on Premium ✓
+                  </div>
+                  {hasUser && hasDigitalGoods && (
+                    <PlayUpgradeButton interval={interval} restoreOnly />
+                  )}
                 </div>
               ) : hasDigitalGoods ? (
                 !hasUser ? (

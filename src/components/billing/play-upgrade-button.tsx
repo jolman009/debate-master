@@ -12,11 +12,13 @@ interface PlayUpgradeButtonProps {
   interval: "month" | "year";
   label?: string;
   className?: string;
+  restoreOnly?: boolean;
 }
 
 export function PlayUpgradeButton({
   interval,
   label,
+  restoreOnly = false,
   className = "btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2",
 }: PlayUpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export function PlayUpgradeButton({
 
   return (
     <div className="w-full space-y-2">
-      <button
+      {!restoreOnly && <button
         type="button"
         onClick={handlePurchase}
         disabled={loading || restoring}
@@ -82,7 +84,7 @@ export function PlayUpgradeButton({
             <span>{label || `Subscribe with Google Play — ${interval === "year" ? "$69.99/yr" : "$9.99/mo"}`}</span>
           </>
         )}
-      </button>
+      </button>}
 
       <button
         type="button"

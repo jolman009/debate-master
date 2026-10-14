@@ -85,8 +85,10 @@ The script never creates a replacement signing key.
   `[Google Play RTDN] Received test notification from Google Play Console.`
   Unsigned and invalid-bearer requests previously returned HTTP 401.
   This verifies authenticated notification delivery, not a subscription renewal.
-- [ ] Upload code 9 to Internal testing, verify production-host purchase/restore
-  with a license tester, then approve the Production Play rollout.
+- [x] Native production billing validation completed on replacement 1.0.8 code 11:
+  purchase, acknowledgement, Restore, six renewals and expiry to Free passed.
+  See `GOOGLE_PLAY_PRODUCTION_1_0_8.md` for the artifact and complete evidence.
+- [ ] Approve the Production Play rollout for the tested code 11 release.
 
 Do not publish the AAB before the production application and notification path
 are ready: the Android package opens the live production site.
@@ -96,5 +98,5 @@ Release head: `ed9480ca3d1e45c9ba13963cdf91bc9517946a26`.
 Production merge: `dd44106ee367c67bb119b1d58042d8da7856c5ed`.
 
 Production endpoint checks and authenticated test notification delivery are complete.
-Native purchase, restore and renewal validation on the production-host Internal
-testing bundle remain the final release gate.
+Native purchase, Restore, renewals and expiry validation completed on 1.0.8
+code 11. Production Play rollout remains the release action.

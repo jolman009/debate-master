@@ -1,98 +1,90 @@
-# Google Play production routing fix 1.0.8
+# Google Play production release 1.0.8 — validation complete
 
-## Proven cause
+Verified October 13, 2026 with license tester `jolman009@gmail.com` on the
+Google Play Internal testing track. Native Google Play billing validation is
+complete. Production Play rollout has not been performed by this agent.
 
-The Google Play signed universal APK `/Users/joelguzman/Downloads/10.apk`
-is package `app.debatemaster.twa`, version 1.0.7, code 10. Its default resource
-values point to production, but 49 language configurations, including `en`
-and `es`, override `hostName` with the staging domain. Localized `launchUrl`,
-`assetStatements`, `webManifestUrl` and `fullScopeUrl` also contain staging values.
-This explains the phone's staging supported address, prior debates and billing
-records despite the updated version. Supabase table-count differences are unrelated.
+## Release artifact
 
-APK SHA-256: `4e29ffe28428413f05c8c77d8bd6fcd9e8abcf7d744b98011c896566fc96268d`.
+- Package: `app.debatemaster.twa`; version 1.0.8, code 11.
+- Supported domain: `debate-master-psi.vercel.app`.
+- Launch URL: `https://debate-master-psi.vercel.app/debate`.
+- Minimum SDK 24; target/compile SDK 36; existing upload signing key.
+- Signed AAB: `twa/debate-master-production-v1.0.8-code11.aab`.
+- AAB SHA-256: `3ace3d44c2ff750cc1c3d781d67124969fa65196913c67478267dc61976b9a80`.
+- Downloaded Play APK: `/Users/joelguzman/Downloads/11.apk`.
+- Play APK SHA-256: `078b0779f5411afb89090397552c844c6ec4767d072f5cdf711aa08789d32e5e`.
+- Play app signing certificate SHA-256:
+  `AFC53FC8B9D4DD9659A3B9F77E645E43C2A065629750A7EE6BF7C16481D949B2`.
 
-The uploaded local AAB has no staging resources. The localized overrides are
-present in Play's downloaded APK. Play's automatic app-string translations can
-inject resources after upload; inspect its stored technical-string translations
-as part of the release gate.
+## Proven cause and resulting fix
 
-## Fix
+Play's downloaded code 10 APK contained staging overrides for 49 language
+configurations, including English and Spanish. Default resources pointed to
+production, but localized `hostName`, `launchUrl`, `assetStatements`,
+`webManifestUrl` and `fullScopeUrl` pointed to staging. This caused updated
+phone installations to open staging, show staged debates, and record test
+purchases there. Supabase table-count differences were unrelated.
 
-- Version 1.0.8, code 11; existing upload key and package.
-- Default launch URL, manage-space URL, web manifest URL and HTTPS supported
-  domain are literal Android manifest values, independent of localized resources.
-- Technical resource names are replaced with fresh `dmProduction*` names.
-- The asset-link statement is renamed and marked `translatable="false"`.
-- The build verifies literal routing plus all resource configurations before
-  and after signing. `scripts/verify-play-apk.py` additionally checks Play's
-  generated APK after translation/protection enhancements, before phone testing.
+Code 10 APK SHA-256:
+`4e29ffe28428413f05c8c77d8bd6fcd9e8abcf7d744b98011c896566fc96268d`.
 
-## Release gate
+Code 11 uses literal manifest values for the launch URL, supported HTTPS domain,
+manage-space URL and web manifest URL. Technical resources have fresh
+`dmProduction*` names; the asset-link statement is non-translatable. Routing
+therefore remains independent of language-specific resource overrides.
 
-1. In Play Console, review automatic App strings translations. Exclude technical
-   strings such as URLs, hostnames and asset-link statements from translation.
-2. Upload `debate-master-production-v1.0.8-code11.aab` to Internal testing.
-3. Download Play's signed universal APK for code 11 and run:
-   `python3 scripts/verify-play-apk.py /path/to/11.apk twa/twa-manifest.json`.
-4. Once it passes, install/update through Play. Confirm version 1.0.8 and
-   supported address `debate-master-psi.vercel.app`.
-5. Complete production account purchase/restore, two processed renewals, and
-   eventual expiration checks before Production Play rollout.
+The build runs Gradle `clean bundleRelease --rerun-tasks` and checks compiled
+routing before and after signing. `scripts/verify-production-twa.py` checks
+AAB manifest/resource references; `scripts/verify-play-apk.py` checks the APK
+Google Play generates after enhancements. The latter rejects the faulty code
+10 APK and passes both the local code 11 APK and Google's signed code 11 APK.
+Google's code 11 APK has literal production routing and no staging domains in
+any resource configuration; signature verification passes.
 
-Code 10's clean local build passed, but its Play-generated APK fails the new
-APK verifier because translated overrides route to staging. No production
-purchase or renewal success is claimed from that build.
+## Application deployment
 
-## Build verification
+Main commit `bfa2a52aa1689bec1c74ef32fa1deb96df3389bc` includes the Android
+routing fix and exposes the existing Restore handler to active Premium members
+in the Android Pricing view when Google Play billing is available. The
+production build, lint and type checks pass, together with all 23 existing
+purchase/restore tests.
 
-The clean code 11 build, existing upload-key signing, and compiled pre/post-signing
-checks passed. SHA-256:
-`3ace3d44c2ff750cc1c3d781d67124969fa65196913c67478267dc61976b9a80`.
+Production deployment `dpl_A9FpCwKwVFCN6BPLouT8kR6vFrL4` is Ready and serves
+`debate-master-psi.vercel.app`. Public Pricing returns HTTP 200, its deployed
+bundle includes the Premium Restore control, and unsigned Google Play webhook
+requests continue to return HTTP 401.
 
-The signed AAB is available in the shared project `twa` directory. Play-generated
-code 11 APK inspection and native production purchase/renewal tests remain pending.
+## Completed Internal testing checks
 
-The local release APK also passed `verify-play-apk.py`; the downloaded Play code
-10 APK was rejected specifically for localized launch URL overrides.
+- [x] Phone reports version 1.0.8 and the production supported address.
+- [x] Production sign-in initially shows Free Starter without staged debate history.
+- [x] License-test monthly checkout grants Premium in the header and Pricing.
+- [x] Production ownership record uses `premium_monthly`, environment `live`,
+  active status and acknowledgement at 04:42:52 CDT. Purchase verification
+  returned HTTP 200 at 04:42:51 CDT.
+- [x] Six renewal events (`subscription_notification:2`) processed successfully:
+  04:47:48, 04:52:48, 04:57:48, 05:02:48, 05:07:48 and 05:12:48 CDT.
+  The first three were independently matched to HTTP 200 production webhook logs.
+  Renewals advanced the current entitlement period; Premium persisted
+  after the user reopened and refreshed the phone app.
+- [x] Native Restore returned HTTP 200 at 05:07:07 CDT and Premium remained visible.
+- [x] Final test period ended at 05:17:43 CDT. Cancellation notification processed
+  at 05:17:45 and expiration notification at 05:17:46 CDT. Production subscription
+  and profile became canceled, and the profile period end was cleared.
+- [x] After expiry, the user refreshed and confirmed Free Starter and removal of
+  the Premium header badge.
 
-## Play-generated code 11 APK verified — October 13, 2026
+No purchase tokens, credentials or card information are recorded here. These
+results verify the license-test lifecycle on production infrastructure; they do
+not represent an actual charged subscription purchase.
 
-The downloaded `/Users/joelguzman/Downloads/11.apk` passes the APK verifier:
-package `app.debatemaster.twa`, version 1.0.8, code 11, literal production
-launch URL and supported domain, and no staging domains in any resource
-configuration. `apksigner verify --print-certs` passes; its Google Play app
-signing certificate SHA-256 is
-`AFC53FC8B9D4DD9659A3B9F77E645E43C2A065629750A7EE6BF7C16481D949B2`.
+## Remaining release action
 
-APK SHA-256: `078b0779f5411afb89090397552c844c6ec4767d072f5cdf711aa08789d32e5e`.
+- [ ] Approve and promote the existing 1.0.8 code 11 release to the Production
+  track in Google Play Console, choosing the rollout scope there.
 
-The post-Play artifact gate is complete. Phone installation, production billing
-ownership, restore, renewals and expiration verification remain pending.
-
-## Native production purchase verified — October 13, 2026
-
-The user confirms installed version 1.0.8, supported production address and
-Free Starter before checkout. The license-test monthly purchase for
-`jolman009@gmail.com` returned HTTP 200 from production verification at
-04:42:51 CDT. Production `billing_subscriptions` records `premium_monthly`,
-provider environment `live`, active status and acknowledgement at 04:42:52 CDT.
-The profile is active and its initial period end is 04:47:42 CDT. The user
-confirms Premium in both header and Pricing.
-
-At 04:44 CDT there were no renewal events yet, as expected before the first
-renewal. Two processed renewals, UI persistence, Restore and expiration
-remain pending. No purchase tokens or credentials are included in this record.
-
-## Production renewal validation — October 13, 2026
-
-At 04:59 CDT, the production monthly subscription had three processed
-`subscription_notification:2` events, at 04:47:48, 04:52:48 and 04:57:48 CDT.
-Each event was processed on its first attempt. Vercel recorded HTTP 200 for
-all three production webhook requests. The subscription and profile remained
-active, with the current period end advanced from 04:47:42 to 05:02:42 CDT.
-The user refreshed the phone app and confirmed Premium remained visible.
-
-Purchase, acknowledgement, three automatic renewals and UI persistence pass.
-Restore and eventual expiration remain pending. The Premium Pricing UI is being
-updated to expose the existing Restore handler while the subscription is active.
+Use the already-tested code 11 AAB. Code 9 and code 10 are superseded. The
+production web application, notification delivery and billing lifecycle checks
+required for this release are complete. Unfinished Phase 1 learning features
+remain outside this focused release.

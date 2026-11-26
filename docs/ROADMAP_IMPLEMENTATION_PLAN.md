@@ -85,7 +85,7 @@ depends on it. In parallel, one release action (R1) and the UX acceptance debt
 
 - **R1 closed (Nov 26, 2026):** 1.0.8 (code 11) has been live on the Production track since October 14, 2026.
 - **R2 closed (Nov 26, 2026):** production Supabase had only migration 022 applied; 017–021 were missing, while the production deploy of `e5d5480` (Nov 26, 10:52 UTC) already called `claim_ai_debate_turn` from 019. The operator applied 017, 018, 019, 020 and 021 in order through the SQL Editor at about 11:25 UTC. A presence check of one unique table or function per migration now returns true for 017–022. The Supabase Migrations page stays empty because migrations are applied through the SQL Editor, not the CLI. Lesson: apply a migration to production **before** merging code that needs it to `main`.
-- **R3 mostly closed (Nov 26, 2026):** a production `SentryExampleAPIError` was captured and the Sentry alert email reached the operator. Browser-side capture (`SentryExampleFrontendError`) and the staging check are not yet confirmed.
+- **R3 closed for production (Nov 26, 2026):** production `SentryExampleAPIError` and `SentryExampleFrontendError` were both captured, and the Sentry alert email reached the operator. The staging check was skipped as lower priority.
 - **R6 checked (Nov 26, 2026):** `main` and `staging` both at `e5d5480`.
 
 ---

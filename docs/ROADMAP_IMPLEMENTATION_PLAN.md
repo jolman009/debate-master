@@ -105,6 +105,10 @@ of `PHASE_1_TODO.md`.
 | G1-1.1 | Diagnose interrupted provider streams from logs; verify recovery with an explicit retry in staging. Keep earlier duplicate-entry evidence. | M |
 | G1-1.2 | Verify authenticated learning writes are rejected when rollout is `off`, while owned saved cycles stay readable. The availability GET alone is not enough. | S |
 
+**G1-1 status log**
+
+- **G1-1.2 passed (Nov 26, 2026):** on the staging Preview with `LEARNING_ROLLOUT=off`, an authenticated `POST /api/learning/cycles` returned 503, and the owning account's `GET /api/learning/cycles/bf02bf5e-…` returned 200. Reads are scoped per owner: another account gets 404 "Practice cycle not found", and a malformed ID gets 404 "Practice not found". The rollout value was restored afterwards.
+
 ### G1-2. Curriculum (Coach/PO)
 
 | ID | Item | Effort |

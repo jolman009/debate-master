@@ -12,7 +12,7 @@ it("deduplicates an unavailable owned source without storing learner content", a
       upsert: write };
     return q;
   } } as unknown as SupabaseClient;
-  expect(await recommendation(db, "owner", "debate")).toEqual({ existingCycleId: null, recommendation: null });
+  expect(await recommendation(db, "owner", "debate")).toEqual({ existingCycleId: null, recommendation: null, reason: "ineligible_source" });
   expect(write).toHaveBeenCalledWith({ user_id: "owner", debate_id: "debate", reason: "ineligible_source" }, { onConflict: "user_id,debate_id,reason", ignoreDuplicates: true });
   expect(JSON.stringify(write.mock.calls)).not.toContain("private learner text");
 });

@@ -41,18 +41,19 @@ export async function recommendation(db: SupabaseClient, userId: string, debateI
   const cycles = databaseResult(await db.from("learning_cycles").select("id").eq("user_id", userId).eq("origin_debate_id", debateId).order("created_at"));
   for (const c of cycles ?? []) {
     const runtime = databaseResult(await db.from("learning_runtime").select("session_id").eq("user_id", userId).eq("loop_id", c.id).limit(1));
-    if (runtime?.length) return { existingCycleId: c.id as string, recommendation: null };
+    if (runtime?.length) return { existingCycleId: c.id as string, recommendation: null, reason: undefined };
   }
   if (debate.assessment_status !== "valid" || !["feedback", "complete"].includes(debate.current_stage) || debate.config?.mode === "human" || !debate.feedback) {
     await recordUnavailable(db, userId, debateId, "ineligible_source");
-    return { existingCycleId: null, recommendation: null };
+    return { existingCycleId: null, recommendation: null, reason: "ineligible_source" };
   }
   const turns = databaseResult(await db.from("debate_turns").select("*").eq("debate_id", debateId).order("created_at"));
   const difficulty: Difficulty = ["beginner", "intermediate", "advanced"].includes(debate.config?.difficulty) ? debate.config.difficulty : "intermediate";
   const approved = approvedTemplateVersions();
   const drill = recommendDrill(debate.feedback as DebateFeedbackV2, turns as DebateTurn[], difficulty, approved, GEMINI_MODEL);
-  if (!drill) await recordUnavailable(db, userId, debateId, approved.length ? "insufficient_source_evidence" : "no_approved_template");
-  return { existingCycleId: null, recommendation: drill };
+  const reason = drill ? undefined : approved.length ? "insufficient_source_evidence" : "no_approved_template";
+  if (reason) await recordUnavailable(db, userId, debateId, reason);
+  return { existingCycleId: null, recommendation: drill, reason };
 }
 export async function openCycle(db: SupabaseClient, userId: string, debateId: string, requestId: string): Promise<string> {
   // Check request binding before the resume shortcut.

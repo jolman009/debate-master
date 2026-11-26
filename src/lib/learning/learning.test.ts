@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseTargetedAssessment } from "./assessment";
-import { learningEnabled, approvedTemplateVersions } from "./flags";
+import { learningEnabled, learningGate, approvedTemplateVersions } from "./flags";
 import { diagnoseRouting, recommendDrill } from "./recommendation";
 import { DIFFICULTY_INSTRUCTIONS, DRILL_TEMPLATES } from "./drill-templates";
 import type { DebateFeedbackV2, DebateTurn } from "@/lib/debate/types";
@@ -28,6 +28,15 @@ describe("learning release controls", () => {
     vi.stubEnv("LEARNING_ROLLOUT", "pilot"); vi.stubEnv("LEARNING_PILOT_USERS", "one, two ");
     expect(learningEnabled("two")).toBe(true); expect(learningEnabled("tw")).toBe(false);
     vi.stubEnv("LEARNING_ROLLOUT", "yes"); expect(learningEnabled("two")).toBe(false);
+  });
+  it("names which rollout check fails", () => {
+    vi.stubEnv("LEARNING_PILOT_USERS", "one,two");
+    vi.stubEnv("LEARNING_ROLLOUT", ""); expect(learningGate("two")).toBe("rollout_off");
+    vi.stubEnv("LEARNING_ROLLOUT", "off"); expect(learningGate("two")).toBe("rollout_off");
+    vi.stubEnv("LEARNING_ROLLOUT", "pilot "); expect(learningGate("two")).toBe("rollout_unrecognised");
+    vi.stubEnv("LEARNING_ROLLOUT", "pilot"); expect(learningGate("three")).toBe("not_in_pilot");
+    expect(learningGate("two")).toBe("enabled");
+    vi.stubEnv("LEARNING_ROLLOUT", "on"); expect(learningGate("three")).toBe("enabled");
   });
 });
 describe("evidence-based drill routing", () => {

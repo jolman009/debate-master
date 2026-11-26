@@ -167,7 +167,8 @@ describe("FEEDBACK_SYSTEM_PROMPT", () => {
       expect(FEEDBACK_SYSTEM_PROMPT).toContain(key);
     }
     expect(FEEDBACK_SYSTEM_PROMPT).toContain("JSON");
-    expect(FEEDBACK_SYSTEM_PROMPT).toContain("include both an exact excerpt from the USER response");
-    expect(FEEDBACK_SYSTEM_PROMPT).toContain("an exact excerpt from the earlier AI turn");
+    expect(FEEDBACK_SYSTEM_PROMPT).toContain("the evidence array MUST contain BOTH (a) an exact excerpt from the earlier AI turn");
+    expect(FEEDBACK_SYSTEM_PROMPT).toContain("(b) an exact excerpt from the USER turn that responds to it");
+    expect(FEEDBACK_SYSTEM_PROMPT).toContain("use a different sentence from the claim quoted under argumentStrength");
   });
 });

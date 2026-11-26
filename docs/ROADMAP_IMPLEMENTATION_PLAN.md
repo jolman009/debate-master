@@ -118,6 +118,7 @@ of `PHASE_1_TODO.md`.
 **G1-2 status log**
 
 - **G1-2.1 first audit (Nov 26, 2026):** `scripts/audit-drill-routing.mts` on the 4 staging debates with feedback. All 4 had valid v2 feedback. Warrant and repair were eligible on 1 debate (`2574e13d-…`). Counterargument was eligible on none (`no_cited_opposing_excerpt` ×4), and the other 3 debates had no usable learner quote for warrant/repair. No link was invented in any unavailable case. Follow-up: the router only tried the first cited learner quote, so a cited opening that precedes the AI turn hid a later cited rebuttal; it now tries every cited learner quote. Re-run with `--detail` to confirm the cause before closing; G1-3.1 (counterargument cycle) depends on this.
+- **G1-2.1 `--detail` re-run (Nov 26, 2026):** the router fix changed nothing, because every cited quote in all 4 debates is the learner's. The coach never kept an AI quote, and cites only one quote per dimension. Each debate also had `evidenceUsage` empty or reusing the claim. Root cause: the evaluator prompt (`coach-3`), not the router. Fix: the `coach-4` prompt requires the AI quote plus the learner's reply whenever the learner engages an opposing point, and asks for 1–3 exact single-sentence quotes per dimension. Each evaluation now records `rebuttalAiQuotes {offered, kept}`, which tells "never cited" apart from "cited but not exact". To close: run 2–3 new staging debates, then re-run the audit with `--detail`.
 
 ### G1-3. Real-service journeys in staging (Eng/Coach)
 

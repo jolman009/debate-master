@@ -51,7 +51,8 @@ const results = debates.map(d => {
       return i < 0 ? "unknown turn" : `${own[i].role}@${own[i].stage ?? "?"} (turn ${i + 1})`;
     })])) : undefined;
   return { debateId: d.id, routable: r.routable, reason: r.routable ? undefined : "invalid_assessment_or_rubric",
-    families: Object.fromEntries(r.families.map(f => [f.family, f.status])), ...(shape ? { citedQuotes: shape } : {}) };
+    families: Object.fromEntries(r.families.map(f => [f.family, f.status])), ...(shape ? { citedQuotes: shape, promptVersion: d.feedback.assessment?.promptVersion,
+      rebuttalAiQuotes: d.feedback.assessment?.rebuttalAiQuotes ?? "not recorded" } : {}) };
 });
 const totals: Record<string, Record<string, number>> = {};
 for (const r of results) for (const [family, status] of Object.entries(r.families)) {

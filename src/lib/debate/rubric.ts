@@ -1,5 +1,5 @@
 export const RUBRIC_VERSION = "debate-anchors-1";
-export const PROMPT_VERSION = "coach-3";
+export const PROMPT_VERSION = "coach-4";
 
 // Coach review is required before claiming calibration. Tags are descriptive,
 // not additional headline scores.

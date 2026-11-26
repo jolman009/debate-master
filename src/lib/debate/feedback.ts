@@ -155,6 +155,25 @@ export function adaptFeedback(feedback: DebateFeedback): DebateFeedbackV2 {
   };
 }
 
+/**
+ * Counts the AI-turn quotes the evaluator offered under rebuttalQuality and
+ * how many survived the exact-match check. Tells "never cited" apart from
+ * "cited but not exact" without storing any text.
+ */
+export function rebuttalAiQuoteCheck(text: string, turns: DebateTurn[]): { offered: number; kept: number } {
+  const raw = extractJson(text) as { rubric?: { rebuttalQuality?: { evidence?: unknown } } } | null;
+  const items = Array.isArray(raw?.rubric?.rebuttalQuality?.evidence) ? raw!.rubric!.rebuttalQuality!.evidence as unknown[] : [];
+  let offered = 0, kept = 0;
+  for (const item of items) {
+    const e = item as { turnId?: unknown; excerpt?: unknown } | null;
+    const turn = turns.find(t => t.id === e?.turnId && t.role === "ai");
+    if (!turn) continue;
+    offered++;
+    if (typeof e?.excerpt === "string" && e.excerpt && turn.content.includes(e.excerpt)) kept++;
+  }
+  return { offered, kept };
+}
+
 export function normalizeFeedbackResult(
   text: string,
   turns: DebateTurn[]

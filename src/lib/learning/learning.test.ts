@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseTargetedAssessment } from "./assessment";
 import { learningEnabled, approvedTemplateVersions } from "./flags";
-import { recommendDrill } from "./recommendation";
+import { diagnoseRouting, recommendDrill } from "./recommendation";
 import { DIFFICULTY_INSTRUCTIONS, DRILL_TEMPLATES } from "./drill-templates";
 import type { DebateFeedbackV2, DebateTurn } from "@/lib/debate/types";
 
@@ -91,5 +91,40 @@ describe("evidence-based drill routing", () => {
   it("allows rejecting unsupported inference in the warrant task", () => {
     expect(DRILL_TEMPLATES.warrant.instructions).toContain("does not support");
     expect(DRILL_TEMPLATES.counterargument.instructions).toContain("concede a valid point");
+  });
+  describe("routing prerequisites diagnosis (G1-2.1)", () => {
+    const status = (f: DebateFeedbackV2, t = turns, approved = all) =>
+      Object.fromEntries(diagnoseRouting(f, t, approved).families.map(x => [x.family, x.status]));
+    it("reports every family eligible when the transcript supports it", () => {
+      expect(status(feedback())).toEqual({ counterargument: "eligible", warrant: "eligible", repair: "eligible" });
+    });
+    it("flags unapproved templates and unroutable feedback", () => {
+      expect(status(feedback(), turns, [DRILL_TEMPLATES.repair.version]).counterargument).toBe("not_approved");
+      const f = feedback(); delete f.assessment;
+      expect(diagnoseRouting(f, turns, all)).toEqual({ routable: false, families: [] });
+    });
+    it("does not link an opposing quote that comes after the learner turn", () => {
+      const later = [turns[1], turns[0]];
+      expect(status(feedback(), later).counterargument).toBe("no_cited_opposing_excerpt");
+      expect(recommendDrill(feedback(), later, "beginner", [DRILL_TEMPLATES.counterargument.version], "m")).toBeNull();
+    });
+    it("does not pair a claim with itself or with an opposing quote as warrant evidence", () => {
+      const same = feedback(); same.rubric.evidenceUsage.evidence = [{ turnId: "learner", excerpt: "My claim." }] as never;
+      same.rubric.argumentStrength.evidence = [{ turnId: "learner", excerpt: "My claim." }] as never;
+      expect(status(same).warrant).toBe("no_distinct_evidence_excerpt");
+      const ai = feedback(); ai.rubric.evidenceUsage.evidence = [{ turnId: "opponent", excerpt: "But students need a quiet place." }] as never;
+      expect(status(ai).warrant).toBe("no_distinct_evidence_excerpt");
+    });
+    it("reports a missing learner quote instead of inventing one", () => {
+      const f = feedback(); f.rubric.argumentStrength.evidence = [{ turnId: "learner", excerpt: "Not said" }] as never;
+      expect(status(f).warrant).toBe("no_learner_excerpt");
+    });
+    it("agrees with recommendDrill on which family is chosen", () => {
+      for (const family of ["counterargument", "warrant", "repair"] as const) {
+        const approved = [DRILL_TEMPLATES[family].version];
+        const eligible = status(feedback(), turns, approved)[family] === "eligible";
+        expect(!!recommendDrill(feedback(), turns, "beginner", approved, "m")).toBe(eligible);
+      }
+    });
   });
 });

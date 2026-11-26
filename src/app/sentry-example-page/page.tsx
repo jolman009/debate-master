@@ -1,7 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import Head from "next/head";
+import styles from "./page.module.css";
 import { useEffect, useState } from "react";
 
 class SentryExampleFrontendError extends Error {
@@ -25,14 +25,9 @@ export default function Page() {
   }, []);
 
   return (
-    <div>
-      <Head>
-        <title>sentry-example-page</title>
-        <meta name="description" content="Test Sentry for your Next.js app!" />
-      </Head>
-
-      <main>
-        <div className="flex-spacer" />
+    <div className={styles.page}>
+      <section className={styles.content}>
+        <div className={styles["flex-spacer"]} />
         <svg
           height="40"
           width="40"
@@ -48,7 +43,7 @@ export default function Page() {
         </svg>
         <h1>sentry-example-page</h1>
 
-        <p className="description">
+        <p className={styles["description"]}>
           Click the button below, and view the sample error on the Sentry{" "}
           <a
             target="_blank"
@@ -94,9 +89,9 @@ export default function Page() {
         </button>
 
         {hasSentError ? (
-          <p className="success">Error sent to Sentry.</p>
+          <p className={styles["success"]}>Test errors triggered. Confirm delivery in Sentry.</p>
         ) : !isConnected ? (
-          <div className="connectivity-error">
+          <div className={styles["connectivity-error"]}>
             <p>
               It looks like network requests to Sentry are being blocked, which
               will prevent errors from being captured. Try disabling your
@@ -104,134 +99,13 @@ export default function Page() {
             </p>
           </div>
         ) : (
-          <div className="success_placeholder" />
+          <div className={styles["success_placeholder"]} />
         )}
 
-        <div className="flex-spacer" />
-      </main>
+        <div className={styles["flex-spacer"]} />
+      </section>
 
-      <style>{`
-        main {
-          display: flex;
-          min-height: 100vh;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          gap: 16px;
-          padding: 16px;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        }
 
-        h1 {
-          padding: 0px 4px;
-          border-radius: 4px;
-          background-color: rgba(24, 20, 35, 0.03);
-          font-family: monospace;
-          font-size: 20px;
-          line-height: 1.2;
-        }
-
-        p {
-          margin: 0;
-          font-size: 20px;
-        }
-
-        a {
-          color: #6341F0;
-          text-decoration: underline;
-          cursor: pointer;
-
-          @media (prefers-color-scheme: dark) {
-            color: #B3A1FF;
-          }
-        }
-
-        button {
-          border-radius: 8px;
-          color: white;
-          cursor: pointer;
-          background-color: #553DB8;
-          border: none;
-          padding: 0;
-          margin-top: 4px;
-
-          & > span {
-            display: inline-block;
-            padding: 12px 16px;
-            border-radius: inherit;
-            font-size: 20px;
-            font-weight: bold;
-            line-height: 1;
-            background-color: #7553FF;
-            border: 1px solid #553DB8;
-            transform: translateY(-4px);
-          }
-
-          &:hover > span {
-            transform: translateY(-8px);
-          }
-
-          &:active > span {
-            transform: translateY(0);
-          }
-
-          &:disabled {
-	            cursor: not-allowed;
-	            opacity: 0.6;
-
-	            & > span {
-	              transform: translateY(0);
-	              border: none
-	            }
-	          }
-        }
-
-        .description {
-          text-align: center;
-          color: #6E6C75;
-          max-width: 500px;
-          line-height: 1.5;
-          font-size: 20px;
-
-          @media (prefers-color-scheme: dark) {
-            color: #A49FB5;
-          }
-        }
-
-        .flex-spacer {
-          flex: 1;
-        }
-
-        .success {
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-size: 20px;
-          line-height: 1;
-          background-color: #00F261;
-          border: 1px solid #00BF4D;
-          color: #181423;
-        }
-
-        .success_placeholder {
-          height: 46px;
-        }
-
-        .connectivity-error {
-          padding: 12px 16px;
-          background-color: #E50045;
-          border-radius: 8px;
-          width: 500px;
-          color: #FFFFFF;
-          border: 1px solid #A80033;
-          text-align: center;
-          margin: 0;
-        }
-
-        .connectivity-error a {
-          color: #FFFFFF;
-          text-decoration: underline;
-        }
-      `}</style>
     </div>
   );
 }

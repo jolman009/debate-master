@@ -49,6 +49,53 @@ payloads and ignores purchase tokens not owned by the receiving environment.
 Configuration and a fresh live renewal test must be verified separately; passing
 unit tests alone does not prove delivery.
 
+### Authenticated staging delivery verified — 2026-10-08
+
+- Commit `e3015ac` is deployed and Ready on the stable staging Preview alias.
+- The user saved `play-billing-notifications-sub` as Push delivery to staging's
+  `/api/webhooks/google-play` route, with authentication enabled, the configured
+  service account, the exact endpoint as audience, and payload unwrapping disabled.
+- A fresh Play Console test notification reached the deployed serverless route at
+  07:34:42 CDT. Vercel recorded HTTP **200** and
+  `[Google Play RTDN] Received test notification from Google Play Console.`
+- A separate unauthenticated request returned HTTP **401**.
+- Delivery authentication is verified. A fresh Android license-test purchase,
+  renewal-driven expiry updates, Premium badge persistence, and eventual access
+  expiry still require live validation before closing the production payment gate.
+
+### Android Premium display confirmation — 2026-10-12
+
+The user confirmed Premium appears on both Pricing and the header, then reported a
+fresh successful test purchase while signed in as `jolman009@gmail.com`. Play
+Console independently shows the Test Premium Monthly order processed on October
+12 at 06:03:20 CDT. A request to staging's notification endpoint was visible at
+06:03:21 CDT; the middleware entry alone does not establish reconciliation.
+
+After the user switched to the staging Supabase account, read-only verification
+confirmed the purchase is acknowledged and owned by `jolman009@gmail.com` in
+environment `test`. At 06:07:57 CDT, the subscription and profile were both active
+with period end 06:08:20.192 CDT.
+
+The first renewal (`subscription_notification:2`) was processed at
+06:08:28.610663 CDT with no error code. At 06:08:40 CDT, both the verified
+subscription and profile period ends had advanced to 06:13:20.192 CDT; both
+remained active and the period was current. This verifies live renewal delivery,
+reconciliation, and Premium entitlement persistence beyond the initial five-minute
+period. The initial checkout notification request was visible before the saved
+acknowledgment timestamp, and no reconciled purchase event was present in the query;
+checkout itself saved the acknowledged purchase.
+
+At 06:16:51 CDT, staging contained two processed renewal events, with the latest
+processed at 06:13:27.553814 CDT. Both the verified subscription and profile
+remained active with matching period end 06:18:20.192 CDT. The user also confirmed
+the phone still showed Premium after refreshing following renewal. Renewal
+persistence and the refreshed Android display are verified for this test.
+
+The new purchase's eventual expiry and the refreshed Android return to Free remain
+open validation items. Local Supabase configuration targets a different project
+and was not used. No purchase tokens or credentials were included in verification
+evidence.
+
 ## Recover a purchase after verification fails
 
 If Google Play reports an active order but Debate Master remains Free, do not

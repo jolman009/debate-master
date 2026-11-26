@@ -119,6 +119,17 @@ describe("evidence-based drill routing", () => {
       const f = feedback(); f.rubric.argumentStrength.evidence = [{ turnId: "learner", excerpt: "Not said" }] as never;
       expect(status(f).warrant).toBe("no_learner_excerpt");
     });
+    it("pairs a later cited rebuttal even when the cited opening comes first", () => {
+      const t = [{ id: "opening", role: "user", content: "My claim." }, turns[0], { id: "reply", role: "user", content: "Quiet rooms exist at home." }] as DebateTurn[];
+      const f = feedback(); f.rubric.rebuttalQuality.evidence = [
+        { turnId: "opening", excerpt: "My claim." }, { turnId: "reply", excerpt: "Quiet rooms exist at home." },
+        { turnId: "opponent", excerpt: "But students need a quiet place." }] as never;
+      const r = recommendDrill(f, t, "beginner", [DRILL_TEMPLATES.counterargument.version], "m");
+      expect(r?.citedTurnId).toBe("reply");
+      expect(r?.exercise.references.map(x => x.turnId)).toEqual(["reply", "opponent"]);
+      f.rubric.rebuttalQuality.evidence = f.rubric.rebuttalQuality.evidence.filter(e => e.turnId !== "reply");
+      expect(status(f, t).counterargument).toBe("no_cited_opposing_excerpt");
+    });
     it("agrees with recommendDrill on which family is chosen", () => {
       for (const family of ["counterargument", "warrant", "repair"] as const) {
         const approved = [DRILL_TEMPLATES[family].version];

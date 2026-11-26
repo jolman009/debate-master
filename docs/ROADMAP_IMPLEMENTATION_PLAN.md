@@ -115,6 +115,10 @@ of `PHASE_1_TODO.md`.
 |---|---|---|
 | G1-2.1 | Check that approved transcript examples meet routing prerequisites: counterargument needs co-cited learner and opponent excerpts; warrants need distinct claim and evidence excerpts. Test the unavailable case without inventing links. | S |
 
+**G1-2 status log**
+
+- **G1-2.1 first audit (Nov 26, 2026):** `scripts/audit-drill-routing.mts` on the 4 staging debates with feedback. All 4 had valid v2 feedback. Warrant and repair were eligible on 1 debate (`2574e13d-…`). Counterargument was eligible on none (`no_cited_opposing_excerpt` ×4), and the other 3 debates had no usable learner quote for warrant/repair. No link was invented in any unavailable case. Follow-up: the router only tried the first cited learner quote, so a cited opening that precedes the AI turn hid a later cited rebuttal; it now tries every cited learner quote. Re-run with `--detail` to confirm the cause before closing; G1-3.1 (counterargument cycle) depends on this.
+
 ### G1-3. Real-service journeys in staging (Eng/Coach)
 
 | ID | Item | Effort |

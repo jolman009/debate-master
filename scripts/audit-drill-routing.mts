@@ -6,6 +6,8 @@
  *
  *   STAGING_SUPABASE_URL=... STAGING_SUPABASE_SERVICE_ROLE_KEY=... \
  *     npx --yes tsx scripts/audit-drill-routing.mts [--limit 50] [--out report.json]
+ *   add --detail to also print each competency's cited-quote shape, e.g.
+ *   "user@rebuttal_user_1 (turn 4)" (speaker, stage and turn position only).
  *   npx --yes tsx scripts/audit-drill-routing.mts --input export.json   (offline: {debates:[{id,feedback}],turns:[{id,debate_id,role,content}]})
  *
  * Approved templates come from LEARNING_APPROVED_TEMPLATES, or all v2 templates.
@@ -31,7 +33,7 @@ async function load(): Promise<{ debates: Row[]; turns: TurnRow[] }> {
     .order("created_at", { ascending: false }).limit(limit);
   if (debates.error) throw new Error(`Debates query failed: ${debates.error.code}`);
   const ids = (debates.data as Row[]).map(d => d.id);
-  const turns = ids.length ? await db.from("debate_turns").select("id,debate_id,role,content").in("debate_id", ids).order("created_at") : { data: [], error: null };
+  const turns = ids.length ? await db.from("debate_turns").select("id,debate_id,role,stage,content").in("debate_id", ids).order("created_at") : { data: [], error: null };
   if (turns.error) throw new Error(`Turns query failed: ${turns.error.code}`);
   return { debates: debates.data as Row[], turns: turns.data as TurnRow[] };
 }
@@ -43,8 +45,13 @@ const results = debates.map(d => {
   const own = turns.filter(t => t.debate_id === d.id);
   if (!d.feedback || d.feedback.version !== 2) return { debateId: d.id, routable: false, reason: "not_v2_feedback", families: {} };
   const r = diagnoseRouting(d.feedback, own, versions);
+  const shape = process.argv.includes("--detail") ? Object.fromEntries(
+    Object.entries(d.feedback.rubric ?? {}).map(([k, item]) => [k, (item?.evidence ?? []).map(e => {
+      const i = own.findIndex(t => t.id === e.turnId);
+      return i < 0 ? "unknown turn" : `${own[i].role}@${own[i].stage ?? "?"} (turn ${i + 1})`;
+    })])) : undefined;
   return { debateId: d.id, routable: r.routable, reason: r.routable ? undefined : "invalid_assessment_or_rubric",
-    families: Object.fromEntries(r.families.map(f => [f.family, f.status])) };
+    families: Object.fromEntries(r.families.map(f => [f.family, f.status])), ...(shape ? { citedQuotes: shape } : {}) };
 });
 const totals: Record<string, Record<string, number>> = {};
 for (const r of results) for (const [family, status] of Object.entries(r.families)) {

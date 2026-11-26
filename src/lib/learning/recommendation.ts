@@ -30,15 +30,20 @@ function routeFamily(family: DrillFamily, feedback: DebateFeedbackV2, turns: Deb
   if (!references.length) return { family, status: "no_learner_excerpt", references: [], context: "" };
   const source = references[0];
   if (family === "counterargument") {
-    const index = turns.findIndex(t => t.id === source.turnId);
-    // Require both sides to be cited by the same coaching dimension. Mere
+    // Require both sides to be cited by the same coaching dimension, and the
+    // opposing quote to come before the learner quote it is paired with. Mere
     // chronological adjacency does not establish an argumentative connection.
-    const opponentRef = feedback.rubric.rebuttalQuality.evidence.find(e =>
-      typeof e?.excerpt === "string" && e.excerpt.trim() && e.excerpt.length <= 6000 &&
-      turns.slice(0, index).some(t => t.id === e.turnId && t.role === "ai" && t.content.includes(e.excerpt)));
-    if (!opponentRef) return { family, status: "no_cited_opposing_excerpt", references: [], context: "" };
-    return { family, status: "eligible", references: [source, { turnId: opponentRef.turnId, excerpt: opponentRef.excerpt, role: "ai" }],
-      context: "These learner and opposing excerpts are cited together in your rebuttal coaching. Identify the strongest reason in the quoted objection, answer it fairly, and explain how any valid concession affects your position." };
+    // Any cited learner quote may be the response (e.g. a cited opening that
+    // precedes the AI turn must not hide a later cited rebuttal).
+    for (const learner of references) {
+      const index = turns.findIndex(t => t.id === learner.turnId);
+      const opponentRef = feedback.rubric.rebuttalQuality.evidence.find(e =>
+        typeof e?.excerpt === "string" && e.excerpt.trim() && e.excerpt.length <= 6000 &&
+        turns.slice(0, index).some(t => t.id === e.turnId && t.role === "ai" && t.content.includes(e.excerpt)));
+      if (opponentRef) return { family, status: "eligible", references: [learner, { turnId: opponentRef.turnId, excerpt: opponentRef.excerpt, role: "ai" }],
+        context: "These learner and opposing excerpts are cited together in your rebuttal coaching. Identify the strongest reason in the quoted objection, answer it fairly, and explain how any valid concession affects your position." };
+    }
+    return { family, status: "no_cited_opposing_excerpt", references: [], context: "" };
   }
   if (family === "warrant") {
     // Separate exact excerpts avoid inventing a claim/evidence pairing.

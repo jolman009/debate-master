@@ -1,5 +1,8 @@
 # Debate Master phased growth implementation plan
 
+> Kept as the growth strategy. Its dates are superseded by section 9 of [ROADMAP_IMPLEMENTATION_PLAN.md](ROADMAP_IMPLEMENTATION_PLAN.md); phases here map to G0–G5 there.
+
+
 Prepared September 19, 2026. Planning window: October 2026–September 2027.
 
 ## Product outcome

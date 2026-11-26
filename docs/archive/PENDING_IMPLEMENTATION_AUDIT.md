@@ -1,5 +1,8 @@
 # Completed Implementation Audit
 
+> **Archived November 26, 2026.** Superseded by the October 2 [EPIC_IMPLEMENTATION_AUDIT.md](../../EPIC_IMPLEMENTATION_AUDIT.md). Its "100% implemented and verified" claim is not current. Open work lives in [ROADMAP_IMPLEMENTATION_PLAN.md](../ROADMAP_IMPLEMENTATION_PLAN.md).
+
+
 **Audit Date:** 2026-09-02  
 **Source Baseline:** `EPIC_IMPLEMENTATION_AUDIT.md` & `High-level implementation overview.md`  
 **Scope:** Full codebase audit covering functional implementations, architectural milestones, test coverage, and verification requirements.

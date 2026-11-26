@@ -1,5 +1,8 @@
 # Debate Master — Phased Implementation Plan
 
+> **Historical (May 2026).** This file is kept for context only. Several statements below are stale (for example the Next.js version and Claude model). All open work is tracked in [docs/ROADMAP_IMPLEMENTATION_PLAN.md](docs/ROADMAP_IMPLEMENTATION_PLAN.md).
+
+
 A phased roadmap to take Debate Master from a working prototype to a
 production-ready, marketable product. Effort tags: **S** = <1 day,
 **M** = 1–3 days, **L** = 1 week+.

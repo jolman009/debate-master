@@ -32,6 +32,13 @@ function conflict(msg: string) {
 // True when an error came from an aborted fetch/stream, i.e. the client
 // disconnected mid-response. We treat this as "not an error" - no report,
 // no user-facing message, no DB writes.
+// Numeric HTTP-style status only; provider messages can echo prompt content.
+function providerStatus(err: unknown): number | undefined {
+  const e = err as { status?: unknown; code?: unknown; error?: { code?: unknown } } | null;
+  const value = Number(e?.status ?? e?.code ?? e?.error?.code);
+  return Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
 function isAbort(err: unknown, signal: AbortSignal): boolean {
   if (signal.aborted) return true;
   const name = (err as { name?: string } | null)?.name;
@@ -260,12 +267,16 @@ export async function POST(
   let cancelled = false;
   const readable = new ReadableStream({
     async start(controller) {
+      // Safe diagnostics for interrupted provider streams: counts and
+      // timings only, never transcript text or provider messages.
+      let phase: "start" | "stream" | "commit" = "start";
+      let chunks = 0;
+      let fullText = "";
+      let selectedModel: string | undefined;
+      const startedAt = Date.now();
       try {
         const gemini = getGeminiClient();
-        let fullText = "";
         let finishReason: string | undefined;
-        let selectedModel: string | undefined;
-        const startedAt = Date.now();
 
         const candidateModels = GEMINI_FALLBACK_MODELS;
 
@@ -302,8 +313,10 @@ export async function POST(
           throw lastErr || new Error("Failed to start AI stream");
         }
 
+        phase = "stream";
         for await (const chunk of stream) {
           if (signal.aborted || cancelled) break;
+          chunks++;
           finishReason = chunk.candidates?.[0]?.finishReason ?? finishReason;
           const text = chunk.text;
           if (text) {
@@ -333,6 +346,7 @@ export async function POST(
           });
           throw new Error("Incomplete AI response");
         }
+        phase = "commit";
         const nextStage = getNextStage(stageForAi, config);
         const { data: committed, error: commitError } = await writer.rpc("commit_ai_debate_turn", {
           p_user_id: user.id, p_debate_id: params.debateId, p_stage: stageForAi,
@@ -362,6 +376,13 @@ export async function POST(
           route: "debate/turn",
           debateId: params.debateId,
           stage: stageForAi,
+          phase,
+          providerStatus: providerStatus(err),
+          errorName: (err as { name?: string } | null)?.name,
+          model: selectedModel,
+          chunks,
+          partialChars: fullText.length,
+          latencyMs: Date.now() - startedAt,
         });
         // Send a generic message - never leak internal error detail.
         try {

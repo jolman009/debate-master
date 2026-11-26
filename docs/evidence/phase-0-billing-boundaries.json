@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-09-19T11:55:44.321Z",
+  "target": "https://debate-master-psi.vercel.app",
+  "scope": "Deployed free-account API quota concurrency and billing auth boundaries; does not verify payments or webhook reconciliation",
+  "checks": [
+    {
+      "name": "Concurrent free-account API creation allows three debates and rejects the fourth",
+      "passed": true,
+      "statuses": [
+        200,
+        200,
+        200,
+        403
+      ],
+      "storedDebates": 3
+    },
+    {
+      "name": "Subsequent request stays blocked at the monthly cap",
+      "passed": true,
+      "status": 403
+    },
+    {
+      "name": "Checkout requires authentication with billing enabled",
+      "passed": true,
+      "status": 401
+    },
+    {
+      "name": "Unsigned Stripe webhook is rejected",
+      "passed": true,
+      "status": 400
+    },
+    {
+      "name": "Play verification requires authentication",
+      "passed": true,
+      "status": 401
+    }
+  ],
+  "cleanup": true,
+  "passed": true
+}

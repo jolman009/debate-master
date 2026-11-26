@@ -1,0 +1,168 @@
+{
+  "checkedAt": "2026-09-25T01:33:30.512Z",
+  "target": "twtsdothnlfvbczzpdaj.supabase.co",
+  "scope": "Parallel HTTP RPC requests against synthetic staging fixtures; no learner data, inference or entitlement test",
+  "rounds": 3,
+  "parallelRequests": 8,
+  "checks": [
+    {
+      "name": "create_learning_cycle: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_cycle: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 1: exactly one cycle for request",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 1: correct parent links",
+      "passed": true
+    },
+    {
+      "name": "Round 1: exactly one session of each type",
+      "passed": true
+    },
+    {
+      "name": "Round 1: conflicting requests all returned",
+      "passed": true
+    },
+    {
+      "name": "Round 1: one payload wins; conflicting payload is rejected",
+      "passed": true
+    },
+    {
+      "name": "Round 1: conflict race persisted one record",
+      "passed": true
+    },
+    {
+      "name": "create_learning_cycle: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_cycle: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 2: exactly one cycle for request",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 2: correct parent links",
+      "passed": true
+    },
+    {
+      "name": "Round 2: exactly one session of each type",
+      "passed": true
+    },
+    {
+      "name": "Round 2: conflicting requests all returned",
+      "passed": true
+    },
+    {
+      "name": "Round 2: one payload wins; conflicting payload is rejected",
+      "passed": true
+    },
+    {
+      "name": "Round 2: conflict race persisted one record",
+      "passed": true
+    },
+    {
+      "name": "create_learning_cycle: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_cycle: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 3: exactly one cycle for request",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all parallel requests settled successfully",
+      "passed": true
+    },
+    {
+      "name": "create_learning_attempt: all retries return the same ID",
+      "passed": true
+    },
+    {
+      "name": "Round 3: correct parent links",
+      "passed": true
+    },
+    {
+      "name": "Round 3: exactly one session of each type",
+      "passed": true
+    },
+    {
+      "name": "Round 3: conflicting requests all returned",
+      "passed": true
+    },
+    {
+      "name": "Round 3: one payload wins; conflicting payload is rejected",
+      "passed": true
+    },
+    {
+      "name": "Round 3: conflict race persisted one record",
+      "passed": true
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "Delete fixture debate",
+      "passed": true
+    },
+    {
+      "name": "Verify dependent records removed",
+      "passed": true
+    },
+    {
+      "name": "Delete fixture identity",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

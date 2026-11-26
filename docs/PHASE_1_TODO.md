@@ -1,0 +1,361 @@
+# Phase 1 completion checklist
+
+Updated October 6, 2026. Scope: **Growth Phase 1 — complete the learning cycle**,
+not the older UI roadmap's foundations/accessibility phase.
+
+Check items only when the stated result is evidenced. Record the date, version,
+target environment and report/link alongside new passes. Source implementation,
+staging verification, curriculum approval and learner outcomes are separate.
+
+**Current status:** core implementation, staging SQL/runtime concurrency, v2 build,
+mocked browser checks and the simultaneous HTTP concurrency verifier passed. A
+complete unsupported-claim repair cycle passed in the staging pilot October 5:
+first response 4/10, coached revision 8/10 and linked reassessment 8/10. Phase 1
+remains open.
+
+**Next:** resume fresh counterargument validation after the Gemini provider
+recovers, then verify hosted learning off-mode writes/saved reads and finish the
+remaining ownership/event checks. The expected-stage guard was observed rejecting
+a premature live retry, and the simultaneous AI verifier passed. The two-account
+human opening exchange and Premium UI checks passed. Curriculum approval was given
+October 4; staging pilot deployment is Ready. The warrant linked reassessment
+remains exhausted after its audited recovery. Independent coach ratings and the
+seven-day learner pilot remain external gates.
+
+The evaluation service now makes one bounded model fallback for HTTP 502/503/504
+and records the model that actually scored an answer. This prevents a fallback
+score from being presented as directly comparable to a score from another model.
+The existing warrant reassessment remains capped and needs a documented operator
+recovery path or a new eligible test cycle; deployment of the fallback alone does
+not complete that cycle.
+
+Migration 021 and its operator script implement a one-time, audited fourth
+evaluation without deleting attempt history or changing the free-cycle allowance.
+Migration and SQL verification passed in staging October 5. The warrant recovery
+grant preserved three prior rows and one allowance, then its fourth evaluation also
+failed safely after 1.2 seconds; no completion event was emitted and no fifth retry
+is available. Failed-attempt persistence initially omitted the provider-attempt
+count; a follow-up fix records it for future diagnosis.
+
+### October 3 implementation work
+
+- [x] Apply migration 019 to staging: database lease/fencing and atomic AI-mode
+  turn insertion plus stage advancement. Transactional SQL assertions passed;
+  simultaneous HTTP verification remains below.
+- [x] Apply migration 020 to staging: content-free unavailable recommendations,
+  durable usefulness review queue and deduplicated seven-day cohort reporting.
+  Synthetic SQL checks passed, including pending follow-up and RLS/privileges.
+- [x] Run October 3 verification: 249 unit/API tests across 34 files, production
+  build with lint/type checks and 31 static pages; three synthetic calibration
+  scorer checks. These are technical checks, not coach calibration.
+- [x] Implement complete-provider-response checks and content-free failure context;
+  release leases on failed/disconnected requests so explicit retry can resume.
+- [x] Add current-stage prompt boundaries, including no premature closing during
+  cross-examination. One real-provider case passed on `8a41d68`; see below.
+- [x] Prepare the [pilot operations guide](phase-1/PILOT_OPERATIONS.md), held-out
+  calibration worksheet/scorer and simultaneous AI retry verifier. Empty calibration
+  data fails the gate; no coach ratings or learner outcomes are fabricated.
+- [x] Grant the user-designated Premium test account app-level access in staging.
+  No Supabase administrator privileges or verified payment records were created.
+- [x] Join the retained human invitation as the designated second participant;
+  PRO and CON openings are saved once each with distinct correct authors; CON
+  reload preserves both entries and shows PRO's rebuttal as the next stage.
+- [x] Deploy application commit `8a41d68` to staging Preview — GitHub Vercel status
+  and Vercel Ready independently verified October 3:
+  [Preview pbqftftkz](https://debate-master-pbqftftkz-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [x] Retest signed-in AI completion and saved coaching on `8a41d68`, October 4.
+  All nine entries survive reload once each; coaching and five scores are unchanged.
+  A synthetic Helpful signal returned the save acknowledgement. Independent row
+  readback and review-queue exercise remain open because the current Supabase
+  browser account cannot access staging.
+- [x] Observe two-client lease conflict on `8a41d68`: competing opening generation
+  rejected; SQL confirmed two saved turns and zero leases after completion.
+  This does not replace the simultaneous verifier below.
+- [x] Add local expected-stage guard following the stale-client retry observation:
+  stale requests return 409 before mutation/provider work. Twelve targeted tests
+  and typecheck passed October 4; older clients without the field stay compatible.
+- [x] Push expected-stage guard as `51b47b1` to staging; Vercel Ready verified
+  October 4 on [Preview 7mwdpeszz](https://debate-master-7mwdpeszz-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [x] Live-retest the expected-stage guard in staging, October 5. A premature retry
+  while the AI rebuttal lease was active returned the guarded “already running or
+  debate advanced” response; after lease expiry, the normal retry completed without
+  a duplicate turn. This validates the live guard behavior on a later compatible
+  staging deployment, rather than the original `51b47b1` hostname.
+
+Evidence: [October 3 engineering verification](evidence/phase-1-engineering-2026-10-03.json).
+
+## Completed foundation
+
+- [x] Implement owned `debate`, `drill` and `reassessment` session links, source
+  debate/turn, target competency and template provenance.
+- [x] Apply migrations 017 and 018 to staging — user-confirmed.
+- [x] Verify migration 017 ownership/linkage SQL — user-confirmed complete pass.
+- [x] Verify linked-session concurrency — [36 assertions and three cleanup checks](evidence/phase-1-staging-concurrency.json) passed.
+- [x] Implement the shared draft → response → coaching → revision → reassessment
+  runtime, targeted scores, free-cycle reservation and durable learning events.
+- [x] Verify runtime concurrency — [26 assertions and four cleanup checks](evidence/phase-1-staging-drill-runtime.json) passed, including duplicate claims and allowance protection.
+- [x] Revise all three draft templates to v2 with family-specific difficulty
+  guidance and distinct reassessment scenarios; update prompt to `targeted-coach-2`.
+- [x] Run v2 targeted tests — 34 learning/API tests, typecheck and lint passed.
+- [x] Commit and push implementation and v2 revisions to staging — `3f96ca9`
+  and `6f5d542`. Preview deployment confirmation is recorded below.
+
+## 1. Confirm the staging baseline — engineering/operator
+
+- [x] Verify the **entire** [migration 018 SQL suite](../supabase/tests/drill_runtime.sql)
+  finished without SQL errors on staging — user-confirmed October 2, 2026.
+  The blank `expect_error` helper result is expected. The suite rolls back its
+  fixtures; no further rerun is needed without a relevant change. Raw SQL output
+  was not independently inspected.
+- [x] Confirm October 2 Vercel Preview deployed `a75c2f4` — Ready status and staging
+  branch independently inspected October 2, 2026:
+  [Preview g5gv7pnti](https://debate-master-g5gv7pnti-joel-guzmans-projects-f8aa100e.vercel.app/).
+- [x] Set Preview variables `LEARNING_ROLLOUT=off` and
+  `LEARNING_PAID_ENABLED=false` and redeploy staging Preview — user-confirmed
+  October 2, 2026. Live behavior checks remain below.
+- [x] Verify no unapproved template versions are enabled — user confirmed
+  `LEARNING_APPROVED_TEMPLATES` is absent in Preview; missing defaults to an empty list.
+- [x] Run a fresh v2 production build — `npm run build` passed October 2, 2026,
+  including lint, type checking and generation of all 31 static pages. This local
+  working-tree build includes pending Sentry changes; it is not a deployment.
+- [x] Run fresh v2 desktop/mobile drill browser checks — October 2, 2026:
+  all six tests passed (three families × desktop/compact mobile). Production
+  build with mocked learning APIs; hosted authentication and real AI remain separate.
+
+### Live Preview smoke tests
+
+Evidence: [Preview smoke-test record](evidence/phase-1-preview-smoke.json).
+Initial checks used Preview `9tvzvzy5o`; post-credential-fix checks used `8bvsqrt9v`.
+The fresh streaming-fix retest used `g5gv7pnti` (`a75c2f4`):
+[AI retest evidence](evidence/phase-1-preview-ai-retest.json).
+Results below are scoped to the stated deployments, not production.
+
+- [x] Verify public homepage and pricing render, annual billing toggle works, and
+  debate/upgrade entry points redirect signed-out users to login.
+- [x] Verify anonymous learning GET denies access with “Sign in to practice.”
+  Browser HTTP status was not captured; this does not verify every write endpoint.
+- [x] Verify signed-in Free pricing state and upgrade entry point render.
+  Paid entitlement behavior and checkout were not exercised.
+- [x] Verify AI setup creates a debate and saves the learner's opening.
+- [x] Resolve the Preview Gemini authentication blocker — user added
+  `GEMINI_API_KEY` and redeployed; a fresh AI rebuttal succeeded on `8bvsqrt9v`.
+  Learner and AI rebuttals persisted after reload. Preserve the initial failure
+  and resolution in the evidence record.
+- [x] Verify human setup creates an invite and shows the waiting-for-opponent screen.
+  Invite was not sent; the test debate remains available for follow-up.
+- [x] Verify signed-in learning availability returns `available: false`, including
+  on `8bvsqrt9v` after redeployment.
+- [x] Complete the AI debate through closing and verify coaching/feedback persists
+  — October 2, 2026 on `8bvsqrt9v`. Learner/opponent closings, coaching summary,
+  strongest moment, priority improvement and all five scores survived reload;
+  no regeneration was required. Saved debate: `9b009696-f1fb-4a10-ba13-b461b10e5ce9`.
+- [x] Reproduce and fix the local client stream/refresh race. The turn stays locked
+  through refresh, transient text clears before stage changes, streamed text uses
+  its captured AI stage label, and missing SSE completion requires explicit retry.
+  Two regression tests fail on the prior implementation and pass with the fix.
+  Full unit/API suite passed (230 tests); production build passed.
+- [x] Commit/deploy the streaming fix and repeat a fresh Preview debate through
+  coaching — October 2, 2026, `a75c2f4` on `g5gv7pnti`. All nine expected transcript
+  entries rendered once before and after reload; coaching content and scores
+  (overall 5; evidence 4, rebuttal 5, rhetoric 6, argument strength 4) persisted.
+  No retries or transition error banners were observed. This is a single-browser
+  UI verification, not proof of server idempotency across clients.
+  Saved debate: `9fbc877f-33f7-44f5-b998-f5413befb719`.
+- [x] Check the saved overall score matches the rounded, equally weighted mean
+  in this smoke test: `round((4 + 5 + 6 + 4) / 4) = 5`. This observed result does
+  not replace rubric calibration or server-contract tests.
+- [x] Implement durable server idempotency for AI turns with migration 019 and
+  update the route to use it. Database assertions verify fencing, repeat commits,
+  ownership denial and atomic validation failure.
+- [x] Run `scripts/verify-ai-turn-concurrency.mjs` against staging. The fresh
+  runtime concurrency verifier returned `all tests passed: true`; this supplies the
+  simultaneous HTTP evidence that the earlier sequential SQL suite did not.
+- [ ] Diagnose interrupted provider streams from logs and verify recovery with
+  explicit retry in staging. In the October 3–4 run, navigation away did not
+  establish provider cancellation: the server completed the rebuttal. Retry from
+  the stale tab could act on the next AI stage; refresh recovered without duplicate
+  persisted entries. The local expected-stage fix and provider/log retest remain
+  separate. Preserve earlier duplicate UI entries and errors in the evidence.
+- [x] Verify the new stage-boundary prompt against real AI output on `8a41d68`:
+  cross-examination response had two paragraphs and no premature closing/verdict;
+  final closing occurred separately. This is one observed case, not calibration.
+- [x] Verify a second staging test participant joins and exchanges opening turns
+  on `g5gv7pnti`, October 3. UI reload and SQL confirm one PRO and one CON opening,
+  each with its correct author. Saved debate: `69ff5e9c-f699-4b91-b887-a08a5d9b2bf8`.
+  Full human debate/judging is outside this opening-exchange check.
+- [x] Verify existing premium entitlement UI on Preview `g5gv7pnti`, October 3:
+  the designated test account shows Active Subscription and Pro Analysis with
+  exact citations and download controls. The second account showed Free pricing.
+  This manual staging fixture does not verify checkout, audio or provider reconciliation.
+- [ ] Verify authenticated learning writes are rejected while rollout is off,
+  and owned saved cycles remain readable. The availability GET alone is insufficient.
+- [ ] Retain verification results and clean up synthetic sessions when follow-up
+  checks are complete; all four smoke-test debates are currently retained.
+
+**Exit:** version and environment are known, baseline checks pass, and the feature
+remains disabled until the next gates are ready. Do not repeat already-passed
+concurrency tests without a relevant schema/runtime change.
+
+## 2. Approve the revised curriculum — coach/product
+
+All three exact v2 versions approved for staging October 4 by project owner Joel
+Guzman. See the [curriculum review packet](phase-1/CURRICULUM_REVIEW.md).
+Paid learning remains disabled. `mzguzman77@gmail.com` was designated October 5 as
+the second independent coach and additional staging test account; blind ratings
+from both coaches remain pending.
+
+- [x] Review `counterargument-response-v2`: accurate opposing/source pairing,
+  strongest-reason response, supported comparison and justified concessions.
+- [x] Review `claim-evidence-warrant-v2`: explicit assumptions, alternative
+  explanations, and valid recognition that evidence may not support a claim.
+- [x] Review `unsupported-claim-repair-v2`: bounded fictional evidence, clear
+  separation from the original debate, and justified narrowing/qualification/
+  withdrawal rather than merely inserting “might.”
+- [x] Approve beginner/intermediate/advanced guidance and parallel reassessments
+  for each family; record reviewer, date, exact versions and any required edits.
+- [ ] Check approved transcript examples actually meet routing prerequisites.
+  Counterargument requires co-cited learner/opposing excerpts; warrants require
+  distinct claim/evidence excerpts. Test unavailable cases without inventing links.
+- [x] Preserve existing v1 cycles as readable and paused under the version guard,
+  as documented in the operations guide. No snapshot rewriting or v2 rescoring.
+
+**Exit:** explicit curriculum approval is recorded. The previous rubric approval
+and permission to revise code do not establish approval of the revised exercises.
+
+## 3. Validate real coaching in staging — engineering/coach
+
+- [x] After October 4 approval, save all three approved v2 template IDs and the two
+  designated staging test-user IDs in Vercel, scoped to Preview/staging only.
+  `LEARNING_ROLLOUT=pilot`; inherited Preview `LEARNING_PAID_ENABLED=false`
+  independently revealed/confirmed. Pilot redeployment `13XFDjgdXieS1woPcsPTau7y2cra`
+  is Ready; included user opened the warrant cycle. Excluded-user check pending.
+- [ ] Verify staging Gemini/service credentials, rate limits, deployed error capture
+  and an alert recipient. Keep keys and learner text out of reports.
+- [ ] Complete a real authenticated **counterargument** cycle: source → first
+  response → coaching → revision → linked reassessment → summary. An October 5
+  source debate correctly exercised direct response to parental-autonomy and
+  developmental-cliff objections, but feedback supplied only one learner citation,
+  so routing safely returned unavailable. Commit `7f0dba7` now requires paired
+  learner/opponent evidence for `rebuttalQuality`; 33 focused tests passed and the
+  staging Preview is Ready. Fresh debate `f5e9ec83-c9de-46c7-ad77-23396c875691`
+  preserves its learner opening but is paused at the opponent opening after repeated
+  Gemini failures. Resume by normal retry; do not duplicate or rewrite the source.
+- [ ] Complete the same real-service journey for **warrants**. Staging cycle
+  `3af71d41-e291-4d8d-a461-48b19fec9e78`: draft survived browser reconnect;
+  first response scored 8 after one saved-response retry; revision scored 9 after
+  two failed attempts and final permitted retry. Linked reassessment was submitted
+  with a separate hypothetical challenge, but all three provider attempts failed.
+  The answer survived reload and the retry cap removed the retry control. The first
+  reassessment failure was classified from live logs as Gemini HTTP 503 after 31.2s.
+  Do not mark the full cycle complete or reset attempts without an operator recovery
+  design. [Evidence](evidence/phase-1-engineering-2026-10-03.json).
+- [x] Complete the same real-service journey for **claim repair**, October 5, using
+  `mzguzman77@gmail.com`. Source debate
+  `2574e13d-025b-4dfa-9f01-fa786ec94c26` routed to
+  `unsupported-claim-repair-v2`; first response scored 4, coached revision 8 and
+  linked reassessment 8. The reassessment answer survived two failed evaluation
+  attempts and completed on the final standard retry, with no duplicate response.
+- [ ] Use separate eligible free test accounts where necessary to exercise all
+  families without bypassing the one-introductory-cycle rule.
+- [x] Verify one free pilot learner finishes a whole cycle with no intervening
+  upgrade block and no repeated allowance consumption. The October 5 claim-repair
+  cycle completed through linked reassessment under paid learning disabled.
+- [ ] Verify exact source/response quotations, targeted-only scores, version/model
+  provenance, null insufficient-evidence scores and no fabricated overall score.
+- [ ] Test refresh, navigation away, second-device resume and stale draft conflicts.
+- [ ] Test failed/invalid evaluations, lease expiry, duplicate clicks and bounded
+  retries; preserve answers and ensure failures do not count as completion.
+- [x] Apply and verify migration 021 in staging; grant the capped warrant response
+  one audited recovery. Three failed evaluation rows and the existing introductory
+  allowance were preserved before the fourth attempt. The attempt also failed and
+  remained capped, so the saved reassessment is still incomplete.
+- [ ] Verify owner isolation and deletion cleanup across runtime/content/events.
+- [ ] Inspect events: one completion per action, practice clicks never treated as
+  completions, and no transcript/response text in analytics.
+- [ ] Record all evaluation attempts, known token usage, unknown usage, latency
+  and failures. Do not equate a successful-call subtotal with a reconciled bill.
+- [ ] Remove synthetic fixtures and retain content-free verification reports.
+
+**Exit:** three real-service journeys and recovery/ownership checks pass. Mocked
+browser tests and database-only concurrency checks cannot substitute for these.
+
+## 4. Calibrate the targeted assessments — two coaches/evaluation owner
+
+- [x] Designate two coaches: project owner `jolman009@yahoo.com` and independent
+  reviewer `mzguzman77@gmail.com`. The blank 54-slot restricted worksheet was
+  generated at `/private/tmp/drill-calibration.json` on October 5; this records no ratings.
+- [ ] Prepare the proposed 54 held-out response examples across three families,
+  three difficulties and three quality bands, with two examples per combination.
+  Include insufficient-evidence cases; keep evaluation material out of tuning.
+- [ ] Obtain two independent ratings blind to AI output; retain original ratings,
+  adjudicated results and disagreement explanations in restricted storage.
+- [ ] Evaluate with recorded template/rubric/prompt/model versions. Review the
+  proposed threshold of at least 80% of valid target scores within one point of
+  adjudicated ratings **for each family**, plus insufficient-evidence classification.
+- [ ] Review disagreement by difficulty and response quality, source relevance,
+  feedback usefulness and reassessment comparability. Record limitations and a
+  coach decision; do not describe the small set as proof of educational effectiveness.
+
+## 5. Finish pilot measurement — engineering/product
+
+- [x] Implement durable, content-free tracking of unavailable recommendations
+  (migration 020 and recommendation service); deployed application behavior pending.
+- [x] Provide `learning_pilot_report` and `scripts/learning-pilot-report.mjs`: join
+  first-debate completers to linked completed cycles, deduplicate learners and report
+  seven-day matured/pending denominators. Staging synthetic SQL checks passed.
+- [ ] Define the denominator before enrollment and allow a full seven days of
+  follow-up. Report numerator, denominator and unavailable cases, not percentages alone.
+- [x] Add authenticated durable usefulness storage, a review queue with dispositions,
+  failed-save UI feedback, and incomplete-cycle counts with a daily review workflow
+  in the operations guide. Assign an operator and exercise the deployed workflow
+  before enrollment; incomplete cycles are not automatically proven abandonment.
+- [x] Record the initial scope as deterministic controlled v2 templates in the
+  operations guide. Model-generated exercise variations are excluded.
+
+## 6. Exercise release controls and run the learner pilot — operator/product
+
+- [ ] Verify an included pilot user can practice and an excluded user cannot start.
+  Included-user practice is verified by the completed `mzguzman77@gmail.com`
+  claim-repair cycle. `jolman009@gmail.com` was added to the Preview/staging
+  allowlist and deployment `CJyGTAQrN` reached Ready. The excluded-user half remains.
+- [ ] Exercise `pilot → off`: new activity is blocked, saved work remains readable,
+  and in-flight evaluation behavior is understood. Keep additive migrations.
+- [ ] Agree on pilot error/latency/cost thresholds, observation window, rollback
+  owner and conditions for stopping enrollment.
+- [ ] Enroll 20–30 target learners after technical and curriculum/quality gates pass.
+- [ ] Observe seven days per learner and report the proposed signal: at least 30%
+  of first-debate completers finish a drill plus linked reassessment.
+- [ ] Review abandonment, usefulness, failures and score disagreements. Record
+  whether to improve the drills, extend the pilot or proceed toward Phase 2.
+- [ ] Update the readiness record with results and explicit remaining limitations.
+
+## Paid and production rollout — separate conditional gates
+
+- [ ] Preserve Stripe reconciliation as **deferred, not passed**; no new Stripe
+  testing is scheduled without revisiting the existing scope decision.
+- [ ] Verify Google Play ownership/reconciliation and provider-specific entitlement
+  behavior before enabling paid learning. The free pilot does not prove paid parity.
+  - [x] Implement token-bound ownership, atomic RTDN event deduplication, stale-event
+    protection and profile entitlement-cache refresh in migration 022. Purchase
+    verification now claims a token for exactly one user; RTDN updates require that
+    existing owner and use re-fetched Publisher API state. Local billing tests,
+    TypeScript, lint and the production build pass on October 6, 2026.
+  - [ ] Apply migration 022 to staging, set `GOOGLE_PLAY_ENVIRONMENT=test`, deploy
+    the matching application code, and run `google_play_reconciliation.sql`.
+  - [ ] Authenticate the Pub/Sub push identity and complete a real Play license-test
+    purchase, renewal/cancellation, duplicate-delivery and cross-account denial run.
+- [ ] Before any production rollout, verify production migration state, reviewed
+  application version, environment settings, monitoring and rollback readiness.
+  Staging migration passes are not production deployment evidence.
+
+## Phase 1 exit decision
+
+- [ ] Record a **free-pilot validation** decision after sections 1–6 have evidence.
+  Do not mark the entire paid/production scope complete while those gates are deferred.
+- [ ] Confirm readiness to start Phase 2 skill profiles/transfer checks, or document
+  the specific Phase 1 remediation needed first. Keep practice completion distinct
+  from demonstrated improvement and transferable learning.
+
+References: [implementation plan](PHASE_1_DRILL_IMPLEMENTATION_PLAN.md),
+[rollout guide](PHASE_1_DRILL_ROLLOUT.md),
+[epic audit](../EPIC_IMPLEMENTATION_AUDIT.md).

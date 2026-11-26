@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { getStageLabel } from "@/lib/debate/state-machine";
 import { Tier } from "@/lib/billing/tier";
 import { trackEvent } from "@/lib/analytics";
+import { PracticeEntry } from "@/components/learning/practice-entry";
 
 interface FeedbackPanelProps {
   feedback: DebateFeedback;
@@ -59,33 +60,35 @@ export function FeedbackPanel({
   }, [sessionId]);
   const adapted = adaptFeedback(feedback);
   const [usefulness, setUsefulness] = useState<Usefulness>(null);
+  const [usefulnessError, setUsefulnessError] = useState<string | null>(null);
   const isPremium = tier === "premium";
 
   const handleUsefulness = async (rating: "helpful" | "not_helpful" | "reported") => {
-    setUsefulness(rating);
-    if (rating === "reported") {
-      trackEvent("feedback_reported", {
-        score: adapted.overallScore,
-        version: feedback.version ?? 1,
-      });
-    } else {
-      trackEvent("feedback_usefulness_rated", {
-        usefulness: rating,
-        score: adapted.overallScore,
-        version: feedback.version ?? 1,
-      });
-    }
+    setUsefulnessError(null);
     try {
-      await fetch("/api/feedback/usefulness", {
+      const result = await fetch("/api/feedback/usefulness", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          sessionId,
           usefulness: rating,
-          feedbackVersion: feedback.version ?? 1,
-          overallScore: adapted.overallScore,
         }),
       });
-    } catch {}
+      if (!result.ok) throw new Error("Rating not saved");
+      setUsefulness(rating);
+      if (rating === "reported") {
+        trackEvent("feedback_reported", {
+          score: adapted.overallScore,
+          version: feedback.version ?? 1,
+        });
+      } else {
+        trackEvent("feedback_usefulness_rated", {
+          usefulness: rating,
+          score: adapted.overallScore,
+          version: feedback.version ?? 1,
+        });
+      }
+    } catch { setUsefulnessError("Your rating was not saved. Please try again."); }
   };
 
   const rematchMotion = config?.topic || "";
@@ -265,6 +268,7 @@ export function FeedbackPanel({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 pt-1">
+          <PracticeEntry sessionId={sessionId}>
           {isPremium ? (
             <Link
               href={`/debate/new?motion=${encodeURIComponent(
@@ -293,6 +297,7 @@ export function FeedbackPanel({
               </span>
             </Link>
           )}
+          </PracticeEntry>
           {config && (
             <Link
               href={rematchHref}
@@ -381,6 +386,7 @@ export function FeedbackPanel({
           </UsefulnessButton>
         </div>
       </div>
+      {usefulnessError && <p role="alert">{usefulnessError}</p>}
       {usefulness && (
         <p role="status" aria-live="polite" className="motion-status text-sm text-stage-muted">
           Thanks. Your feedback was recorded.

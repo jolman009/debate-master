@@ -95,6 +95,15 @@ export function PlayUpgradeButton({
         {restoring ? "Restoring purchase…" : "Restore Google Play purchase"}
       </button>
 
+      <button
+        type="button"
+        onClick={handleRestore}
+        disabled={loading || restoring}
+        className="w-full text-center text-sm text-sky-300 underline underline-offset-4 disabled:opacity-50"
+      >
+        {restoring ? "Restoring purchase…" : "Restore Google Play purchase"}
+      </button>
+
       {errorMsg && (
         <p role="alert" className="text-center text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded p-1.5">
           {errorMsg}

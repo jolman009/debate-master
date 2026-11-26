@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { reportError } from "@/lib/observability";
-
+import * as Sentry from "@sentry/nextjs";
 /**
  * Top-level error boundary for the App Router. Catches rendering errors that
  * escape page-level handling, reports them, and offers a recovery action.
@@ -15,7 +14,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    reportError(error, { digest: error.digest, boundary: "global-error" });
+    Sentry.captureException(error);
   }, [error]);
 
   return (

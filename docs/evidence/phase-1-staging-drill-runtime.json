@@ -1,0 +1,130 @@
+{
+  "checkedAt": "2026-09-25T10:59:37.164Z",
+  "target": "twtsdothnlfvbczzpdaj.supabase.co",
+  "scope": "Synthetic runtime/allowance concurrency; no inference or payment verification",
+  "checks": [
+    {
+      "name": "learning_open: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "One source wins the lifetime free reservation; other source denied",
+      "passed": true
+    },
+    {
+      "name": "All successful opens return the same cycle",
+      "passed": true
+    },
+    {
+      "name": "Exactly one cycle and one allowance",
+      "passed": true
+    },
+    {
+      "name": "Exactly one drill runtime",
+      "passed": true
+    },
+    {
+      "name": "learning_view: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "learning_submit: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "initial: one evaluation claim across eight retries",
+      "passed": true
+    },
+    {
+      "name": "initial: one response ID",
+      "passed": true
+    },
+    {
+      "name": "learning_finish: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "initial: exactly one completion commit",
+      "passed": true
+    },
+    {
+      "name": "learning_submit: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "revision: one evaluation claim across eight retries",
+      "passed": true
+    },
+    {
+      "name": "revision: one response ID",
+      "passed": true
+    },
+    {
+      "name": "learning_finish: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "revision: exactly one completion commit",
+      "passed": true
+    },
+    {
+      "name": "learning_reassess: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "Reassessment retries return one session",
+      "passed": true
+    },
+    {
+      "name": "learning_submit: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "reassessment: one evaluation claim across eight retries",
+      "passed": true
+    },
+    {
+      "name": "reassessment: one response ID",
+      "passed": true
+    },
+    {
+      "name": "learning_finish: every HTTP request returned",
+      "passed": true
+    },
+    {
+      "name": "reassessment: exactly one completion commit",
+      "passed": true
+    },
+    {
+      "name": "One drill start and one completed cycle",
+      "passed": true
+    },
+    {
+      "name": "Exactly three submitted responses",
+      "passed": true
+    },
+    {
+      "name": "No extra allowance consumed by revision or reassessment",
+      "passed": true
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "Remove fixture debates",
+      "passed": true
+    },
+    {
+      "name": "Verify dependent runtime cleanup",
+      "passed": true
+    },
+    {
+      "name": "Remove fixture identity",
+      "passed": true
+    },
+    {
+      "name": "Verify allowance cleanup",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

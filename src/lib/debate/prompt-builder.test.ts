@@ -167,5 +167,7 @@ describe("FEEDBACK_SYSTEM_PROMPT", () => {
       expect(FEEDBACK_SYSTEM_PROMPT).toContain(key);
     }
     expect(FEEDBACK_SYSTEM_PROMPT).toContain("JSON");
+    expect(FEEDBACK_SYSTEM_PROMPT).toContain("include both an exact excerpt from the USER response");
+    expect(FEEDBACK_SYSTEM_PROMPT).toContain("an exact excerpt from the earlier AI turn");
   });
 });

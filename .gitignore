@@ -75,3 +75,6 @@ next-env.d.ts
 /twa/manifest-checksum.txt
 /twa/store_icon.png
 
+
+# Sentry Config File
+.env.sentry-build-plugin

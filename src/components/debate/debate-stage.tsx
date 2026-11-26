@@ -37,6 +37,7 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
     isMyTurn,
     isAiTurn,
     streamedText,
+    streamedStageLabel,
     isStreaming,
     streamError,
     clearStreamError,
@@ -342,7 +343,7 @@ export function DebateStage({ debateId, persona, tier = "free" }: DebateStagePro
           <AiStreamingTurn
             text={streamedText}
             personaName={persona!.displayName}
-            stageLabel={stageLabel}
+            stageLabel={streamedStageLabel}
           />
         )}
 

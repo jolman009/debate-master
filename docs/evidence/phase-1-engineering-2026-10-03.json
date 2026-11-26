@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-03",
+  "status": "deployed to Preview; release gates remain open",
+  "stagingProject": "twtsdothnlfvbczzpdaj",
+  "migrations": {
+    "019": "Applied through staging SQL Editor; atomic_ai_turns.sql returned passed=true; fixtures rolled back",
+    "020": "Applied through staging SQL Editor; learning_pilot_measurement.sql returned passed=true; fixtures rolled back"
+  },
+  "localVerification": {
+    "unitApiTests": 249,
+    "testFiles": 34,
+    "productionBuild": "passed with lint, types and 31 static pages; includes unrelated pending Sentry files",
+    "calibrationScorer": "Three synthetic harness checks passed: empty rejected, complete synthetic accepted, fractional score rejected; not coach calibration",
+    "scriptSyntax": "All three new scripts passed node --check"
+  },
+  "previewPrerequisite": "SUPABASE_SERVICE_ROLE_KEY is configured for Preview; value not revealed",
+  "premiumFixture": {
+    "grant": "User-designated account profile set to active with no expiry; staging only",
+    "ui": "Preview g5gv7pnti: designated premium account shows Active Subscription and Pro Analysis with citations and download buttons; designated second account showed Free pricing. Download/audio/provider reconciliation not exercised.",
+    "scope": "Manual premium fixture; not Supabase administration or verified provider reconciliation"
+  },
+  "humanFixture": {
+    "debateId": "69ff5e9c-f699-4b91-b887-a08a5d9b2bf8",
+    "join": "Second participant joined; CON waiting state verified",
+    "opening": "PRO opening submitted and visible in other tab",
+    "exchange": "Passed on g5gv7pnti: PRO and CON openings saved; SQL confirms one row per opening stage and distinct correct authors; both openings survive CON reload, active stage rebuttal_pro_1. Full human debate/judge not exercised."
+  },
+  "remaining": [
+    "Warrant reassessment blocked at its enforced three-attempt limit after provider failures; establish safe operator recovery before marking cycle complete",
+    "Authenticated retest of deployed 51b47b1; controlled provider interruption and recovery with logs",
+    "Simultaneous AI HTTP retry verifier requires staging CLI credentials",
+    "Hosted learning off-mode writes/saved reads and usefulness review queue readback",
+    "Three real drill journeys after pilot redeployment and stable-host sign-in",
+    "Two independent coach ratings and held-out examples",
+    "20\u201330 learner pilot with full seven-day observation",
+    "Paid-provider reconciliation and production release remain separate"
+  ],
+  "deployment": {
+    "commit": "8a41d68060f5ecdc0717298685a074ae8fbac324",
+    "url": "https://debate-master-pbqftftkz-joel-guzmans-projects-f8aa100e.vercel.app",
+    "vercelDeployment": "AqAuAUcgAgeyKUC4yQ1kwG2Mzeoq",
+    "verification": "GitHub Vercel status success and Vercel UI Ready on staging independently observed"
+  },
+  "lastVerified": "2026-10-04",
+  "aiPreviewRetest": {
+    "debateId": "c6b0c306-a508-499e-a7d2-7670d807175e",
+    "commit": "8a41d68",
+    "completed": "2026-10-04",
+    "transcript": "Authenticated debate API and UI reload confirm nine saved entries, each stage/role once; final stage complete and assessment_status valid. Lease count not rechecked after completion.",
+    "feedback": {
+      "overall": 6,
+      "evidence": 4,
+      "rebuttal": 6,
+      "rhetoric": 7,
+      "argumentStrength": 5,
+      "roundedMean": 6,
+      "reload": "Coaching summary, strongest moment, priority improvement, citations and five scores unchanged; no regeneration."
+    },
+    "stageBoundary": "Cross-examination response comprised two paragraphs, without premature closing or verdict; closing occurred in closing_ai. One observed real-provider case, not calibration.",
+    "twoClientConflict": "Second browser client was refused while opening AI lease was active. SQL observed opening_ai/1 turn/1 lease followed by rebuttal_user_1/2 turns/0 leases.",
+    "recovery": "Navigation away during rebuttal did not establish cancellation: server subsequently persisted one rebuttal and advanced. Explicit Retry on a stale client could target the next AI stage with an outdated label. Refresh recovered; provider-abort/log diagnosis remains open.",
+    "usefulness": "Synthetic Helpful signal acknowledged as recorded. UI acknowledgement follows successful server upsert. Database row readback/review workflow not independently verified; current Supabase browser account redirects away from staging to a different organization."
+  },
+  "localFollowup": {
+    "date": "2026-10-04",
+    "change": "AI requests carry expectedStage; mismatched stages return 409 before any lease, commit or provider call. Older clients without the field remain compatible.",
+    "verification": "12 targeted route/hook tests, TypeScript check and production build passed; build includes unrelated pending Sentry files",
+    "deployment": "51b47b1 pushed to staging; Vercel Ready independently observed October 4. Authenticated retest pending sign-in on new hostname.",
+    "url": "https://debate-master-7mwdpeszz-joel-guzmans-projects-f8aa100e.vercel.app"
+  },
+  "curriculumApproval": {
+    "date": "2026-10-04",
+    "reviewer": "Project owner Joel Guzman",
+    "decision": "Explicit approval of all three exact v2 templates, difficulty guidance and reassessments for staging with paid learning disabled",
+    "record": "../phase-1/CURRICULUM_REVIEW.md",
+    "calibration": "Second independent coach and actual blind ratings still pending"
+  },
+  "stagingPilot": {
+    "scope": "Preview environment, staging branch only",
+    "rollout": "pilot",
+    "approvedTemplates": [
+      "counterargument-response-v2",
+      "claim-evidence-warrant-v2",
+      "unsupported-claim-repair-v2"
+    ],
+    "accounts": "Two user-designated staging test accounts; UUIDs configured in Vercel, not copied into evidence",
+    "paidEnabled": false,
+    "deploymentId": "13XFDjgdXieS1woPcsPTau7y2cra",
+    "url": "https://debate-master-l84oalp0s-joel-guzmans-projects-f8aa100e.vercel.app",
+    "status": "Vercel Ready October 4; stable-host authenticated GET reaches recommendation logic. Current smoke source correctly unavailable; prior 9fbc877f source offers warrant practice."
+  },
+  "warrantJourney": {
+    "cycleId": "3af71d41-e291-4d8d-a461-48b19fec9e78",
+    "sourceDebateId": "9fbc877f-33f7-44f5-b998-f5413befb719",
+    "template": "claim-evidence-warrant-v2",
+    "date": "2026-10-05",
+    "draftResume": "464-character synthetic response recovered unchanged after browser reconnect; Draft saved visible",
+    "status": "Drill completed (initial 8, revision 9); linked reassessment submitted but three provider attempts failed. Saved answer preserved and retry cap enforced. Full cycle not complete.",
+    "initialScore": 8,
+    "recovery": "First provider evaluation returned 502 after 25.8 seconds in Vercel logs. Saved-response retry succeeded; authenticated GET shows exactly one initial response with attempts=2 and status=evaluated. Provider-specific cause was not logged.",
+    "provenance": {
+      "model": "gemini-3.5-flash",
+      "templateVersion": "claim-evidence-warrant-v2",
+      "promptVersion": "targeted-coach-2",
+      "rubricVersion": "debate-anchors-1",
+      "difficulty": "intermediate",
+      "sessionFormat": "drill"
+    },
+    "revisionRecovery": "Final permitted retry succeeded after two provider failures; UI displays 8 to 9 within-exercise comparison and Drill completed. Earlier failures preserved.",
+    "revisionScore": 9,
+    "reassessmentRecovery": "First reassessment failure independently diagnosed from Vercel logs: providerStatus=503, failureCategory=provider_unavailable, latencyMs=31236. Second and third attempts also failed; UI after reload says three attempts failed and no retry control. Their exact causes were not independently classified.",
+    "exit": "Requires an operator recovery design or new eligible test cycle after provider reliability improves; no manual attempt-count reset performed."
+  },
+  "providerDiagnostics": {
+    "date": "2026-10-05",
+    "change": "Log only allowlisted numeric HTTP status, fixed failure category and elapsed time; no raw provider message/name/body",
+    "verification": "Seven evaluation orchestration tests and typecheck passed",
+    "deployment": "9d90e70 pushed to staging; GitHub Vercel success and Vercel Ready verified October 5; 503 classification observed in live logs.",
+    "url": "https://debate-master-6cwxlib5e-joel-guzmans-projects-f8aa100e.vercel.app"
+  }
+}

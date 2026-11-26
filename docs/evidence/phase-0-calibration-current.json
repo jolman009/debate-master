@@ -1,0 +1,132 @@
+{
+  "total": 72,
+  "ready": 0,
+  "overall": {
+    "samples": 0,
+    "dimensions": {
+      "argumentStrength": null,
+      "evidenceUsage": null,
+      "rebuttalQuality": null,
+      "rhetoricalSkill": null
+    }
+  },
+  "subgroups": {
+    "difficulty": {
+      "beginner": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "intermediate": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "advanced": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      }
+    },
+    "topic": {
+      "education": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "technology": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "environment": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "public_policy": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      }
+    },
+    "stance": {
+      "pro": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "con": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      }
+    },
+    "quality": {
+      "low": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "medium": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      },
+      "high": {
+        "samples": 0,
+        "dimensions": {
+          "argumentStrength": null,
+          "evidenceUsage": null,
+          "rebuttalQuality": null,
+          "rhetoricalSkill": null
+        }
+      }
+    }
+  },
+  "gate": false
+}

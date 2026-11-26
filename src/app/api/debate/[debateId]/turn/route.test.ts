@@ -62,6 +62,30 @@ describe("atomic AI turn orchestration", () => {
     await (await request({}, controller.signal)).text();
     expect(m.rpc.mock.calls.some(([name]) => name === "commit_ai_debate_turn")).toBe(false);
   });
+  it("discards a stream the provider breaks partway, reports why, and lets a retry succeed", async () => {
+    m.stream.mockImplementationOnce(async function* () {
+      yield { text: "Half an ans", candidates: [{}] };
+      throw Object.assign(new Error("PRIVATE PROVIDER PAYLOAD"), { status: 503 });
+    });
+    const failed = await (await request()).text();
+    expect(failed).toContain('"error"'); expect(failed).not.toContain('"done":true');
+    expect(m.rpc.mock.calls.some(([name]) => name === "commit_ai_debate_turn")).toBe(false);
+    expect(m.rpc).toHaveBeenLastCalledWith("release_ai_debate_turn", expect.anything());
+    expect(m.report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({
+      phase: "stream", providerStatus: 503, model: "test", chunks: 1, partialChars: 11,
+    }));
+    expect(JSON.stringify(m.report.mock.calls)).not.toContain("PRIVATE PROVIDER PAYLOAD");
+    expect(JSON.stringify(m.report.mock.calls)).not.toContain("Half an ans");
+
+    m.rpc.mockClear();
+    expect(await (await request({ expectedStage: "opening_ai" })).text()).toContain('"done":true');
+    expect(m.rpc).toHaveBeenCalledWith("commit_ai_debate_turn", expect.objectContaining({ p_content: "Complete answer" }));
+  });
+  it("reports a provider that fails before streaming as a start failure", async () => {
+    m.stream.mockRejectedValue(Object.assign(new Error("x"), { status: 429 }));
+    await (await request()).text();
+    expect(m.report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ phase: "start", providerStatus: 429, chunks: 0 }));
+  });
   it("releases a failed provider attempt without exposing its message", async () => {
     m.stream.mockRejectedValue(new Error("PRIVATE PROVIDER PAYLOAD"));
     expect(await (await request()).text()).not.toContain("PRIVATE PROVIDER PAYLOAD");

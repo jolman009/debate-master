@@ -1,5 +1,8 @@
 # Phase 1–5 Epic Implementation Audit
 
+> Kept as the UX evidence record. Open acceptance work from this audit is tracked as Track UX in [docs/ROADMAP_IMPLEMENTATION_PLAN.md](docs/ROADMAP_IMPLEMENTATION_PLAN.md).
+
+
 **Updated:** October 2, 2026
 
 **Source:** [High-level implementation overview](High-level%20implementation%20overview.md)

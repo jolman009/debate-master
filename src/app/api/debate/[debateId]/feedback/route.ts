@@ -13,7 +13,7 @@ import {
   FEEDBACK_SYSTEM_PROMPT,
   JUDGE_SYSTEM_PROMPT,
 } from "@/lib/debate/prompt-builder";
-import { isMeasuredScore, normalizeFeedbackResult } from "@/lib/debate/feedback";
+import { isMeasuredScore, normalizeFeedbackResult, rebuttalAiQuoteCheck } from "@/lib/debate/feedback";
 import { extractJson, normalizeJudgeResult } from "@/lib/debate/judge";
 import { DebateConfig, DebateTurn } from "@/lib/debate/types";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
@@ -144,6 +144,7 @@ export async function POST(
       model: text.model, sessionFormat: `ai:${config.rebuttalCycles}:${config.crossExamEnabled}`,
       difficulty: config.difficulty, evaluatedAt: new Date().toISOString(),
       latencyMs: Date.now() - started, inputTokens: text.inputTokens, outputTokens: text.outputTokens,
+      rebuttalAiQuotes: rebuttalAiQuoteCheck(text.text, turns as DebateTurn[]),
     };
 
     // Save feedback to debate — ownership filter here too so a stolen

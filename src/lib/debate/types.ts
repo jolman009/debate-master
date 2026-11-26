@@ -191,6 +191,8 @@ export interface EvaluationProvenance {
   latencyMs: number;
   inputTokens: number | null;
   outputTokens: number | null;
+  /** Content-free count of AI quotes the evaluator offered for rebuttalQuality, and how many were exact. */
+  rebuttalAiQuotes?: { offered: number; kept: number };
 }
 
 export interface DebateFeedbackV2 {

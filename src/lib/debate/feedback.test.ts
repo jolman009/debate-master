@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adaptFeedback, normalizeFeedbackResult } from "./feedback";
+import { adaptFeedback, normalizeFeedbackResult, rebuttalAiQuoteCheck } from "./feedback";
 import { DebateFeedbackV1, DebateTurn } from "./types";
 
 const turns: DebateTurn[] = [
@@ -131,5 +131,24 @@ describe("normalizeFeedbackResult", () => {
     expect(result?.overallScore).toBe(7);
     expect(result?.summary).toBe("Solid argument development with clear structure.");
     expect(result?.rubric.rhetoricalSkill.score).toBe(7);
+  });
+});
+
+describe("rebuttalAiQuoteCheck", () => {
+  const t = [
+    { id: "a1", role: "ai", content: "Phones distract students in class." },
+    { id: "u1", role: "user", content: "Teachers can set rules." },
+  ] as DebateTurn[];
+  const out = (evidence: unknown[]) => JSON.stringify({ version: 2, rubric: { rebuttalQuality: { evidence } } });
+  it("counts exact and inexact AI quotes without counting user quotes", () => {
+    expect(rebuttalAiQuoteCheck(out([
+      { turnId: "a1", excerpt: "Phones distract students in class." },
+      { turnId: "a1", excerpt: "Phones distract kids." },
+      { turnId: "u1", excerpt: "Teachers can set rules." },
+    ]), t)).toEqual({ offered: 2, kept: 1 });
+  });
+  it("reports zero when the evaluator cites no AI quote or returns bad JSON", () => {
+    expect(rebuttalAiQuoteCheck(out([{ turnId: "u1", excerpt: "Teachers can set rules." }]), t)).toEqual({ offered: 0, kept: 0 });
+    expect(rebuttalAiQuoteCheck("not json", t)).toEqual({ offered: 0, kept: 0 });
   });
 });

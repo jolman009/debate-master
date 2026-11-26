@@ -87,6 +87,7 @@ depends on it. In parallel, one release action (R1) and the UX acceptance debt
 - **R2 closed (Nov 26, 2026):** production Supabase had only migration 022 applied; 017–021 were missing, while the production deploy of `e5d5480` (Nov 26, 10:52 UTC) already called `claim_ai_debate_turn` from 019. The operator applied 017, 018, 019, 020 and 021 in order through the SQL Editor at about 11:25 UTC. A presence check of one unique table or function per migration now returns true for 017–022. The Supabase Migrations page stays empty because migrations are applied through the SQL Editor, not the CLI. Lesson: apply a migration to production **before** merging code that needs it to `main`.
 - **R3 closed for production (Nov 26, 2026):** production `SentryExampleAPIError` and `SentryExampleFrontendError` were both captured, and the Sentry alert email reached the operator. The staging check was skipped as lower priority.
 - **R4 closed (Nov 26, 2026):** Stripe test mode has no webhook destinations, so the temporary staging destination is already gone. The single live-mode destination does not select `product.created`.
+- **R5 closed (Nov 26, 2026):** staging smoke-test debates `9b009696…`, `9fbc877f…` and `69ff5e9c…` deleted (cascade removes turns, invites and scores); a follow-up select returns 0 rows. Retained on purpose: `f5e9ec83…` (G1-3.1), `3af71d41…` (warrant cycle) and `2574e13d…` (completed claim-repair cycle). Evidence reports in `docs/evidence/` are kept.
 - **R6 checked (Nov 26, 2026):** `main` and `staging` both at `e5d5480`.
 
 ---

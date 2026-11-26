@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { learningEnabled } from "@/lib/learning/flags";
+import { learningEnabled, learningGate } from "@/lib/learning/flags";
 import { databaseResult, LearningError, openCycle, ownedRuntime, readCycle, recommendation, submitResponse } from "@/lib/learning/service";
 import type { ResponseKind } from "@/lib/learning/runtime-types";
 import { reportError } from "@/lib/observability";
@@ -23,7 +23,9 @@ async function handler(request: Request, { params }: Context) {
       const limit = await checkRateLimit("ai", user.id);
       if (!limit.success) return NextResponse.json({ error: "Please wait before trying again." }, { status: 429, headers: { "Retry-After": String(limit.retryAfter) } });
     }
-    if (!write && path.length === 1 && path[0] === "cycles" && !learningEnabled(user.id)) return NextResponse.json({ available: false });
+    if (!write && path.length === 1 && path[0] === "cycles" && !learningEnabled(user.id))
+      // reason and userId describe only the signed-in user, to make rollout setup checkable.
+      return NextResponse.json({ available: false, reason: learningGate(user.id), userId: user.id });
     const db = createServiceClient();
     let body: Record<string, unknown> = {};
     if (write) {
@@ -40,7 +42,7 @@ async function handler(request: Request, { params }: Context) {
         if (!uuid(debateId)) throw new LearningError("Expected debate ID.");
         const r = await recommendation(db, user.id, debateId);
         return NextResponse.json({ available: Boolean(r.existingCycleId || r.recommendation), cycleId: r.existingCycleId,
-          title: r.recommendation?.exercise.title, competency: r.recommendation?.exercise.competency });
+          title: r.recommendation?.exercise.title, competency: r.recommendation?.exercise.competency, reason: r.reason });
       }
       keys("debateId", "requestId");
       if (request.method !== "POST" || !uuid(body.debateId) || !uuid(body.requestId)) throw new LearningError("Expected debate and request IDs.");

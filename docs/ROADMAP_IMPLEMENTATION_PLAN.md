@@ -136,6 +136,13 @@ of `PHASE_1_TODO.md`.
 | G1-3.9 | Record every evaluation attempt with token usage (known and unknown), latency and failures. A successful-call subtotal is not a reconciled bill. | S |
 | G1-3.10 | **Provider resilience** (new, from repeated Gemini 502/503 failures): decide whether a second provider or a longer backoff is needed before enrolling learners. | M |
 
+**G1-3 status log**
+
+- **Pilot access fix (Nov 26, 2026):** the second staging account was sent to Pricing because it was not in `LEARNING_PILOT_USERS`. The cycles endpoint now returns `reason` and `userId` when practice is unavailable. Env changes reach the staging link only after the **`staging`** deployment is redeployed. Redeploying `main` does not update it.
+- **G1-3.1 completed (Nov 27, 2026):** a real counterargument cycle `7a6a3891-…` was completed on staging by the second account, sourced from a `coach-4` debate. It replaces the stalled `f5e9ec83-…` plan. The G1-3.4 checks (exact quotes, targeted-only score, provenance, null insufficient-evidence score) are still open and will be run in one read-only pass across all G1-3 cycles.
+- **G1-3.2 completed (Nov 28, 2026):** a real warrant cycle `a9b0eccf-…` was completed on staging by a third account. The debate's lowest score was rebuttal, so the router offered counterargument first. To reach the warrant drill without spending the account's one introductory cycle, `LEARNING_APPROVED_TEMPLATES` (Preview) was set to `claim-evidence-warrant-v2` alone for this run, then restored. This is a test-only workaround. The routing rule ("lowest eligible score wins") is unchanged.
+- **G1-3.3 met (Nov 28, 2026):** each family ran on its own free account (counterargument, warrant; claim repair earlier on `2574e13d-…`), and none bypassed the one-introductory-cycle rule.
+
 ### G1-4. Calibration (two coaches)
 
 | ID | Item | Effort |

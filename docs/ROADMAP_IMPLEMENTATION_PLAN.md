@@ -157,6 +157,9 @@ of `PHASE_1_TODO.md`.
   - Every evaluation attempt is a `learning_evaluations` row with its outcome and usage. Usage covers model, provider attempts (including same-provider fallback), input/output/thinking/total tokens (`null` when the provider omits them, never 0) and latency. Audited live: every attempt had known tokens and latency.
   - Failure attempts now also record a content-free `failureCategory` and `providerStatus` in usage, so failures are countable from the database, not only from Sentry.
   - A token subtotal from successful calls is not a reconciled bill. Provider-side billing must be compared separately before any cost claim.
+- **G1-3.10 decided (Nov 28, 2026, Joel): keep the current setup, with a stop rule.** No second provider before enrolment.
+  - **Existing protection:** a 503/502/504 on the primary Gemini model falls back once to a second Gemini model. A failed grading keeps the learner's answer and allows up to 3 tries. An operator can grant one audited extra try (021). All live gradings so far succeeded on the first provider attempt.
+  - **Stop rule for G1-6:** each week, count `learning_evaluations` by outcome. If more than 5% of attempts that week end `failed` (provider failures, by `usage.failureCategory`), pause new pilot enrolment and add a second provider before resuming. A single outage day above the threshold is reviewed, not automatically a stop.
 
 ### G1-4. Calibration (two coaches)
 

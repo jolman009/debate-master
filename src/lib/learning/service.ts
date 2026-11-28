@@ -143,6 +143,7 @@ export async function submitResponse(db: SupabaseClient, userId: string, session
       ? rawStatus : undefined;
     const category = provider?.name === "AbortError" || provider?.name === "TimeoutError"
       ? "timeout_or_abort" : status === 429 ? "rate_limit" : status && status >= 500 ? "provider_unavailable" : "provider_error";
+    usage = { ...usage, failureCategory: category, providerStatus: status ?? null };
     reportError(new Error("Learning evaluation failed"), {
       route: "learning/responses", sessionId, providerStatus: status,
       failureCategory: category, providerAttempts, latencyMs: Date.now() - start,

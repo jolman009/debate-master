@@ -52,7 +52,7 @@ describe("evaluation orchestration", () => {
     await expect(submitResponse(client, "owner", "session", input)).rejects.toMatchObject({ status: 502 });
     expect(report).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ providerStatus: 503, failureCategory: "provider_unavailable", latencyMs: expect.any(Number) }));
     expect(rpc).toHaveBeenLastCalledWith("learning_finish", expect.objectContaining({
-      p_usage: expect.objectContaining({ providerAttempts: 2 }),
+      p_usage: expect.objectContaining({ providerAttempts: 2, failureCategory: "provider_unavailable", providerStatus: 503 }),
     }));
     expect(JSON.stringify(report.mock.calls)).not.toMatch(/PRIVATE|My answer/);
   });
